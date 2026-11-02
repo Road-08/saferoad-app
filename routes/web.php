@@ -2,11 +2,12 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\IdentityVerificationController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    if (! Auth::check()) {
+    if (!Auth::check()) {
         return redirect()->route('login');
     }
 
@@ -111,4 +112,21 @@ Route::middleware('auth')->group(function () {
                 'Area petugas keamanan SafeRoad.',
         ]);
     })->name('security.dashboard');
+
+    // Pengelolaan profil pengguna.
+    Route::get('/profile', [
+        ProfileController::class,
+        'show',
+    ])->name('profile.show');
+
+    Route::put('/profile', [
+        ProfileController::class,
+        'update',
+    ])->name('profile.update');
+
+    // Persetujuan penggunaan data gender untuk statistik.
+    Route::patch('/profile/consent', [
+        ProfileController::class,
+        'updateConsent',
+    ])->name('profile.consent.update');
 });
