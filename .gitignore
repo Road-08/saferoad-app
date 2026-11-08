@@ -59,3 +59,10 @@ Homestead.json
 .phpactor.json
 auth.json
 origin/main
+
+.agents/
+.claude/
+.codex/
+.ai/
+.mcp.json
+boost.json

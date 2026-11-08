@@ -70,9 +70,10 @@
         .catatan { font-size: 10px; text-align: center; color: #5b7aa5; margin-top: 4px; opacity: .8; }
 
         .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: #fff; border-top: 1px solid var(--biru-sedang); display: flex; justify-content: space-around; padding: 8px 0; z-index: 1000; }
-        .nav div { text-align: center; font-size: 11px; color: #5b7aa5; padding: 4px 10px; border-radius: 12px; }
-        .nav div.aktif { background: var(--biru-muda); color: var(--biru-tua); font-weight: bold; }
-        .nav div span { display: block; font-size: 18px; }
+        .nav div, .nav a { text-align: center; font-size: 11px; color: #5b7aa5; padding: 4px 10px; border-radius: 12px; }
+        .nav a { text-decoration: none; }
+        .nav div.aktif, .nav a.aktif { background: var(--biru-muda); color: var(--biru-tua); font-weight: bold; }
+        .nav div span, .nav a span { display: block; font-size: 18px; }
     </style>
 </head>
 <body>
@@ -117,9 +118,13 @@
 
         <div class="legenda-baris">
             <span>&#128249; CCTV</span>
-            <span>&#128161; Lampu Jalan</span>
-            <span>&#128737; Pos Aman</span>
+            <span>&#128161; Penerangan</span>
+            <span>&#128737; Pos keamanan</span>
+            <span>&#11093; Titik aman</span>
+            <span>&#128308; Titik rawan</span>
         </div>
+
+        <div id="mapStatus" class="catatan" role="status" aria-live="polite">Memuat data peta...</div>
 
         <div class="pos">
             <small>POS AMAN TERDEKAT</small>
@@ -136,7 +141,7 @@
 
     <div class="nav">
         <div><span>&#128739;</span>Rute</div>
-        <div class="aktif"><span>&#128737;</span>Keamanan</div>
+        <a class="aktif" href="{{ route('keamanan') }}"><span>&#128737;</span>Keamanan</a>
         <div><span>&#128221;</span>Laporan</div>
         <div><span>&#128105;</span>Perempuan</div>
         <div><span>&#128100;</span>Akun</div>
@@ -145,7 +150,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // ===== DATA DUMMY - nanti diganti data dari endpoint Back end =====
+    // TODO SR-13: skor dan faktor keamanan tetap menggunakan data dummy.
     const skorRute = {
         skor: 82,
         faktor: [
@@ -155,22 +160,6 @@
             { nama: 'Laporan Kejadian',   nilai: 72 }
         ]
     };
-    const lokasiUser = { lat: -7.3160, lng: 112.7290 };
-    const tujuan     = { lat: -7.3125, lng: 112.7255, nama: 'Telkom University' };
-
-    const titik = [
-        { nama: 'CCTV Simpang Ketintang', jenis: 'cctv',  lat: -7.3152, lng: 112.7280 },
-        { nama: 'CCTV Jalan Jetis',       jenis: 'cctv',  lat: -7.3138, lng: 112.7268 },
-        { nama: 'Lampu Jalan Jetis',      jenis: 'lampu', lat: -7.3145, lng: 112.7275 },
-        { nama: 'Lampu Jalan Kampus',     jenis: 'lampu', lat: -7.3132, lng: 112.7262 },
-        { nama: 'Pos Jaga Jetis Kulon',   jenis: 'pos',   lat: -7.3147, lng: 112.7291 },
-        { nama: 'Pos Satpam Kampus',      jenis: 'pos',   lat: -7.3126, lng: 112.7258 }
-    ];
-    const rutePilihan = [
-        [lokasiUser.lat, lokasiUser.lng], [-7.3160, 112.7275], [-7.3145, 112.7275],
-        [-7.3145, 112.7262], [-7.3125, 112.7262], [tujuan.lat, tujuan.lng]
-    ];
-    // ==================================================================
 
     // ----- Skor & tingkat keamanan -----
     function tingkat(skor) {
@@ -192,58 +181,316 @@
         '</b></div><div class="bar"><i style="width:' + f.nilai + '%"></i></div></div>'
     ).join('');
 
-    // ----- Peta -----
-    const warna = { cctv: '#2196F3', lampu: '#f59e0b', pos: '#16a34a' };
-    const emoji = { cctv: '&#128249;', lampu: '&#128161;', pos: '&#128737;' };
+    // ----- Peta fasilitas dan titik rawan SR-15 -----
+    const mapOverviewUrl = "{{ url('/api/map/overview') }}";
+    const markerColors = {
+        cctv: '#2196F3',
+        penerangan: '#f59e0b',
+        pos_keamanan: '#16a34a',
+        titik_aman: '#0D47A1',
+        hazard: '#ef4444',
+        facility: '#2196F3'
+    };
+    const markerSymbols = {
+        cctv: '&#128249;',
+        penerangan: '&#128161;',
+        pos_keamanan: '&#128737;',
+        titik_aman: '&#11093;',
+        hazard: '&#128308;',
+        facility: '&#128205;'
+    };
+    const mapStatus = document.getElementById('mapStatus');
+    const markerLayer = L.layerGroup();
+    const map = L.map('map', { zoomControl: false, minZoom: 14 }).setView([-7.315, 112.725], 16);
+    let latestRequestId = 0;
+    let mapReloadTimer = null;
+    let mapFeatures = [];
+    let currentPosition = null;
+    let currentPositionMarker = null;
 
-    const map = L.map('map', { zoomControl: false });
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
     L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
+    markerLayer.addTo(map);
 
-    function pinIcon(jenis) {
+    function setMapStatus(message) {
+        mapStatus.textContent = message;
+        mapStatus.hidden = message === '';
+    }
+
+    function featureKind(properties) {
+        if (properties.kind === 'facility' || properties.kind === 'hazard') {
+            return properties.kind;
+        }
+
+        return Object.prototype.hasOwnProperty.call(properties, 'category') ? 'hazard' : 'facility';
+    }
+
+    function pinIcon(kind, facilityType) {
+        const markerType = kind === 'hazard' ? 'hazard' : (facilityType || 'facility');
+        const color = markerColors[markerType] || markerColors.facility;
+        const symbol = markerSymbols[markerType] || markerSymbols.facility;
+
         return L.divIcon({
             className: '',
-            html: '<div class="pin" style="border-color:' + warna[jenis] + '">' + emoji[jenis] + '</div>',
-            iconSize: [28, 28], iconAnchor: [14, 14]
+            html: '<div class="pin" style="border-color:' + color + ';color:' + color + '">' + symbol + '</div>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
         });
     }
 
-    // Warna garis rute mengikuti tingkat keamanan
-    L.polyline(rutePilihan, { color: t.hex, weight: 6, opacity: .9 }).addTo(map);
+    function createPopup(feature, kind) {
+        const properties = feature.properties || {};
+        const popup = document.createElement('div');
+        const heading = document.createElement('strong');
+        heading.textContent = kind === 'hazard'
+            ? (properties.category || 'Titik rawan')
+            : (properties.name || 'Fasilitas keamanan');
+        popup.appendChild(heading);
 
-    titik.forEach(p => {
-        L.marker([p.lat, p.lng], { icon: pinIcon(p.jenis) }).addTo(map).bindPopup('<b>' + p.nama + '</b>');
-    });
+        function appendPopupText(label, value) {
+            if (value === null || value === undefined || String(value).trim() === '') {
+                return;
+            }
 
-    L.marker([tujuan.lat, tujuan.lng], {
-        icon: L.divIcon({ className: '', html: '<div class="pin" style="border-color:#0D47A1;background:#0D47A1;color:#fff">&#128205;</div>', iconSize: [28, 28], iconAnchor: [14, 14] })
-    }).addTo(map).bindTooltip(tujuan.nama, { permanent: true, direction: 'top', offset: [0, -14], className: 'tujuan-tip' });
+            const paragraph = document.createElement('p');
+            paragraph.textContent = label + ': ' + value;
+            popup.appendChild(paragraph);
+        }
 
-    L.circleMarker([lokasiUser.lat, lokasiUser.lng], {
-        radius: 8, color: '#fff', weight: 3, fillColor: '#0D47A1', fillOpacity: 1
-    }).addTo(map).bindPopup('Lokasi Anda');
+        if (kind === 'hazard') {
+            const eventTime = properties.event_time
+                ? new Date(properties.event_time).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })
+                : null;
+            appendPopupText('Waktu kejadian', eventTime);
+            appendPopupText('Keterangan', properties.description);
+            appendPopupText('Alamat', properties.address);
+        } else {
+            appendPopupText('Keterangan', properties.description);
+            appendPopupText('Status', properties.status);
+        }
 
-    map.fitBounds(L.latLngBounds(rutePilihan).pad(0.25));
-    document.getElementById('btnLokasi').addEventListener('click', () => map.setView([lokasiUser.lat, lokasiUser.lng], 17));
-
-    // ----- Pos aman terdekat (haversine) -----
-    function jarakMeter(a, b) {
-        const R = 6371000, rad = x => x * Math.PI / 180;
-        const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
-        const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
-        return 2 * R * Math.asin(Math.sqrt(h));
+        return popup;
     }
-    const posList = titik.filter(p => p.jenis === 'pos')
-        .map(p => ({ ...p, jarak: jarakMeter(lokasiUser, p) }))
-        .sort((a, b) => a.jarak - b.jarak);
-    if (posList.length) {
-        const p = posList[0];
-        const menit = Math.max(1, Math.ceil(p.jarak / 80));
-        document.getElementById('posNama').textContent = p.nama + ' (' + Math.round(p.jarak) + ' m)';
-        document.getElementById('posKet').textContent = 'Petugas siaga \u00B7 \u00B1' + menit + ' menit berjalan';
-        document.getElementById('posLink').href = 'https://www.google.com/maps/dir/?api=1&destination=' + p.lat + ',' + p.lng + '&travelmode=walking';
+
+    function renderFeatures(features) {
+        markerLayer.clearLayers();
+
+        features.forEach(feature => {
+            const coordinates = feature.geometry && feature.geometry.coordinates;
+
+            if (feature.geometry?.type !== 'Point' || !Array.isArray(coordinates) || coordinates.length < 2) {
+                return;
+            }
+
+            const longitude = Number(coordinates[0]);
+            const latitude = Number(coordinates[1]);
+
+            if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
+                return;
+            }
+
+            const properties = feature.properties || {};
+            const kind = featureKind(properties);
+            const markerType = kind === 'hazard' ? 'hazard' : properties.type;
+            const needsMaintenance = kind === 'facility' && properties.status === 'perlu_perawatan';
+            const marker = L.marker([latitude, longitude], {
+                icon: pinIcon(kind, markerType),
+                opacity: needsMaintenance ? 0.45 : 1
+            });
+
+            marker.bindPopup(createPopup(feature, kind));
+            marker.addTo(markerLayer);
+        });
+    }
+
+    function jarakMeter(firstPoint, secondPoint) {
+        const radiusMeter = 6371000;
+        const toRadians = value => value * Math.PI / 180;
+        const latitudeDifference = toRadians(secondPoint.lat - firstPoint.lat);
+        const longitudeDifference = toRadians(secondPoint.lng - firstPoint.lng);
+        const haversine = Math.sin(latitudeDifference / 2) ** 2
+            + Math.cos(toRadians(firstPoint.lat)) * Math.cos(toRadians(secondPoint.lat))
+            * Math.sin(longitudeDifference / 2) ** 2;
+
+        return 2 * radiusMeter * Math.asin(Math.sqrt(haversine));
+    }
+
+    function updateNearestSafeSpot() {
+        const nameElement = document.getElementById('posNama');
+        const distanceElement = document.getElementById('posKet');
+        const directionsLink = document.getElementById('posLink');
+
+        if (!currentPosition) {
+            nameElement.textContent = 'Lokasi Anda belum tersedia';
+            distanceElement.textContent = 'Gunakan tombol lokasi untuk menghitung jarak.';
+            directionsLink.href = '#';
+            return;
+        }
+
+        const safeSpots = mapFeatures
+            .filter(feature => {
+                const properties = feature.properties || {};
+                return featureKind(properties) === 'facility'
+                    && ['pos_keamanan', 'titik_aman'].includes(properties.type)
+                    && properties.status === 'aktif';
+            })
+            .map(feature => {
+                const [longitude, latitude] = feature.geometry.coordinates;
+
+                return {
+                    name: feature.properties.name || 'Titik aman',
+                    latitude: Number(latitude),
+                    longitude: Number(longitude)
+                };
+            })
+            .map(safeSpot => ({
+                ...safeSpot,
+                distance: jarakMeter(currentPosition, { lat: safeSpot.latitude, lng: safeSpot.longitude })
+            }))
+            .sort((firstSpot, secondSpot) => firstSpot.distance - secondSpot.distance);
+
+        if (safeSpots.length === 0) {
+            nameElement.textContent = 'Belum ada titik aman aktif di area peta';
+            distanceElement.textContent = 'Geser peta atau periksa kembali nanti.';
+            directionsLink.href = '#';
+            return;
+        }
+
+        const nearestSpot = safeSpots[0];
+        const walkingMinutes = Math.max(1, Math.ceil(nearestSpot.distance / 80));
+        nameElement.textContent = nearestSpot.name + ' (' + Math.round(nearestSpot.distance) + ' m)';
+        distanceElement.textContent = 'Perkiraan ' + walkingMinutes + ' menit berjalan';
+        directionsLink.href = 'https://www.google.com/maps/dir/?api=1&destination='
+            + nearestSpot.latitude + ',' + nearestSpot.longitude + '&travelmode=walking';
+    }
+
+    async function loadMapData() {
+        const requestId = ++latestRequestId;
+        const bounds = map.getBounds();
+        const boundingBox = [
+            bounds.getWest(),
+            bounds.getSouth(),
+            bounds.getEast(),
+            bounds.getNorth()
+        ].join(',');
+        const endpoint = new URL(mapOverviewUrl, window.location.origin);
+        endpoint.searchParams.set('bbox', boundingBox);
+        setMapStatus('Memuat data peta...');
+
+        try {
+            const response = await fetch(endpoint.toString(), {
+                headers: { Accept: 'application/json' }
+            });
+
+            if (!response.ok) {
+                let errorPayload = null;
+
+                try {
+                    errorPayload = await response.json();
+                } catch (error) {
+                    errorPayload = null;
+                }
+
+                const firstValidationMessage = response.status === 422
+                    ? Object.values(errorPayload?.errors || {})
+                        .flat()
+                        .find(message => typeof message === 'string')
+                    : null;
+                const backendMessage = firstValidationMessage
+                    || (typeof errorPayload?.message === 'string' ? errorPayload.message : null);
+
+                if (backendMessage) {
+                    const backendError = new Error(backendMessage);
+                    backendError.name = 'BackendResponseError';
+                    throw backendError;
+                }
+
+                throw new Error('Respons backend tidak menyediakan pesan yang dapat ditampilkan.');
+            }
+
+            const geoJson = await response.json();
+
+            if (requestId !== latestRequestId) {
+                return;
+            }
+
+            if (geoJson.type !== 'FeatureCollection' || !Array.isArray(geoJson.features)) {
+                throw new Error('Format data peta tidak valid.');
+            }
+
+            mapFeatures = geoJson.features.filter(feature => feature && feature.geometry && feature.properties);
+            renderFeatures(mapFeatures);
+            updateNearestSafeSpot();
+            const statusMessage = mapFeatures.length >= 500
+                ? 'Titik terlalu banyak untuk ditampilkan semua. Perbesar peta untuk melihat lebih rinci.'
+                : mapFeatures.length === 0
+                    ? 'Tidak ada fasilitas atau titik rawan di area peta ini.'
+                    : '';
+            setMapStatus(statusMessage);
+        } catch (error) {
+            if (requestId !== latestRequestId) {
+                return;
+            }
+
+            mapFeatures = [];
+            markerLayer.clearLayers();
+            updateNearestSafeSpot();
+            const statusMessage = error instanceof Error && error.name === 'BackendResponseError'
+                ? error.message
+                : 'Gagal memuat data peta. Periksa koneksi lalu coba lagi.';
+            setMapStatus(statusMessage);
+        }
+    }
+
+    function scheduleMapReload() {
+        latestRequestId++;
+        window.clearTimeout(mapReloadTimer);
+        mapReloadTimer = window.setTimeout(loadMapData, 400);
+    }
+
+    map.on('moveend', scheduleMapReload);
+    loadMapData();
+
+    if (navigator.geolocation) {
+        document.getElementById('btnLokasi').addEventListener('click', () => {
+            setMapStatus('Mengambil lokasi Anda...');
+
+            navigator.geolocation.getCurrentPosition(position => {
+                currentPosition = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+
+                if (currentPositionMarker) {
+                    currentPositionMarker.setLatLng([currentPosition.lat, currentPosition.lng]);
+                } else {
+                    currentPositionMarker = L.circleMarker([currentPosition.lat, currentPosition.lng], {
+                        radius: 8,
+                        color: '#fff',
+                        weight: 3,
+                        fillColor: '#0D47A1',
+                        fillOpacity: 1
+                    }).addTo(map).bindPopup('Lokasi Anda');
+                }
+
+                map.setView([currentPosition.lat, currentPosition.lng], 17);
+                updateNearestSafeSpot();
+                window.clearTimeout(mapReloadTimer);
+                loadMapData();
+            }, () => {
+                setMapStatus('Lokasi tidak dapat diakses. Periksa izin lokasi pada browser.');
+            }, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 30000
+            });
+        });
+    } else {
+        document.getElementById('btnLokasi').addEventListener('click', () => {
+            setMapStatus('Browser ini tidak mendukung akses lokasi.');
+        });
     }
 </script>
 </body>
