@@ -288,7 +288,17 @@
         .kartu-atas {
             display: flex;
             justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .kartu-atas > div:first-child {
+            display: flex;
+            flex: 1;
+            flex-wrap: wrap;
             align-items: center;
+            gap: 4px;
+            min-width: 0;
         }
 
         .kartu-atas b {
@@ -302,7 +312,7 @@
             border-radius: 999px;
             background: var(--hijau);
             color: #fff;
-            margin-left: 6px;
+            margin-left: 0;
         }
 
         .tag.alt {
@@ -313,6 +323,9 @@
         .skor {
             font-size: 22px;
             font-weight: bold;
+            max-width: 48%;
+            text-align: right;
+            overflow-wrap: anywhere;
         }
 
         .skor small {
@@ -340,6 +353,56 @@
             background: var(--biru-muda);
             border: 1px solid var(--biru-sedang);
             color: var(--biru-tua);
+        }
+
+        .level-badge {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+
+        .level-aman { background: var(--hijau); color: #fff; }
+        .level-sedang { background: #facc15; color: #713f12; }
+        .level-rawan { background: var(--merah); color: #fff; }
+        .level-data-belum-cukup { background: #e5e7eb; color: #374151; }
+
+        .perbandingan-wrap {
+            overflow-x: auto;
+            margin: 12px 0;
+            border: 1px solid var(--biru-sedang);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .perbandingan {
+            width: 100%;
+            min-width: 350px;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .perbandingan th, .perbandingan td {
+            padding: 8px 6px;
+            border-bottom: 1px solid var(--biru-muda);
+            text-align: center;
+        }
+
+        .perbandingan th:first-child, .perbandingan td:first-child {
+            text-align: left;
+        }
+
+        .perbandingan th { background: var(--biru-muda); }
+        .perbandingan [data-indeks-rute].terpilih { background: #d8ecff; }
+        .perbandingan tr:last-child td { border-bottom: 0; }
+
+        .disclaimer {
+            margin: 8px 0;
+            font-size: 11px;
+            color: #5b7aa5;
         }
 
         /* =========================
@@ -563,6 +626,10 @@
 
         <div id="daftarRute"></div>
 
+        <div id="perbandinganRute"></div>
+
+        <div class="disclaimer" id="disclaimerSkor"></div>
+
 
         <!-- =========================
              MULAI NAVIGASI
@@ -640,38 +707,8 @@
     };
 
 
-    // Hanya true untuk perempuan terverifikasi.
-    // Nantinya ditentukan dari backend.
-    const tampilKomposisi = true;
-
-
-    // =====================================================
-    // DATA KEAMANAN SEMENTARA / DUMMY
-    // =====================================================
-
-    function nilaiDummy(r, i) {
-
-        return {
-
-            skor: Math.max(
-                50,
-                95 - i * 13 -
-                (Math.round(r.distance / 1000) % 4)
-            ),
-
-            penerangan: Math.max(
-                40,
-                90 - i * 20
-            ),
-
-            cctv: i === 0,
-
-            perempuan: Math.max(
-                20,
-                60 - i * 20
-            )
-        };
-    }
+    const DISCLAIMER_FALLBACK =
+        'Skor adalah indikator, bukan jaminan keamanan.';
 
 
     // =====================================================
@@ -1118,6 +1155,14 @@
 
     let modeNavigasi = false;
 
+    let penghitungPermintaanRute = 0;
+
+    let hasilRuteAktif = [];
+
+    let statusSkor = 'pending';
+
+    let disclaimerAktif = DISCLAIMER_FALLBACK;
+
 
     // =====================================================
     // STATUS
@@ -1204,6 +1249,15 @@
                 }
             );
 
+        document
+            .querySelectorAll('[data-indeks-rute]')
+            .forEach(kolom => {
+                kolom.classList.toggle(
+                    'terpilih',
+                    Number(kolom.dataset.indeksRute) === i
+                );
+            });
+
 
         // Jika sedang dalam mode navigasi,
         // fokuskan peta ke rute yang dipilih.
@@ -1226,10 +1280,329 @@
     // TAMPILKAN HASIL RUTE
     // =====================================================
 
+    function konversiMetrikRute(route) {
+
+        return {
+            jarakKm: route.distance / 1000,
+            waktuMenit: Math.max(1, Math.round(route.duration / 60))
+        };
+    }
+
+
+    function formatLevel(level) {
+
+        const levels = {
+            aman: { label: 'Aman', className: 'level-aman' },
+            sedang: { label: 'Sedang', className: 'level-sedang' },
+            rawan: { label: 'Rawan', className: 'level-rawan' },
+            data_belum_cukup: {
+                label: 'Data belum cukup',
+                className: 'level-data-belum-cukup'
+            }
+        };
+
+        return levels[level] || null;
+    }
+
+
+    async function ambilSkorRute(routes) {
+
+        const response = await fetch(
+            "{{ url('/api/routes/score') }}",
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ routes })
+            }
+        );
+
+        let payload = {};
+
+        try {
+            payload = await response.json();
+        } catch (error) {
+            payload = {};
+        }
+
+        if (!response.ok) {
+            const errors = payload.errors || {};
+            const pesanError = Object.values(errors)
+                .flat()
+                .find(pesan => typeof pesan === 'string' && pesan.trim());
+            const pesan = pesanError || payload.message;
+
+            if (response.status === 422 && pesan) {
+                throw new Error(pesan);
+            }
+
+            if (response.status === 429) {
+                throw new Error('Permintaan skor terlalu sering. Skor belum tersedia.');
+            }
+
+            if (response.status === 404) {
+                throw new Error('Skor belum tersedia');
+            }
+
+            if (response.status >= 500) {
+                throw new Error('Layanan skor sedang bermasalah. Skor belum tersedia.');
+            }
+
+            throw new Error(pesan || 'Skor belum tersedia');
+        }
+
+        return payload;
+    }
+
+
+    function buatPayloadSkor(routes) {
+
+        return routes.map((route, index) => {
+            const coordinates = route.geometry.coordinates;
+            const langkah = Math.ceil(coordinates.length / 500);
+            const dijarangkan = coordinates.filter((titik, titikIndex) =>
+                titikIndex === 0 ||
+                titikIndex === coordinates.length - 1 ||
+                titikIndex % langkah === 0
+            );
+
+            if (dijarangkan.length > 500) {
+                dijarangkan.splice(dijarangkan.length - 2, 1);
+            }
+
+            return {
+                id: String.fromCharCode(65 + index),
+                coordinates: dijarangkan.map(titik => [titik[0], titik[1]])
+            };
+        });
+    }
+
+
+    function buatElemen(tag, className, teks) {
+
+        const elemen = document.createElement(tag);
+
+        if (className) {
+            elemen.className = className;
+        }
+
+        if (teks !== undefined && teks !== null) {
+            elemen.textContent = teks;
+        }
+
+        return elemen;
+    }
+
+
+    function hitungPenanda(routes) {
+
+        const tercepat = routes.reduce((best, route, index) =>
+            best === null || route.duration < routes[best].duration ? index : best,
+            null
+        );
+        const terpendek = routes.reduce((best, route, index) =>
+            best === null || route.distance < routes[best].distance ? index : best,
+            null
+        );
+        const tersedia = routes
+            .map((route, index) => ({ index, score: route.score?.score }))
+            .filter(item => typeof item.score === 'number' && Number.isFinite(item.score));
+
+        const teraman = tersedia.reduce((best, item) => {
+            if (!best || item.score > best.score) {
+                return item;
+            }
+
+            if (item.score === best.score && routes[item.index].duration < routes[best.index].duration) {
+                return item;
+            }
+
+            return best;
+        }, null);
+
+        return { tercepat, terpendek, teraman: teraman ? teraman.index : null };
+    }
+
+
+    function renderHasilRute(routes) {
+
+        hasilRuteAktif = routes;
+        const wadah = $('daftarRute');
+        wadah.replaceChildren();
+
+        const penanda = hitungPenanda(routes);
+
+        routes.forEach((route, i) => {
+            const kartu = buatElemen('div', 'kartu');
+            const atas = buatElemen('div', 'kartu-atas');
+            const nama = buatElemen('div');
+            const skorArea = buatElemen('div', 'skor');
+            const meta = buatElemen('div', 'meta');
+            const chips = buatElemen('div', 'chips');
+            const metric = konversiMetrikRute(route);
+            const labelRute = String.fromCharCode(65 + i);
+            const badges = [];
+
+            nama.appendChild(buatElemen('b', '', 'Rute ' + labelRute));
+
+            if (penanda.tercepat === i) badges.push('Tercepat');
+            if (penanda.terpendek === i) badges.push('Terpendek');
+            if (penanda.teraman === i) badges.push('Teraman', 'Disarankan');
+
+            badges.forEach(teks => {
+                nama.appendChild(buatElemen('span', 'tag', teks));
+            });
+
+            if (statusSkor === 'pending') {
+                skorArea.textContent = 'Menghitung skor...';
+            } else if (statusSkor === 'unavailable') {
+                skorArea.textContent = 'Skor belum tersedia';
+            } else {
+                const hasil = route.score;
+                const level = hasil && formatLevel(hasil.level);
+                const angka = hasil && hasil.level === 'data_belum_cukup'
+                    ? '-'
+                    : (hasil && typeof hasil.score === 'number' ? String(hasil.score) : '-');
+
+                skorArea.appendChild(document.createTextNode(angka + ' '));
+                skorArea.appendChild(buatElemen('small', '', '/100'));
+
+                if (level) {
+                    skorArea.appendChild(buatElemen('span', 'level-badge ' + level.className, hasil.level_label || level.label));
+                }
+
+                if (hasil && hasil.note) {
+                    skorArea.appendChild(buatElemen('small', '', hasil.note));
+                }
+
+                if (hasil && Array.isArray(hasil.factors)) {
+                    hasil.factors
+                        .filter(factor => factor.available === true)
+                        .forEach(factor => {
+                            const nilai = typeof factor.score === 'number'
+                                ? ' ' + Math.round(factor.score)
+                                : '';
+                            chips.appendChild(buatElemen('span', 'chip', String(factor.label || factor.key || '') + nilai));
+                        });
+                }
+            }
+
+            meta.textContent = metric.waktuMenit + ' menit · ' + metric.jarakKm.toFixed(1) + ' km';
+
+            // TODO SR-22: tampilkan komposisi perempuan setelah datanya tersedia.
+            atas.append(nama, skorArea);
+            kartu.append(atas, meta, chips);
+            kartu.addEventListener('click', () => pilih(i));
+            wadah.appendChild(kartu);
+        });
+
+        renderPerbandingan(routes, penanda);
+        $('infoRute').textContent = routes.length + ' rute ditemukan';
+        $('disclaimerSkor').textContent = disclaimerAktif || DISCLAIMER_FALLBACK;
+        pilih(terpilihIdx < routes.length ? terpilihIdx : 0);
+    }
+
+
+    function renderPerbandingan(routes, penanda) {
+
+        const wadah = $('perbandinganRute');
+        wadah.replaceChildren();
+
+        if (routes.length < 2) {
+            return;
+        }
+
+        const wrap = buatElemen('div', 'perbandingan-wrap');
+        const tabel = buatElemen('table', 'perbandingan');
+        const kepala = buatElemen('thead');
+        const barisKepala = buatElemen('tr');
+        barisKepala.appendChild(buatElemen('th', '', ''));
+
+        routes.forEach((route, index) => {
+            const th = buatElemen('th', '', 'Rute ' + String.fromCharCode(65 + index));
+            th.dataset.indeksRute = String(index);
+            th.addEventListener('click', () => pilih(index));
+            barisKepala.appendChild(th);
+        });
+
+        kepala.appendChild(barisKepala);
+        tabel.appendChild(kepala);
+
+        const isi = buatElemen('tbody');
+        const rows = [
+            ['Jarak (km)', route => konversiMetrikRute(route).jarakKm.toFixed(1)],
+            ['Waktu (menit)', route => String(konversiMetrikRute(route).waktuMenit)],
+            ['Level keamanan', route => route.score ? ((formatLevel(route.score.level) || {}).label || 'Belum tersedia') : 'Belum tersedia'],
+            ['Skor', route => route.score && route.score.level === 'data_belum_cukup'
+                ? '-'
+                : (route.score && typeof route.score.score === 'number' ? String(route.score.score) : '-')]
+        ];
+
+        rows.forEach(([label, value]) => {
+            const tr = buatElemen('tr');
+            tr.appendChild(buatElemen('td', '', label));
+
+            routes.forEach((route, index) => {
+                const td = buatElemen('td', '', value(route));
+                td.dataset.indeksRute = String(index);
+                td.addEventListener('click', () => pilih(index));
+
+                if (penanda.tercepat === index && label === 'Waktu (menit)') td.appendChild(buatElemen('small', '', ' Tercepat'));
+                if (penanda.terpendek === index && label === 'Jarak (km)') td.appendChild(buatElemen('small', '', ' Terpendek'));
+                if (penanda.teraman === index && label === 'Level keamanan') td.appendChild(buatElemen('small', '', ' Teraman · Disarankan'));
+
+                tr.appendChild(td);
+            });
+
+            isi.appendChild(tr);
+        });
+
+        tabel.appendChild(isi);
+        wrap.appendChild(tabel);
+        wadah.appendChild(wrap);
+    }
+
+
+    async function muatSkor(routes, permintaan) {
+
+        try {
+            const payload = await ambilSkorRute(buatPayloadSkor(routes));
+
+            if (permintaan !== penghitungPermintaanRute) return;
+
+            const hasil = Array.isArray(payload.data) ? payload.data : [];
+            hasilRuteAktif.forEach(route => {
+                route.score = hasil.find(item => item.id === String.fromCharCode(65 + route.index)) || null;
+            });
+
+            disclaimerAktif = typeof payload.disclaimer === 'string'
+                ? payload.disclaimer
+                : DISCLAIMER_FALLBACK;
+            statusSkor = 'available';
+            renderHasilRute(hasilRuteAktif);
+        } catch (error) {
+            if (permintaan !== penghitungPermintaanRute) return;
+
+            statusSkor = 'unavailable';
+            disclaimerAktif = DISCLAIMER_FALLBACK;
+            $('disclaimerSkor').textContent = DISCLAIMER_FALLBACK;
+            renderHasilRute(hasilRuteAktif);
+            if (error.message && error.message !== 'Skor belum tersedia') {
+                const pesan = $('status');
+                pesan.textContent = error.message;
+                pesan.className = 'status';
+            }
+        }
+    }
+
+
     function tampilkan(
         a,
         b,
-        routes
+        routes,
+        permintaan
     ) {
 
         // Bersihkan rute sebelumnya
@@ -1360,162 +1733,11 @@
         // KARTU PILIHAN RUTE
         // =================================================
 
-        const wadah =
-            $('daftarRute');
-
-
-        wadah.innerHTML =
-            '';
-
-
-        routes.forEach(
-            (route, i) => {
-
-                const nilai =
-                    nilaiDummy(
-                        route,
-                        i
-                    );
-
-
-                const chips = [
-
-                    '&#128161; ' +
-                    nilai.penerangan +
-                    '% penerangan',
-
-                    nilai.cctv
-
-                        ? '&#128249; Ada CCTV'
-
-                        : '&#128249; Minim CCTV'
-                ];
-
-
-                if (
-                    tampilKomposisi
-                ) {
-
-                    chips.push(
-
-                        '&#128105; Dominan perempuan ' +
-
-                        nilai.perempuan +
-
-                        '% agregat'
-                    );
-                }
-
-
-                const kartu =
-                    document.createElement(
-                        'div'
-                    );
-
-
-                kartu.className =
-                    'kartu';
-
-
-                const namaRute =
-                    String.fromCharCode(
-                        65 + i
-                    );
-
-
-                const label =
-
-                    i === 0
-
-                        ? '<span class="tag">Disarankan</span>'
-
-                        : '<span class="tag alt">Alternatif</span>';
-
-
-                kartu.innerHTML =
-
-                    '<div class="kartu-atas">' +
-
-                        '<div>' +
-
-                            '<b>Rute ' +
-                            namaRute +
-                            '</b>' +
-
-                            label +
-
-                        '</div>' +
-
-                        '<div class="skor">' +
-
-                            nilai.skor +
-
-                            '<small> /100</small>' +
-
-                        '</div>' +
-
-                    '</div>' +
-
-
-                    '<div class="meta">' +
-
-                        Math.max(
-                            1,
-                            Math.round(
-                                route.duration / 60
-                            )
-                        ) +
-
-                        ' menit &middot; ' +
-
-                        (
-                            route.distance / 1000
-                        ).toFixed(1) +
-
-                        ' km' +
-
-                    '</div>' +
-
-
-                    '<div class="chips">' +
-
-                        chips.map(
-                            chip =>
-
-                                '<span class="chip">' +
-
-                                chip +
-
-                                '</span>'
-
-                        ).join('') +
-
-                    '</div>';
-
-
-                // Klik kartu untuk memilih rute
-
-                kartu.addEventListener(
-                    'click',
-                    () => {
-
-                        pilih(i);
-                    }
-                );
-
-
-                wadah.appendChild(
-                    kartu
-                );
-            }
-        );
-
-
-        // Informasi jumlah rute
-
-        $('infoRute').textContent =
-            routes.length +
-            ' rute ditemukan';
+        hasilRuteAktif = routes.map((route, index) => ({ ...route, index, score: null }));
+        statusSkor = 'pending';
+        disclaimerAktif = DISCLAIMER_FALLBACK;
+        terpilihIdx = 0;
+        renderHasilRute(hasilRuteAktif);
 
 
         // Aktifkan tombol navigasi
@@ -1524,9 +1746,7 @@
             false;
 
 
-        // Otomatis pilih rute pertama
-
-        pilih(0);
+        muatSkor(routes, permintaan);
     }
 
 
@@ -1535,6 +1755,8 @@
     // =====================================================
 
     async function cariRute() {
+
+        const permintaan = ++penghitungPermintaanRute;
 
         // Disable tombol saat proses
 
@@ -1626,13 +1848,16 @@
 
             // Maksimal 3 alternatif
 
+            if (permintaan !== penghitungPermintaanRute) return;
+
             tampilkan(
                 a,
                 b,
                 data.routes.slice(
                     0,
                     3
-                )
+                ),
+                permintaan
             );
 
 
@@ -1640,6 +1865,10 @@
 
 
         } catch (error) {
+
+            if (permintaan !== penghitungPermintaanRute) {
+                return;
+            }
 
             setStatus(
 
@@ -1655,8 +1884,9 @@
 
             // Aktifkan kembali tombol
 
-            $('btnCari').disabled =
-                false;
+            if (permintaan === penghitungPermintaanRute) {
+                $('btnCari').disabled = false;
+            }
         }
     }
 
