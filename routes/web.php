@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SecurityReportController;
+use App\Http\Controllers\SuspiciousReportFlagController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -27,6 +28,12 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/laporan/terakhir', [SecurityReportController::class, 'latest'])
         ->name('laporan.latest');
+
+    // Fitur penandaan laporan mencurigakan (SR-61)
+    Route::post(
+        '/laporan/{report}/tandai-mencurigakan',
+        [SuspiciousReportFlagController::class, 'store']
+    )->name('laporan.flag');
 });
 
 // SR-11: Profile Management
