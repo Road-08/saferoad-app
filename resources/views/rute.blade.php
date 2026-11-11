@@ -626,6 +626,15 @@
 
         <div id="daftarRute"></div>
 
+        <button
+            class="btn-cari"
+            id="btnBandingkan"
+            type="button"
+            hidden
+        >
+            Bandingkan rute
+        </button>
+
         <div id="perbandinganRute"></div>
 
         <div class="disclaimer" id="disclaimerSkor"></div>
@@ -1159,6 +1168,8 @@
 
     let hasilRuteAktif = [];
 
+    let ruteOSRMAktif = [];
+
     let statusSkor = 'pending';
 
     let disclaimerAktif = DISCLAIMER_FALLBACK;
@@ -1184,6 +1195,49 @@
                     ? ' error'
                     : ''
             );
+    }
+
+
+    function simpanDanBukaPerbandingan() {
+
+        const routes = ruteOSRMAktif.slice(0, 3).map((route, index) => {
+            const coordinates = route.geometry.coordinates;
+            const langkah = Math.ceil(coordinates.length / 500);
+            const dijarangkan = coordinates.filter((titik, titikIndex) =>
+                titikIndex === 0 ||
+                titikIndex === coordinates.length - 1 ||
+                titikIndex % langkah === 0
+            );
+
+            while (dijarangkan.length > 500) {
+                dijarangkan.splice(dijarangkan.length - 2, 1);
+            }
+
+            return {
+                id: String.fromCharCode(65 + index),
+                distance_m: route.distance,
+                duration_s: route.duration,
+                coordinates: dijarangkan.map(titik => [titik[0], titik[1]])
+            };
+        });
+
+        const data = {
+            version: 1,
+            createdAt: new Date().toISOString(),
+            origin: { name: titikA.nama, lat: titikA.lat, lng: titikA.lng },
+            destination: { name: titikB.nama, lat: titikB.lat, lng: titikB.lng },
+            selectedIndex: terpilihIdx,
+            routes
+        };
+
+        try {
+            sessionStorage.setItem('saferoad.perbandingan', JSON.stringify(data));
+        } catch (error) {
+            setStatus('Tidak dapat menyimpan rute untuk dibandingkan.', true);
+            return;
+        }
+
+        window.location.href = "{{ url('/rute/bandingkan') }}";
     }
 
 
@@ -1734,10 +1788,12 @@
         // =================================================
 
         hasilRuteAktif = routes.map((route, index) => ({ ...route, index, score: null }));
+        ruteOSRMAktif = routes;
         statusSkor = 'pending';
         disclaimerAktif = DISCLAIMER_FALLBACK;
         terpilihIdx = 0;
         renderHasilRute(hasilRuteAktif);
+        $('btnBandingkan').hidden = routes.length < 2;
 
 
         // Aktifkan tombol navigasi
@@ -1757,6 +1813,8 @@
     async function cariRute() {
 
         const permintaan = ++penghitungPermintaanRute;
+
+        $('btnBandingkan').hidden = true;
 
         // Disable tombol saat proses
 
@@ -1899,6 +1957,13 @@
         .addEventListener(
             'click',
             cariRute
+        );
+
+
+    $('btnBandingkan')
+        .addEventListener(
+            'click',
+            simpanDanBukaPerbandingan
         );
 
 
