@@ -28,3 +28,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan/terakhir', [SecurityReportController::class, 'latest'])
         ->name('laporan.latest');
 });
+
+// SR-11: Profile Management
+Route::get('/profil', function () {
+    return view('profile.index');
+})->name('profile.index');
+
+// SR-11: Identity Verification
+Route::get('/verifikasi-identitas', function () {
+    return view('profile.verifikasi-identitas');
+})->name('profile.verifikasi');
