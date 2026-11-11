@@ -7,3 +7,4 @@ Route::get('/', function () {
 });
 
 Route::view('/rute', 'rute');
+Route::view('/rute/bandingkan', 'rute.bandingkan');
