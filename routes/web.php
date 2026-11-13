@@ -45,3 +45,6 @@ Route::get('/profil', function () {
 Route::get('/verifikasi-identitas', function () {
     return view('profile.verifikasi-identitas');
 })->name('profile.verifikasi');
+
+Route::view('/rute', 'rute')->name('rute');
+Route::view('/rute/bandingkan', 'rute.bandingkan')->name('rute.bandingkan');
