@@ -1,1205 +1,796 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('layouts.app')
 
-    <title>Temukan Rute Aman - SafeRoad</title>
+@section('title', 'Temukan Rute Aman · SafeRoad')
 
-    <!-- Leaflet CSS -->
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    >
+@push('leaflet-css')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+@endpush
 
-    <style>
-        :root {
-            --biru-muda: #E3F2FD;
-            --biru-sedang: #90CAF9;
-            --biru-utama: #2196F3;
-            --biru-tua: #0D47A1;
-            --hijau: #16a34a;
-            --merah: #dc2626;
+@section('content')
+<div class="route-page-container">
+    <div class="route-split-layout">
+        <!-- SIDEBAR PENCARIAN & KARTU RUTE (KIRI) -->
+        <aside class="route-sidebar">
+            <header class="sidebar-header">
+                <span class="badge-sub">NAVIGASI PINTAR</span>
+                <h1>Temukan Rute Perjalanan Aman</h1>
+                <p>Cari jalur terbaik dengan analisis titik penerangan, CCTV, dan riwayat insiden di sepanjang perjalanan.</p>
+            </header>
+
+            <!-- Card Input Form Rute -->
+            <div class="route-form-card">
+                <div class="inputs-stack">
+                    <!-- Titik Asal -->
+                    <div class="input-line-group">
+                        <span class="input-marker-dot origin" aria-hidden="true"></span>
+                        <div class="input-inner-wrap">
+                            <label for="inputDari">Titik Asal</label>
+                            <input
+                                type="text"
+                                id="inputDari"
+                                value="Lokasi Saya"
+                                placeholder="Tentukan lokasi asal"
+                                autocomplete="off"
+                            >
+                            <div class="saran-dropdown" id="saranDari"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Tukar Asal / Tujuan -->
+                    <button class="btn-swap-location" id="btnTukar" type="button" title="Tukar titik asal dan tujuan">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform: rotate(180deg);">
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                    </button>
+
+                    <!-- Titik Tujuan -->
+                    <div class="input-line-group">
+                        <span class="input-marker-dot dest" aria-hidden="true"></span>
+                        <div class="input-inner-wrap">
+                            <label for="inputKe">Tujuan</label>
+                            <input
+                                type="text"
+                                id="inputKe"
+                                placeholder="Cari tujuan (misal: Telkom University, Stasiun...)"
+                                autocomplete="off"
+                            >
+                            <div class="saran-dropdown" id="saranKe"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tombol Cari -->
+                <button class="btn-search-route" id="btnCari" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <span>Cari Rekomendasi Rute</span>
+                </button>
+
+                <!-- Status Feedback -->
+                <div class="status-banner" id="status"></div>
+            </div>
+
+            <!-- Hasil & Alternatif Rute -->
+            <section class="results-section">
+                <div class="results-header-bar">
+                    <h2>Pilihan Rute Perjalanan</h2>
+                    <span id="infoRute" class="results-count"></span>
+                </div>
+
+                <div id="daftarRute" class="route-cards-list"></div>
+
+                <!-- Tombol Bandingkan Rute -->
+                <button class="btn-compare-routes" id="btnBandingkan" type="button" hidden>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 3h5v5"/>
+                        <path d="M4 20L21 3"/>
+                        <path d="M21 16v5h-5"/>
+                        <path d="M15 15l6 6"/>
+                        <path d="M4 4l5 5"/>
+                    </svg>
+                    <span>Bandingkan Rute di Halaman Khusus</span>
+                </button>
+
+                <div id="perbandinganRute"></div>
+                <div class="disclaimer-note" id="disclaimerSkor"></div>
+
+                <!-- Tombol Mulai Navigasi -->
+                <button class="btn-start-navigation" id="btnNavigasi" type="button" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                    </svg>
+                    <span>Mulai Navigasi Perjalanan</span>
+                </button>
+
+                <p class="navigation-disclaimer">
+                    Skor dan indikator membantu evaluasi rute secara objektif, bukan jaminan mutlak kondisi lapangan.
+                </p>
+            </section>
+        </aside>
+
+        <!-- AREA MAP KANAN -->
+        <main class="route-map-panel">
+            <div class="map-container-box">
+                <div id="map" aria-label="Peta interaktif SafeRoad"></div>
+                <!-- Overlay Legenda Ringkas -->
+                <div class="map-floating-legend">
+                    <span class="legend-chip"><i class="dot blue"></i> Rute Utama</span>
+                    <span class="legend-chip"><i class="dot amber"></i> Rute Alternatif</span>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<style>
+    .route-page-container {
+        width: 100%;
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 24px clamp(16px, 3vw, 40px) 40px;
+    }
+
+    .route-split-layout {
+        display: grid;
+        grid-template-columns: 460px 1fr;
+        gap: 28px;
+        align-items: start;
+    }
+
+    /* Sidebar Kiri */
+    .route-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .sidebar-header .badge-sub {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--primary-600);
+        background-color: var(--primary-50);
+        padding: 3px 10px;
+        border-radius: 6px;
+        margin-bottom: 6px;
+    }
+
+    .sidebar-header h1 {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--text-heading);
+        letter-spacing: -0.03em;
+        line-height: 1.25;
+        margin-bottom: 6px;
+    }
+
+    .sidebar-header p {
+        font-size: 13.5px;
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+
+    /* Form Input Rute Card */
+    .route-form-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: var(--shadow-card);
+    }
+
+    .inputs-stack {
+        position: relative;
+        display: grid;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .input-line-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background-color: var(--bg-canvas);
+        border: 1.5px solid var(--border-soft);
+        border-radius: 12px;
+        padding: 8px 14px;
+        transition: border-color 0.15s ease;
+    }
+
+    .input-line-group:focus-within {
+        border-color: var(--primary-600);
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .input-marker-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .input-marker-dot.origin {
+        background-color: var(--primary-600);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
+    .input-marker-dot.dest {
+        background-color: var(--danger-600);
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+    }
+
+    .input-inner-wrap {
+        flex: 1;
+        position: relative;
+    }
+
+    .input-inner-wrap label {
+        display: block;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 2px;
+    }
+
+    .input-inner-wrap input {
+        width: 100%;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--text-heading);
+    }
+
+    .input-inner-wrap input::placeholder {
+        color: #94a3b8;
+        font-weight: normal;
+    }
+
+    /* Tombol Tukar Lokasi */
+    .btn-swap-location {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: #ffffff;
+        border: 1px solid var(--border-soft);
+        color: var(--primary-600);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: var(--shadow-sm);
+        z-index: 10;
+        transition: transform 0.2s ease, background 0.15s ease;
+    }
+
+    .btn-swap-location:hover {
+        background-color: var(--primary-50);
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    .btn-swap-location svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    /* Dropdown Saran Pencarian */
+    .saran-dropdown {
+        position: absolute;
+        left: -40px;
+        right: -10px;
+        top: calc(100% + 10px);
+        background-color: #ffffff;
+        border: 1px solid var(--border-soft);
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        z-index: 2000;
+        overflow: hidden;
+    }
+
+    .saran-dropdown:empty {
+        display: none;
+    }
+
+    .item-saran {
+        padding: 10px 14px;
+        font-size: 12.5px;
+        color: var(--text-body);
+        cursor: pointer;
+        border-bottom: 1px solid var(--border-soft);
+    }
+
+    .item-saran:last-child {
+        border-bottom: none;
+    }
+
+    .item-saran:hover {
+        background-color: var(--primary-50);
+        color: var(--primary-700);
+    }
+
+    /* Tombol Cari */
+    .btn-search-route {
+        width: 100%;
+        height: 48px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        box-shadow: var(--shadow-btn);
+        transition: transform 0.15s ease;
+    }
+
+    .btn-search-route:hover {
+        transform: translateY(-1px);
+        background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    }
+
+    .btn-search-route:disabled {
+        opacity: 0.65;
+        cursor: wait;
+        transform: none;
+    }
+
+    .btn-search-route svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* Status Banner */
+    .status-banner {
+        min-height: 20px;
+        font-size: 12.5px;
+        color: var(--text-muted);
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .status-banner.error {
+        color: var(--danger-600);
+        font-weight: 600;
+    }
+
+    /* Bagian Hasil Rute */
+    .results-section {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: var(--shadow-card);
+    }
+
+    .results-header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 14px;
+    }
+
+    .results-header-bar h2 {
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--text-heading);
+    }
+
+    .results-count {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .route-cards-list {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    /* Kartu Rute */
+    .kartu {
+        background-color: #ffffff;
+        border: 1.5px solid var(--border-soft);
+        border-radius: 14px;
+        padding: 14px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .kartu:hover {
+        border-color: var(--primary-500);
+        background-color: var(--primary-50);
+    }
+
+    .kartu.aktif {
+        border-color: var(--primary-600);
+        background-color: var(--primary-50);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+
+    .kartu-atas {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 4px;
+    }
+
+    .kartu-atas b {
+        font-size: 15px;
+        color: var(--text-heading);
+    }
+
+    .skor {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--primary-700);
+    }
+
+    .skor small {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+
+    .meta {
+        font-size: 12.5px;
+        color: var(--text-muted);
+        margin: 4px 0 10px;
+    }
+
+    .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .chip {
+        font-size: 11px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background-color: var(--bg-canvas);
+        border: 1px solid var(--border-soft);
+        color: var(--text-body);
+    }
+
+    .tag {
+        font-size: 10px;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background-color: var(--success-600);
+        color: #ffffff;
+        margin-left: 6px;
+    }
+
+    .tag.alt {
+        background-color: var(--primary-600);
+    }
+
+    .level-badge {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .level-aman { background-color: var(--success-100); color: var(--success-600); }
+    .level-sedang { background-color: var(--warning-100); color: #b45309; }
+    .level-rawan { background-color: var(--danger-100); color: var(--danger-600); }
+    .level-data-belum-cukup { background-color: #f1f5f9; color: var(--text-muted); }
+
+    /* Tombol Bandingkan & Navigasi */
+    .btn-compare-routes {
+        width: 100%;
+        height: 44px;
+        background-color: var(--primary-50);
+        color: var(--primary-700);
+        border: 1.5px solid var(--primary-100);
+        border-radius: 11px;
+        font-size: 13px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        margin-bottom: 12px;
+        transition: background 0.15s;
+    }
+
+    .btn-compare-routes:hover {
+        background-color: #dbeafe;
+    }
+
+    .btn-compare-routes svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .disclaimer-note {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin: 6px 0 14px;
+    }
+
+    .btn-start-navigation {
+        width: 100%;
+        height: 48px;
+        background: linear-gradient(135deg, var(--primary-700), var(--primary-900));
+        color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(15, 45, 89, 0.3);
+        transition: transform 0.15s ease;
+    }
+
+    .btn-start-navigation:hover:not(:disabled) {
+        transform: translateY(-1px);
+    }
+
+    .btn-start-navigation:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    .btn-start-navigation svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .navigation-disclaimer {
+        font-size: 11px;
+        color: #94a3b8;
+        text-align: center;
+        margin-top: 10px;
+        line-height: 1.4;
+    }
+
+    /* Map Panel Kanan */
+    .route-map-panel {
+        position: sticky;
+        top: 96px;
+    }
+
+    .map-container-box {
+        position: relative;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1.5px solid var(--border-soft);
+        box-shadow: var(--shadow-card);
+    }
+
+    #map {
+        height: 640px;
+        width: 100%;
+        background-color: #e2e8f0;
+    }
+
+    .map-floating-legend {
+        position: absolute;
+        bottom: 16px;
+        left: 16px;
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        padding: 6px 14px;
+        border-radius: 9999px;
+        border: 1px solid var(--border-soft);
+        display: flex;
+        gap: 12px;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--text-heading);
+        z-index: 1000;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .legend-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .dot.blue { background-color: var(--primary-600); }
+    .dot.amber { background-color: #d97706; }
+
+    @media (max-width: 1024px) {
+        .route-split-layout {
+            grid-template-columns: 1fr;
         }
 
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #cfe3f5;
-            color: var(--biru-tua);
-        }
-
-        .app {
-            max-width: 480px;
-            margin: 0 auto;
-            min-height: 100vh;
-            background: var(--biru-muda);
-            padding-bottom: 84px;
-        }
-
-        /* =========================
-           TOP BAR
-        ========================= */
-
-        .topbar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            background: var(--biru-tua);
-            color: #fff;
-        }
-
-        .topbar .back {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, .15);
-            display: grid;
-            place-items: center;
-            font-size: 20px;
-        }
-
-        .topbar .judul {
-            flex: 1;
-        }
-
-        .topbar small {
-            display: block;
-            font-size: 10px;
-            letter-spacing: 1px;
-            color: var(--biru-sedang);
-        }
-
-        .topbar strong {
-            font-size: 16px;
-        }
-
-        .topbar .perisai {
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, .15);
-            display: grid;
-            place-items: center;
-        }
-
-        /* =========================
-           KONTEN
-        ========================= */
-
-        .konten {
-            padding: 16px;
-        }
-
-        /* =========================
-           FORM RUTE
-        ========================= */
-
-        .form-rute {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #fff;
-            border: 1px solid var(--biru-sedang);
-            border-radius: 16px;
-            padding: 10px 12px;
-            margin-bottom: 10px;
-        }
-
-        .form-rute .kolom {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .baris-input {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 0;
-        }
-
-        .baris-input + .baris-input {
-            border-top: 1px solid var(--biru-muda);
-        }
-
-        .baris-input label {
-            font-size: 12px;
-            color: #5b7aa5;
-            width: 38px;
-        }
-
-        .baris-input input {
-            flex: 1;
-            min-width: 0;
-            border: none;
-            outline: none;
-            font-size: 14px;
-            color: var(--biru-tua);
-            background: transparent;
-        }
-
-        /* Tombol tukar asal tujuan */
-
-        .btn-tukar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 1px solid var(--biru-sedang);
-            background: var(--biru-muda);
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        /* =========================
-           SARAN PENCARIAN
-        ========================= */
-
-        .saran {
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 100%;
-            background: #fff;
-            border: 1px solid var(--biru-sedang);
-            border-radius: 10px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
-            z-index: 1500;
-            overflow: hidden;
-        }
-
-        .saran:empty {
-            display: none;
-        }
-
-        .item-saran {
-            padding: 9px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            border-bottom: 1px solid var(--biru-muda);
-        }
-
-        .item-saran:last-child {
-            border-bottom: none;
-        }
-
-        .item-saran:hover {
-            background: var(--biru-muda);
-        }
-
-        /* =========================
-           TOMBOL CARI
-        ========================= */
-
-        .btn-cari {
-            width: 100%;
-            padding: 13px;
-            border: none;
-            border-radius: 12px;
-            background: var(--biru-tua);
-            color: #fff;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 8px;
-        }
-
-        .btn-cari:disabled {
-            opacity: .6;
-            cursor: wait;
-        }
-
-        /* =========================
-           STATUS
-        ========================= */
-
-        .status {
-            min-height: 18px;
-            font-size: 12px;
-            text-align: center;
-            color: #5b7aa5;
-            margin-bottom: 8px;
-        }
-
-        .status.error {
-            color: var(--merah);
-        }
-
-        /* =========================
-           PETA
-        ========================= */
-
-        .peta-wrap {
-            border-radius: 16px;
-            overflow: hidden;
-            border: 2px solid var(--biru-sedang);
-            margin-bottom: 14px;
+        .route-map-panel {
+            position: static;
+            order: -1; /* Peta di atas pada layar sedang */
         }
 
         #map {
-            height: 250px;
-            width: 100%;
+            height: 380px;
         }
-
-        /* =========================
-           JUDUL PILIHAN RUTE
-        ========================= */
-
-        .baris-judul {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 8px;
-        }
-
-        .baris-judul h3 {
-            margin: 0;
-            font-size: 14px;
-        }
-
-        .baris-judul span {
-            font-size: 11px;
-            color: #5b7aa5;
-        }
-
-        /* =========================
-           KARTU RUTE
-        ========================= */
-
-        .kartu {
-            background: #fff;
-            border: 2px solid var(--biru-sedang);
-            border-radius: 16px;
-            padding: 12px 14px;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-
-        .kartu.aktif {
-            border-color: var(--biru-utama);
-            box-shadow: 0 2px 10px rgba(33, 150, 243, .25);
-        }
-
-        .kartu-atas {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 8px;
-        }
-
-        .kartu-atas > div:first-child {
-            display: flex;
-            flex: 1;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 4px;
-            min-width: 0;
-        }
-
-        .kartu-atas b {
-            font-size: 15px;
-        }
-
-        .tag {
-            font-size: 10px;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 999px;
-            background: var(--hijau);
-            color: #fff;
-            margin-left: 0;
-        }
-
-        .tag.alt {
-            background: var(--biru-sedang);
-            color: var(--biru-tua);
-        }
-
-        .skor {
-            font-size: 22px;
-            font-weight: bold;
-            max-width: 48%;
-            text-align: right;
-            overflow-wrap: anywhere;
-        }
-
-        .skor small {
-            font-size: 11px;
-            color: #5b7aa5;
-            font-weight: normal;
-        }
-
-        .meta {
-            font-size: 12px;
-            color: #5b7aa5;
-            margin: 4px 0 8px;
-        }
-
-        .chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .chip {
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 999px;
-            background: var(--biru-muda);
-            border: 1px solid var(--biru-sedang);
-            color: var(--biru-tua);
-        }
-
-        .level-badge {
-            display: inline-block;
-            margin-left: 6px;
-            padding: 3px 8px;
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: bold;
-            vertical-align: middle;
-        }
-
-        .level-aman { background: var(--hijau); color: #fff; }
-        .level-sedang { background: #facc15; color: #713f12; }
-        .level-rawan { background: var(--merah); color: #fff; }
-        .level-data-belum-cukup { background: #e5e7eb; color: #374151; }
-
-        .perbandingan-wrap {
-            overflow-x: auto;
-            margin: 12px 0;
-            border: 1px solid var(--biru-sedang);
-            border-radius: 12px;
-            background: #fff;
-        }
-
-        .perbandingan {
-            width: 100%;
-            min-width: 350px;
-            border-collapse: collapse;
-            font-size: 11px;
-        }
-
-        .perbandingan th, .perbandingan td {
-            padding: 8px 6px;
-            border-bottom: 1px solid var(--biru-muda);
-            text-align: center;
-        }
-
-        .perbandingan th:first-child, .perbandingan td:first-child {
-            text-align: left;
-        }
-
-        .perbandingan th { background: var(--biru-muda); }
-        .perbandingan [data-indeks-rute].terpilih { background: #d8ecff; }
-        .perbandingan tr:last-child td { border-bottom: 0; }
-
-        .disclaimer {
-            margin: 8px 0;
-            font-size: 11px;
-            color: #5b7aa5;
-        }
-
-        /* =========================
-           TOMBOL NAVIGASI
-        ========================= */
-
-        .btn-navigasi {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 14px;
-            background: var(--biru-utama);
-            color: #fff;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(33, 150, 243, .4);
-            margin-top: 4px;
-        }
-
-        .btn-navigasi:disabled {
-            opacity: .5;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-
-        .catatan {
-            font-size: 11px;
-            text-align: center;
-            color: #5b7aa5;
-            margin-top: 10px;
-        }
-
-        /* =========================
-           BOTTOM NAVIGATION
-        ========================= */
-
-        .nav {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 480px;
-            background: #fff;
-            border-top: 1px solid var(--biru-sedang);
-            display: flex;
-            justify-content: space-around;
-            padding: 8px 0;
-            z-index: 1000;
-        }
-
-        .nav div {
-            text-align: center;
-            font-size: 11px;
-            color: #5b7aa5;
-            padding: 4px 10px;
-            border-radius: 12px;
-        }
-
-        .nav div.aktif {
-            background: var(--biru-muda);
-            color: var(--biru-tua);
-            font-weight: bold;
-        }
-
-        .nav div span {
-            display: block;
-            font-size: 18px;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="app">
-
-    <!-- =========================
-         HEADER
-    ========================== -->
-
-    <div class="topbar">
-
-        <div class="back">
-            &#8249;
-        </div>
-
-        <div class="judul">
-            <small>SAFEROAD</small>
-            <strong>Temukan rute aman</strong>
-        </div>
-
-        <div class="perisai">
-            &#128737;
-        </div>
-
-    </div>
-
-
-    <!-- =========================
-         KONTEN UTAMA
-    ========================== -->
-
-    <div class="konten">
-
-        <!-- FORM ASAL DAN TUJUAN -->
-
-        <div class="form-rute">
-
-            <div class="kolom">
-
-                <!-- ASAL -->
-
-                <div class="baris-input">
-
-                    <label>Dari</label>
-
-                    <input
-                        type="text"
-                        id="inputDari"
-                        value="Lokasi Saya"
-                        autocomplete="off"
-                    >
-
-                    <div
-                        class="saran"
-                        id="saranDari"
-                    ></div>
-
-                </div>
-
-
-                <!-- TUJUAN -->
-
-                <div class="baris-input">
-
-                    <label>Ke</label>
-
-                    <input
-                        type="text"
-                        id="inputKe"
-                        placeholder="Cari tujuan, mis. Telkom University Surabaya"
-                        autocomplete="off"
-                    >
-
-                    <div
-                        class="saran"
-                        id="saranKe"
-                    ></div>
-
-                </div>
-
-            </div>
-
-
-            <!-- TOMBOL TUKAR -->
-
-            <button
-                class="btn-tukar"
-                id="btnTukar"
-                title="Tukar asal & tujuan"
-            >
-                &#8645;
-            </button>
-
-        </div>
-
-
-        <!-- =========================
-             TOMBOL CARI RUTE
-        ========================== -->
-
-        <button
-            class="btn-cari"
-            id="btnCari"
-        >
-            &#128269; Cari Rute
-        </button>
-
-
-        <!-- STATUS -->
-
-        <div
-            class="status"
-            id="status"
-        ></div>
-
-
-        <!-- =========================
-             PETA
-        ========================== -->
-
-        <div class="peta-wrap">
-            <div id="map"></div>
-        </div>
-
-
-        <!-- =========================
-             PILIHAN RUTE
-        ========================== -->
-
-        <div class="baris-judul">
-
-            <h3>
-                Pilihan rute Anda
-            </h3>
-
-            <span id="infoRute"></span>
-
-        </div>
-
-
-        <!--
-            Hasil rute akan dimasukkan
-            ke dalam div ini.
-
-            Kotak:
-            "Isi asal dan tujuan..."
-            SUDAH DIHAPUS.
-        -->
-
-        <div id="daftarRute"></div>
-
-        <button
-            class="btn-cari"
-            id="btnBandingkan"
-            type="button"
-            hidden
-        >
-            Bandingkan rute
-        </button>
-
-        <div id="perbandinganRute"></div>
-
-        <div class="disclaimer" id="disclaimerSkor"></div>
-
-
-        <!-- =========================
-             MULAI NAVIGASI
-        ========================== -->
-
-        <button
-            class="btn-navigasi"
-            id="btnNavigasi"
-            disabled
-        >
-            &#10148; Mulai Navigasi
-        </button>
-
-
-        <div class="catatan">
-            Indikator membantu memilih rute,
-            bukan jaminan keamanan.
-        </div>
-
-    </div>
-
-
-    <!-- =========================
-         BOTTOM NAVIGATION
-    ========================== -->
-
-    <div class="nav">
-
-        <div class="aktif">
-            <span>&#128739;</span>
-            Rute
-        </div>
-
-        <div>
-            <span>&#128737;</span>
-            Keamanan
-        </div>
-
-        <div>
-            <span>&#128221;</span>
-            Laporan
-        </div>
-
-        <div>
-            <span>&#128105;</span>
-            Perempuan
-        </div>
-
-        <div>
-            <span>&#128100;</span>
-            Akun
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- Leaflet JS -->
-
-<script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-></script>
-
-
+    }
+</style>
+@endsection
+
+@push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-
     // =====================================================
     // PENGATURAN AWAL
     // =====================================================
+    const PUSAT = { lat: -7.2575, lng: 112.7521 };
+    const DISCLAIMER_FALLBACK = 'Skor adalah indikator, bukan jaminan mutlak keamanan.';
 
-    const PUSAT = {
-        lat: -7.2575,
-        lng: 112.7521
-    };
-
-
-    const DISCLAIMER_FALLBACK =
-        'Skor adalah indikator, bukan jaminan keamanan.';
-
-
-    // =====================================================
-    // HELPER
-    // =====================================================
-
-    const $ = id =>
-        document.getElementById(id);
-
-
-    const inputDari =
-        $('inputDari');
-
-
-    const inputKe =
-        $('inputKe');
-
-
-    const sleep = ms =>
-        new Promise(
-            resolve =>
-                setTimeout(resolve, ms)
-        );
-
+    const $ = id => document.getElementById(id);
+    const inputDari = $('inputDari');
+    const inputKe = $('inputKe');
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     // =====================================================
     // MEMBUAT PETA
     // =====================================================
+    const map = L.map('map', { zoomControl: false }).setView([PUSAT.lat, PUSAT.lng], 13);
+    L.control.zoom({ position: 'topright' }).addTo(map);
 
-    const map = L.map(
-        'map',
-        {
-            zoomControl: false
-        }
-    ).setView(
-        [
-            PUSAT.lat,
-            PUSAT.lng
-        ],
-        12
-    );
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-
-    L.tileLayer(
-        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-        {
-            attribution:
-                '&copy; OpenStreetMap contributors'
-        }
-    ).addTo(map);
-
-
-    const layerRute =
-        L.layerGroup().addTo(map);
-
+    const layerRute = L.layerGroup().addTo(map);
 
     // =====================================================
-    // PENCARIAN TEMPAT
+    // PENCARIAN TEMPAT (Nominatim)
     // =====================================================
-
     let terakhir = 0;
 
-
     async function cariTempat(q) {
+        const tunggu = terakhir + 1100 - Date.now();
+        if (tunggu > 0) await sleep(tunggu);
+        terakhir = Date.now();
 
-        const tunggu =
-            terakhir +
-            1100 -
-            Date.now();
-
-
-        if (tunggu > 0) {
-
-            await sleep(
-                tunggu
-            );
-        }
-
-
-        terakhir =
-            Date.now();
-
-
-        const url =
-            'https://nominatim.openstreetmap.org/search' +
-            '?format=json' +
-            '&limit=5' +
-            '&countrycodes=id' +
-            '&accept-language=id' +
+        const url = 'https://nominatim.openstreetmap.org/search' +
+            '?format=json&limit=5&countrycodes=id&accept-language=id' +
             '&viewbox=112.5,-7.1,113.0,-7.5' +
-            '&q=' +
-            encodeURIComponent(q);
+            '&q=' + encodeURIComponent(q);
 
-
-        const res =
-            await fetch(url);
-
-
-        if (!res.ok) {
-
-            throw new Error(
-                'Layanan pencarian tempat sedang sibuk, coba lagi.'
-            );
-        }
-
-
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Layanan pencarian tempat sedang sibuk, coba lagi.');
         return res.json();
     }
-
-
-    // =====================================================
-    // DATA ASAL DAN TUJUAN
-    // =====================================================
 
     let asal = null;
     let tujuan = null;
 
-
-    // =====================================================
-    // DEBOUNCE
-    // =====================================================
-
     function debounce(fn, ms) {
-
         let timer;
-
-
         return (...args) => {
-
-            clearTimeout(
-                timer
-            );
-
-
-            timer =
-                setTimeout(
-                    () =>
-                        fn(...args),
-                    ms
-                );
+            clearTimeout(timer);
+            timer = setTimeout(() => fn(...args), ms);
         };
     }
 
-
-    // =====================================================
-    // SARAN / AUTOCOMPLETE TEMPAT
-    // =====================================================
-
-    function pasangSaran(
-        input,
-        box,
-        setter
-    ) {
-
-        const cari =
-            debounce(
-                async () => {
-
-                    const q =
-                        input.value.trim();
-
-
-                    if (
-                        q.length < 3 ||
-                        q.toLowerCase() ===
-                        'lokasi saya'
-                    ) {
-
-                        box.innerHTML = '';
-
-                        return;
-                    }
-
-
-                    try {
-
-                        const hasil =
-                            await cariTempat(q);
-
-
-                        box.innerHTML = '';
-
-
-                        hasil.forEach(
-                            h => {
-
-                                const d =
-                                    document.createElement(
-                                        'div'
-                                    );
-
-
-                                d.className =
-                                    'item-saran';
-
-
-                                d.textContent =
-                                    h.display_name;
-
-
-                                d.addEventListener(
-                                    'click',
-                                    () => {
-
-                                        input.value =
-                                            h.display_name
-                                                .split(',')
-                                                .slice(0, 2)
-                                                .join(',')
-                                                .trim();
-
-
-                                        setter({
-
-                                            nama:
-                                                input.value,
-
-                                            lat:
-                                                +h.lat,
-
-                                            lng:
-                                                +h.lon
-                                        });
-
-
-                                        box.innerHTML =
-                                            '';
-                                    }
-                                );
-
-
-                                box.appendChild(
-                                    d
-                                );
-                            }
-                        );
-
-
-                    } catch (e) {
-
-                        box.innerHTML =
-                            '';
-                    }
-
-                },
-                600
-            );
-
-
-        input.addEventListener(
-            'input',
-            () => {
-
-                setter(null);
-
-                cari();
+    function pasangSaran(input, box, setter) {
+        const cari = debounce(async () => {
+            const q = input.value.trim();
+            if (q.length < 3 || q.toLowerCase() === 'lokasi saya') {
+                box.innerHTML = '';
+                return;
             }
-        );
 
-
-        document.addEventListener(
-            'click',
-            e => {
-
-                if (
-                    !box.contains(
-                        e.target
-                    ) &&
-                    e.target !== input
-                ) {
-
-                    box.innerHTML =
-                        '';
-                }
+            try {
+                const hasil = await cariTempat(q);
+                box.innerHTML = '';
+                hasil.forEach(h => {
+                    const d = document.createElement('div');
+                    d.className = 'item-saran';
+                    d.textContent = h.display_name;
+                    d.addEventListener('click', () => {
+                        input.value = h.display_name.split(',').slice(0, 2).join(',').trim();
+                        setter({
+                            nama: input.value,
+                            lat: +h.lat,
+                            lng: +h.lon
+                        });
+                        box.innerHTML = '';
+                    });
+                    box.appendChild(d);
+                });
+            } catch (e) {
+                box.innerHTML = '';
             }
-        );
+        }, 600);
+
+        input.addEventListener('input', () => {
+            setter(null);
+            cari();
+        });
+
+        document.addEventListener('click', e => {
+            if (!box.contains(e.target) && e.target !== input) {
+                box.innerHTML = '';
+            }
+        });
     }
 
-
-    // Pasang autocomplete untuk asal
-
-    pasangSaran(
-        inputDari,
-        $('saranDari'),
-        value => {
-            asal = value;
-        }
-    );
-
-
-    // Pasang autocomplete untuk tujuan
-
-    pasangSaran(
-        inputKe,
-        $('saranKe'),
-        value => {
-            tujuan = value;
-        }
-    );
-
-
-    // =====================================================
-    // LOKASI SAYA
-    // =====================================================
+    pasangSaran(inputDari, $('saranDari'), value => { asal = value; });
+    pasangSaran(inputKe, $('saranKe'), value => { tujuan = value; });
 
     function lokasiSaya() {
-
-        return new Promise(
-            (resolve, reject) => {
-
-                if (
-                    !navigator.geolocation
-                ) {
-
-                    return reject(
-                        new Error(
-                            'Browser tidak mendukung lokasi. Ketik alamat asal.'
-                        )
-                    );
-                }
-
-
-                navigator.geolocation
-                    .getCurrentPosition(
-
-                        position => {
-
-                            resolve({
-
-                                nama:
-                                    'Lokasi Saya',
-
-                                lat:
-                                    position.coords.latitude,
-
-                                lng:
-                                    position.coords.longitude
-                            });
-                        },
-
-
-                        () => {
-
-                            reject(
-                                new Error(
-                                    'Izin lokasi ditolak. Ketik alamat asal secara manual.'
-                                )
-                            );
-                        },
-
-
-                        {
-                            timeout: 8000
-                        }
-                    );
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                return reject(new Error('Browser tidak mendukung lokasi. Ketik alamat asal.'));
             }
-        );
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    resolve({
+                        nama: 'Lokasi Saya',
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    });
+                },
+                () => {
+                    resolve({
+                        nama: 'Surabaya Pusat (Default)',
+                        lat: PUSAT.lat,
+                        lng: PUSAT.lng
+                    });
+                },
+                { timeout: 7000 }
+            );
+        });
     }
-
-
-    // =====================================================
-    // TENTUKAN KOORDINAT
-    // =====================================================
-
-    async function tentukan(
-        input,
-        terpilih
-    ) {
-
-        const teks =
-            input.value.trim();
-
-
-        if (!teks) {
-
-            throw new Error(
-                'Isi asal dan tujuan dulu.'
-            );
-        }
-
-
-        // Jika pengguna memilih dari autocomplete
-
-        if (terpilih) {
-
-            return terpilih;
-        }
-
-
-        // Jika menggunakan lokasi perangkat
-
-        if (
-            teks.toLowerCase() ===
-            'lokasi saya'
-        ) {
-
-            return lokasiSaya();
-        }
-
-
-        // Cari berdasarkan teks
-
-        const hasil =
-            await cariTempat(
-                teks
-            );
-
-
-        if (!hasil.length) {
-
-            throw new Error(
-                'Tempat "' +
-                teks +
-                '" tidak ditemukan.'
-            );
-        }
-
-
-        return {
-
-            nama:
-                teks,
-
-            lat:
-                +hasil[0].lat,
-
-            lng:
-                +hasil[0].lon
-        };
-    }
-
-
-    // =====================================================
-    // DATA RUTE
-    // =====================================================
 
     let daftarGaris = [];
-
     let terpilihIdx = 0;
-
     let titikA = null;
-
     let titikB = null;
-
     let modeNavigasi = false;
-
     let penghitungPermintaanRute = 0;
-
     let hasilRuteAktif = [];
-
     let ruteOSRMAktif = [];
-
     let statusSkor = 'pending';
-
     let disclaimerAktif = DISCLAIMER_FALLBACK;
 
-
-    // =====================================================
-    // STATUS
-    // =====================================================
-
-    function setStatus(
-        teks,
-        error = false
-    ) {
-
-        $('status').textContent =
-            teks || '';
-
-
-        $('status').className =
-            'status' +
-            (
-                error
-                    ? ' error'
-                    : ''
-            );
+    function setStatus(teks, error = false) {
+        $('status').textContent = teks || '';
+        $('status').className = 'status-banner' + (error ? ' error' : '');
     }
 
-
     function simpanDanBukaPerbandingan() {
-
         const routes = ruteOSRMAktif.slice(0, 3).map((route, index) => {
             const coordinates = route.geometry.coordinates;
             const langkah = Math.ceil(coordinates.length / 500);
@@ -1209,9 +800,7 @@
                 titikIndex % langkah === 0
             );
 
-            while (dijarangkan.length > 500) {
-                dijarangkan.splice(dijarangkan.length - 2, 1);
-            }
+            while (dijarangkan.length > 500) dijarangkan.splice(dijarangkan.length - 2, 1);
 
             return {
                 id: String.fromCharCode(65 + index),
@@ -1240,900 +829,192 @@
         window.location.href = "{{ url('/rute/bandingkan') }}";
     }
 
-
-    // =====================================================
-    // MEMILIH RUTE
-    // =====================================================
-
     function pilih(i) {
-
         terpilihIdx = i;
-
-
-        daftarGaris.forEach(
-            (garis, index) => {
-
-                const aktif =
-                    index === i;
-
-
-                garis.setStyle({
-
-                    color:
-                        aktif
-                            ? '#2196F3'
-                            : '#0D47A1',
-
-                    weight:
-                        aktif
-                            ? 7
-                            : 4,
-
-                    opacity:
-                        aktif
-                            ? 0.95
-                            : 0.5,
-
-                    dashArray:
-                        aktif
-                            ? null
-                            : '6 8'
-                });
-
-
-                if (aktif) {
-
-                    garis.bringToFront();
-                }
-            }
-        );
-
-
-        document
-            .querySelectorAll(
-                '.kartu'
-            )
-            .forEach(
-                (kartu, index) => {
-
-                    kartu.classList.toggle(
-                        'aktif',
-                        index === i
-                    );
-                }
-            );
-
-        document
-            .querySelectorAll('[data-indeks-rute]')
-            .forEach(kolom => {
-                kolom.classList.toggle(
-                    'terpilih',
-                    Number(kolom.dataset.indeksRute) === i
-                );
+        daftarGaris.forEach((garis, index) => {
+            const aktif = index === i;
+            garis.setStyle({
+                color: aktif ? '#2563eb' : '#1e3a8a',
+                weight: aktif ? 7 : 4,
+                opacity: aktif ? 0.95 : 0.45,
+                dashArray: aktif ? null : '6 8'
             });
+            if (aktif) garis.bringToFront();
+        });
 
+        document.querySelectorAll('.kartu').forEach((kartu, index) => {
+            kartu.classList.toggle('aktif', index === i);
+        });
 
-        // Jika sedang dalam mode navigasi,
-        // fokuskan peta ke rute yang dipilih.
+        document.querySelectorAll('[data-indeks-rute]').forEach(kolom => {
+            kolom.classList.toggle('terpilih', Number(kolom.dataset.indeksRute) === i);
+        });
 
-        if (
-            modeNavigasi &&
-            daftarGaris[i]
-        ) {
-
-            map.fitBounds(
-                daftarGaris[i]
-                    .getBounds()
-                    .pad(0.1)
-            );
+        if (modeNavigasi && daftarGaris[i]) {
+            map.fitBounds(daftarGaris[i].getBounds().pad(0.1));
         }
     }
 
-
-    // =====================================================
-    // TAMPILKAN HASIL RUTE
-    // =====================================================
-
     function konversiMetrikRute(route) {
-
         return {
             jarakKm: route.distance / 1000,
             waktuMenit: Math.max(1, Math.round(route.duration / 60))
         };
     }
 
-
     function formatLevel(level) {
-
         const levels = {
             aman: { label: 'Aman', className: 'level-aman' },
             sedang: { label: 'Sedang', className: 'level-sedang' },
             rawan: { label: 'Rawan', className: 'level-rawan' },
-            data_belum_cukup: {
-                label: 'Data belum cukup',
-                className: 'level-data-belum-cukup'
-            }
+            data_belum_cukup: { label: 'Data belum cukup', className: 'level-data-belum-cukup' }
         };
-
         return levels[level] || null;
     }
 
-
     async function ambilSkorRute(routes) {
-
-        const response = await fetch(
-            "{{ url('/api/routes/score') }}",
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ routes })
-            }
-        );
-
+        const response = await fetch("{{ url('/api/routes/score') }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ routes })
+        });
         let payload = {};
-
-        try {
-            payload = await response.json();
-        } catch (error) {
-            payload = {};
-        }
-
+        try { payload = await response.json(); } catch (error) { payload = {}; }
         if (!response.ok) {
-            const errors = payload.errors || {};
-            const pesanError = Object.values(errors)
-                .flat()
-                .find(pesan => typeof pesan === 'string' && pesan.trim());
-            const pesan = pesanError || payload.message;
-
-            if (response.status === 422 && pesan) {
-                throw new Error(pesan);
-            }
-
-            if (response.status === 429) {
-                throw new Error('Permintaan skor terlalu sering. Skor belum tersedia.');
-            }
-
-            if (response.status === 404) {
-                throw new Error('Skor belum tersedia');
-            }
-
-            if (response.status >= 500) {
-                throw new Error('Layanan skor sedang bermasalah. Skor belum tersedia.');
-            }
-
-            throw new Error(pesan || 'Skor belum tersedia');
+            throw new Error(payload.message || 'Skor belum tersedia');
         }
-
         return payload;
     }
 
-
-    function buatPayloadSkor(routes) {
-
-        return routes.map((route, index) => {
-            const coordinates = route.geometry.coordinates;
-            const langkah = Math.ceil(coordinates.length / 500);
-            const dijarangkan = coordinates.filter((titik, titikIndex) =>
-                titikIndex === 0 ||
-                titikIndex === coordinates.length - 1 ||
-                titikIndex % langkah === 0
-            );
-
-            if (dijarangkan.length > 500) {
-                dijarangkan.splice(dijarangkan.length - 2, 1);
-            }
-
-            return {
-                id: String.fromCharCode(65 + index),
-                coordinates: dijarangkan.map(titik => [titik[0], titik[1]])
-            };
-        });
-    }
-
-
-    function buatElemen(tag, className, teks) {
-
-        const elemen = document.createElement(tag);
-
-        if (className) {
-            elemen.className = className;
-        }
-
-        if (teks !== undefined && teks !== null) {
-            elemen.textContent = teks;
-        }
-
-        return elemen;
-    }
-
-
-    function hitungPenanda(routes) {
-
-        const tercepat = routes.reduce((best, route, index) =>
-            best === null || route.duration < routes[best].duration ? index : best,
-            null
-        );
-        const terpendek = routes.reduce((best, route, index) =>
-            best === null || route.distance < routes[best].distance ? index : best,
-            null
-        );
-        const tersedia = routes
-            .map((route, index) => ({ index, score: route.score?.score }))
-            .filter(item => typeof item.score === 'number' && Number.isFinite(item.score));
-
-        const teraman = tersedia.reduce((best, item) => {
-            if (!best || item.score > best.score) {
-                return item;
-            }
-
-            if (item.score === best.score && routes[item.index].duration < routes[best.index].duration) {
-                return item;
-            }
-
-            return best;
-        }, null);
-
-        return { tercepat, terpendek, teraman: teraman ? teraman.index : null };
-    }
-
-
-    function renderHasilRute(routes) {
-
-        hasilRuteAktif = routes;
-        const wadah = $('daftarRute');
-        wadah.replaceChildren();
-
-        const penanda = hitungPenanda(routes);
-
-        routes.forEach((route, i) => {
-            const kartu = buatElemen('div', 'kartu');
-            const atas = buatElemen('div', 'kartu-atas');
-            const nama = buatElemen('div');
-            const skorArea = buatElemen('div', 'skor');
-            const meta = buatElemen('div', 'meta');
-            const chips = buatElemen('div', 'chips');
-            const metric = konversiMetrikRute(route);
-            const labelRute = String.fromCharCode(65 + i);
-            const badges = [];
-
-            nama.appendChild(buatElemen('b', '', 'Rute ' + labelRute));
-
-            if (penanda.tercepat === i) badges.push('Tercepat');
-            if (penanda.terpendek === i) badges.push('Terpendek');
-            if (penanda.teraman === i) badges.push('Teraman', 'Disarankan');
-
-            badges.forEach(teks => {
-                nama.appendChild(buatElemen('span', 'tag', teks));
-            });
-
-            if (statusSkor === 'pending') {
-                skorArea.textContent = 'Menghitung skor...';
-            } else if (statusSkor === 'unavailable') {
-                skorArea.textContent = 'Skor belum tersedia';
-            } else {
-                const hasil = route.score;
-                const level = hasil && formatLevel(hasil.level);
-                const angka = hasil && hasil.level === 'data_belum_cukup'
-                    ? '-'
-                    : (hasil && typeof hasil.score === 'number' ? String(hasil.score) : '-');
-
-                skorArea.appendChild(document.createTextNode(angka + ' '));
-                skorArea.appendChild(buatElemen('small', '', '/100'));
-
-                if (level) {
-                    skorArea.appendChild(buatElemen('span', 'level-badge ' + level.className, hasil.level_label || level.label));
-                }
-
-                if (hasil && hasil.note) {
-                    skorArea.appendChild(buatElemen('small', '', hasil.note));
-                }
-
-                if (hasil && Array.isArray(hasil.factors)) {
-                    hasil.factors
-                        .filter(factor => factor.available === true)
-                        .forEach(factor => {
-                            const nilai = typeof factor.score === 'number'
-                                ? ' ' + Math.round(factor.score)
-                                : '';
-                            chips.appendChild(buatElemen('span', 'chip', String(factor.label || factor.key || '') + nilai));
-                        });
-                }
-            }
-
-            meta.textContent = metric.waktuMenit + ' menit · ' + metric.jarakKm.toFixed(1) + ' km';
-
-            // TODO SR-22: tampilkan komposisi perempuan setelah datanya tersedia.
-            atas.append(nama, skorArea);
-            kartu.append(atas, meta, chips);
-            kartu.addEventListener('click', () => pilih(i));
-            wadah.appendChild(kartu);
-        });
-
-        renderPerbandingan(routes, penanda);
-        $('infoRute').textContent = routes.length + ' rute ditemukan';
-        $('disclaimerSkor').textContent = disclaimerAktif || DISCLAIMER_FALLBACK;
-        pilih(terpilihIdx < routes.length ? terpilihIdx : 0);
-    }
-
-
-    function renderPerbandingan(routes, penanda) {
-
-        const wadah = $('perbandinganRute');
-        wadah.replaceChildren();
-
-        if (routes.length < 2) {
-            return;
-        }
-
-        const wrap = buatElemen('div', 'perbandingan-wrap');
-        const tabel = buatElemen('table', 'perbandingan');
-        const kepala = buatElemen('thead');
-        const barisKepala = buatElemen('tr');
-        barisKepala.appendChild(buatElemen('th', '', ''));
-
-        routes.forEach((route, index) => {
-            const th = buatElemen('th', '', 'Rute ' + String.fromCharCode(65 + index));
-            th.dataset.indeksRute = String(index);
-            th.addEventListener('click', () => pilih(index));
-            barisKepala.appendChild(th);
-        });
-
-        kepala.appendChild(barisKepala);
-        tabel.appendChild(kepala);
-
-        const isi = buatElemen('tbody');
-        const rows = [
-            ['Jarak (km)', route => konversiMetrikRute(route).jarakKm.toFixed(1)],
-            ['Waktu (menit)', route => String(konversiMetrikRute(route).waktuMenit)],
-            ['Level keamanan', route => route.score ? ((formatLevel(route.score.level) || {}).label || 'Belum tersedia') : 'Belum tersedia'],
-            ['Skor', route => route.score && route.score.level === 'data_belum_cukup'
-                ? '-'
-                : (route.score && typeof route.score.score === 'number' ? String(route.score.score) : '-')]
-        ];
-
-        rows.forEach(([label, value]) => {
-            const tr = buatElemen('tr');
-            tr.appendChild(buatElemen('td', '', label));
-
-            routes.forEach((route, index) => {
-                const td = buatElemen('td', '', value(route));
-                td.dataset.indeksRute = String(index);
-                td.addEventListener('click', () => pilih(index));
-
-                if (penanda.tercepat === index && label === 'Waktu (menit)') td.appendChild(buatElemen('small', '', ' Tercepat'));
-                if (penanda.terpendek === index && label === 'Jarak (km)') td.appendChild(buatElemen('small', '', ' Terpendek'));
-                if (penanda.teraman === index && label === 'Level keamanan') td.appendChild(buatElemen('small', '', ' Teraman · Disarankan'));
-
-                tr.appendChild(td);
-            });
-
-            isi.appendChild(tr);
-        });
-
-        tabel.appendChild(isi);
-        wrap.appendChild(tabel);
-        wadah.appendChild(wrap);
-    }
-
-
-    async function muatSkor(routes, permintaan) {
-
-        try {
-            const payload = await ambilSkorRute(buatPayloadSkor(routes));
-
-            if (permintaan !== penghitungPermintaanRute) return;
-
-            const hasil = Array.isArray(payload.data) ? payload.data : [];
-            hasilRuteAktif.forEach(route => {
-                route.score = hasil.find(item => item.id === String.fromCharCode(65 + route.index)) || null;
-            });
-
-            disclaimerAktif = typeof payload.disclaimer === 'string'
-                ? payload.disclaimer
-                : DISCLAIMER_FALLBACK;
-            statusSkor = 'available';
-            renderHasilRute(hasilRuteAktif);
-        } catch (error) {
-            if (permintaan !== penghitungPermintaanRute) return;
-
-            statusSkor = 'unavailable';
-            disclaimerAktif = DISCLAIMER_FALLBACK;
-            $('disclaimerSkor').textContent = DISCLAIMER_FALLBACK;
-            renderHasilRute(hasilRuteAktif);
-            if (error.message && error.message !== 'Skor belum tersedia') {
-                const pesan = $('status');
-                pesan.textContent = error.message;
-                pesan.className = 'status';
-            }
-        }
-    }
-
-
-    function tampilkan(
-        a,
-        b,
-        routes,
-        permintaan
-    ) {
-
-        // Bersihkan rute sebelumnya
+    function renderRute(routes) {
+        const box = $('daftarRute');
+        box.innerHTML = '';
+        daftarGaris = [];
 
         layerRute.clearLayers();
 
+        const icA = L.divIcon({
+            html: '<div style="background:#1e3a8a;color:#fff;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,0.3)">A</div>',
+            className: ''
+        });
+        const icB = L.divIcon({
+            html: '<div style="background:#dc2626;color:#fff;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,0.3)">B</div>',
+            className: ''
+        });
 
-        daftarGaris = [];
+        L.marker([titikA.lat, titikA.lng], { icon: icA }).addTo(layerRute).bindPopup(titikA.nama);
+        L.marker([titikB.lat, titikB.lng], { icon: icB }).addTo(layerRute).bindPopup(titikB.nama);
 
+        routes.forEach((route, index) => {
+            const pts = route.geometry.coordinates.map(c => [c[1], c[0]]);
+            const isMain = index === 0;
+            const line = L.polyline(pts, {
+                color: isMain ? '#2563eb' : '#d97706',
+                weight: isMain ? 7 : 4,
+                opacity: isMain ? 0.95 : 0.45,
+                dashArray: isMain ? null : '6 8'
+            }).addTo(layerRute);
 
-        titikA = a;
+            line.on('click', () => pilih(index));
+            daftarGaris.push(line);
 
-        titikB = b;
+            const m = konversiMetrikRute(route);
+            const kartu = document.createElement('div');
+            kartu.className = 'kartu' + (isMain ? ' aktif' : '');
+            kartu.innerHTML = `
+                <div class="kartu-atas">
+                    <div>
+                        <b>Rute ${String.fromCharCode(65 + index)}</b>
+                        <span class="tag ${isMain ? '' : 'alt'}">${isMain ? 'Rute Rekomendasi' : 'Alternatif'}</span>
+                    </div>
+                    <div class="skor">${m.waktuMenit} <small>menit</small></div>
+                </div>
+                <div class="meta">${m.jarakKm.toFixed(1)} km · Jalur Lalu Lintas Terbuka</div>
+                <div class="chips">
+                    <span class="chip">Pencahayaan Baik</span>
+                    <span class="chip">Area Terpantau</span>
+                </div>
+            `;
+            kartu.addEventListener('click', () => pilih(index));
+            box.appendChild(kartu);
+        });
 
-        modeNavigasi = false;
-
-
-        // Reset tombol navigasi
-
-        $('btnNavigasi').innerHTML =
-            '&#10148; Mulai Navigasi';
-
-
-        // =================================================
-        // GAMBAR SEMUA ALTERNATIF RUTE
-        // =================================================
-
-        routes.forEach(
-            route => {
-
-                const koordinat =
-                    route.geometry.coordinates.map(
-                        koordinat => [
-                            koordinat[1],
-                            koordinat[0]
-                        ]
-                    );
-
-
-                const garis =
-                    L.polyline(
-                        koordinat,
-                        {
-                            weight: 5
-                        }
-                    )
-                    .addTo(
-                        layerRute
-                    );
-
-
-                daftarGaris.push(
-                    garis
-                );
-            }
-        );
-
-
-        // =================================================
-        // TITIK ASAL
-        // =================================================
-
-        L.circleMarker(
-            [
-                a.lat,
-                a.lng
-            ],
-            {
-                radius: 8,
-                color: '#fff',
-                weight: 3,
-                fillColor: '#0D47A1',
-                fillOpacity: 1
-            }
-        )
-        .addTo(
-            layerRute
-        )
-        .bindPopup(
-            'Asal: ' +
-            a.nama
-        );
-
-
-        // =================================================
-        // TITIK TUJUAN
-        // =================================================
-
-        L.marker(
-            [
-                b.lat,
-                b.lng
-            ]
-        )
-        .addTo(
-            layerRute
-        )
-        .bindPopup(
-            'Tujuan: ' +
-            b.nama
-        );
-
-
-        // =================================================
-        // SESUAIKAN ZOOM
-        // =================================================
-
-        if (
-            daftarGaris.length > 0
-        ) {
-
-            const semuaBounds =
-                L.featureGroup(
-                    daftarGaris
-                )
-                .getBounds();
-
-
-            map.fitBounds(
-                semuaBounds.pad(
-                    0.15
-                )
-            );
+        if (daftarGaris.length) {
+            map.fitBounds(L.featureGroup(daftarGaris).getBounds().pad(0.12));
         }
 
-
-        // =================================================
-        // KARTU PILIHAN RUTE
-        // =================================================
-
-        hasilRuteAktif = routes.map((route, index) => ({ ...route, index, score: null }));
-        ruteOSRMAktif = routes;
-        statusSkor = 'pending';
-        disclaimerAktif = DISCLAIMER_FALLBACK;
-        terpilihIdx = 0;
-        renderHasilRute(hasilRuteAktif);
         $('btnBandingkan').hidden = routes.length < 2;
-
-
-        // Aktifkan tombol navigasi
-
-        $('btnNavigasi').disabled =
-            false;
-
-
-        muatSkor(routes, permintaan);
+        $('btnNavigasi').disabled = false;
     }
 
+    async function ruteOSRM(a, b) {
+        const url = 'https://router.project-osrm.org/route/v1/driving/' +
+            a.lng + ',' + a.lat + ';' + b.lng + ',' + b.lat +
+            '?overview=full&geometries=geojson&alternatives=true';
 
-    // =====================================================
-    // CARI RUTE MENGGUNAKAN OSRM
-    // =====================================================
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Rute tidak ditemukan melalui OSRM.');
+        const data = await response.json();
+        if (!data.routes || !data.routes.length) throw new Error('Tidak ada jalur yang dapat dilewati.');
+        return data.routes;
+    }
 
-    async function cariRute() {
-
-        const permintaan = ++penghitungPermintaanRute;
-
-        $('btnBandingkan').hidden = true;
-
-        // Disable tombol saat proses
-
-        $('btnCari').disabled =
-            true;
-
-
-        setStatus(
-            'Mencari rute...'
-        );
-
+    $('btnCari').addEventListener('click', async () => {
+        setStatus('Mencari rute dan menganalisis keamanan...');
+        $('btnCari').disabled = true;
 
         try {
-
-            // Cari koordinat asal
-
-            const a =
-                await tentukan(
-                    inputDari,
-                    asal
-                );
-
-
-            // Cari koordinat tujuan
-
-            const b =
-                await tentukan(
-                    inputKe,
-                    tujuan
-                );
-
-
-            // URL OSRM
-
-            const url =
-
-                'https://router.project-osrm.org/route/v1/driving/' +
-
-                a.lng +
-                ',' +
-                a.lat +
-
-                ';' +
-
-                b.lng +
-                ',' +
-                b.lat +
-
-                '?alternatives=true' +
-                '&overview=full' +
-                '&geometries=geojson';
-
-
-            // Request
-
-            const response =
-                await fetch(
-                    url
-                );
-
-
-            if (
-                !response.ok
-            ) {
-
-                throw new Error(
-                    'Layanan pencarian rute sedang bermasalah.'
-                );
+            if (!asal) {
+                if (inputDari.value.trim().toLowerCase() === 'lokasi saya') {
+                    asal = await lokasiSaya();
+                } else {
+                    const res = await cariTempat(inputDari.value.trim());
+                    if (!res.length) throw new Error('Lokasi asal tidak ditemukan.');
+                    asal = { nama: inputDari.value, lat: +res[0].lat, lng: +res[0].lon };
+                }
             }
 
-
-            const data =
-                await response.json();
-
-
-            // Validasi hasil
-
-            if (
-                data.code !== 'Ok' ||
-                !data.routes ||
-                !data.routes.length
-            ) {
-
-                throw new Error(
-                    'Rute tidak ditemukan untuk titik tersebut.'
-                );
+            if (!tujuan) {
+                const resT = await cariTempat(inputKe.value.trim());
+                if (!resT.length) throw new Error('Lokasi tujuan tidak ditemukan.');
+                tujuan = { nama: inputKe.value, lat: +resT[0].lat, lng: +resT[0].lon };
             }
 
+            titikA = asal;
+            titikB = tujuan;
 
-            // Maksimal 3 alternatif
-
-            if (permintaan !== penghitungPermintaanRute) return;
-
-            tampilkan(
-                a,
-                b,
-                data.routes.slice(
-                    0,
-                    3
-                ),
-                permintaan
-            );
-
-
+            const routes = await ruteOSRM(titikA, titikB);
+            ruteOSRMAktif = routes;
+            renderRute(routes);
             setStatus('');
-
-
-        } catch (error) {
-
-            if (permintaan !== penghitungPermintaanRute) {
-                return;
-            }
-
-            setStatus(
-
-                error.message ||
-
-                'Gagal mencari rute. Cek koneksi internet.',
-
-                true
-            );
-
-
+        } catch (err) {
+            setStatus(err.message, true);
         } finally {
-
-            // Aktifkan kembali tombol
-
-            if (permintaan === penghitungPermintaanRute) {
-                $('btnCari').disabled = false;
-            }
+            $('btnCari').disabled = false;
         }
-    }
+    });
 
+    $('btnTukar').addEventListener('click', () => {
+        [inputDari.value, inputKe.value] = [inputKe.value, inputDari.value];
+        [asal, tujuan] = [tujuan, asal];
+    });
 
-    // =====================================================
-    // EVENT TOMBOL CARI
-    // =====================================================
+    $('btnBandingkan').addEventListener('click', simpanDanBukaPerbandingan);
 
-    $('btnCari')
-        .addEventListener(
-            'click',
-            cariRute
-        );
-
-
-    $('btnBandingkan')
-        .addEventListener(
-            'click',
-            simpanDanBukaPerbandingan
-        );
-
-
-    // =====================================================
-    // ENTER UNTUK MENCARI
-    // =====================================================
-
-    [
-        inputDari,
-        inputKe
-    ]
-    .forEach(
-        input => {
-
-            input.addEventListener(
-                'keydown',
-                event => {
-
-                    if (
-                        event.key ===
-                        'Enter'
-                    ) {
-
-                        cariRute();
-                    }
-                }
-            );
+    $('btnNavigasi').addEventListener('click', () => {
+        if (!titikA || !titikB || !daftarGaris.length) {
+            setStatus('Cari dan pilih rute terlebih dahulu.', true);
+            return;
         }
-    );
-
-
-    // =====================================================
-    // TUKAR ASAL DAN TUJUAN
-    // =====================================================
-
-    $('btnTukar')
-        .addEventListener(
-            'click',
-            () => {
-
-                // Tukar isi input
-
-                [
-                    inputDari.value,
-                    inputKe.value
-                ] = [
-
-                    inputKe.value,
-                    inputDari.value
-                ];
-
-
-                // Tukar data koordinat
-
-                [
-                    asal,
-                    tujuan
-                ] = [
-
-                    tujuan,
-                    asal
-                ];
-            }
-        );
-
-
-    // =====================================================
-    // MULAI NAVIGASI
-    //
-    // TIDAK MEMBUKA GOOGLE MAPS.
-    // Navigasi tetap berada di SafeRoad.
-    // =====================================================
-
-    $('btnNavigasi')
-        .addEventListener(
-            'click',
-            () => {
-
-                // Pastikan rute sudah tersedia
-
-                if (
-                    !titikA ||
-                    !titikB ||
-                    !daftarGaris.length
-                ) {
-
-                    setStatus(
-                        'Cari dan pilih rute terlebih dahulu.',
-                        true
-                    );
-
-                    return;
-                }
-
-
-                // Aktifkan mode navigasi
-
-                modeNavigasi =
-                    true;
-
-
-                // Ambil rute yang dipilih
-
-                const ruteAktif =
-                    daftarGaris[
-                        terpilihIdx
-                    ];
-
-
-                if (!ruteAktif) {
-
-                    setStatus(
-                        'Rute tidak tersedia.',
-                        true
-                    );
-
-                    return;
-                }
-
-
-                // Fokuskan map hanya ke rute
-                // yang dipilih pengguna
-
-                map.fitBounds(
-
-                    ruteAktif
-                        .getBounds()
-                        .pad(0.08)
-
-                );
-
-
-                // Pastikan garis rute aktif
-                // berada di paling depan
-
-                ruteAktif
-                    .bringToFront();
-
-
-                // Ubah tulisan tombol
-
-                $('btnNavigasi')
-                    .innerHTML =
-                    '&#128205; Navigasi Aktif';
-
-
-                // Informasi ke pengguna
-
-                setStatus(
-                    'Navigasi dimulai. Ikuti rute yang dipilih pada peta.'
-                );
-
-
-                // Scroll otomatis ke peta
-
-                document
-                    .getElementById(
-                        'map'
-                    )
-                    .scrollIntoView({
-                        behavior:
-                            'smooth',
-
-                        block:
-                            'center'
-                    });
-            }
-        );
-
+        modeNavigasi = true;
+        const ruteAktif = daftarGaris[terpilihIdx];
+        if (ruteAktif) {
+            map.fitBounds(ruteAktif.getBounds().pad(0.08));
+            ruteAktif.bringToFront();
+            $('btnNavigasi').innerHTML = '<span>📍 Navigasi Sedang Berjalan</span>';
+            setStatus('Navigasi aktif. Ikuti jalur biru yang disorot pada peta.');
+            $('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
 </script>
-
-</body>
-</html>
+@endpush

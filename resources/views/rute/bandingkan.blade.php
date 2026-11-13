@@ -1,107 +1,541 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bandingkan rute - SafeRoad</title>
+@extends('layouts.app')
+
+@section('title', 'Bandingkan Rute · SafeRoad')
+
+@push('leaflet-css')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <style>
-        :root {
-            --biru-muda: #E3F2FD;
-            --biru-sedang: #90CAF9;
-            --biru-utama: #2196F3;
-            --biru-tua: #0D47A1;
-            --hijau: #16a34a;
-            --merah: #dc2626;
-        }
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: Arial, sans-serif; background: #cfe3f5; color: var(--biru-tua); overflow-x: hidden; }
-        .app { max-width: 480px; min-height: 100vh; margin: 0 auto; background: var(--biru-muda); padding-bottom: 32px; overflow: hidden; }
-        .topbar { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--biru-tua); color: #fff; }
-        .topbar .back { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.15); color: #fff; text-decoration: none; font-size: 20px; }
-        .topbar .judul { flex: 1; }
-        .topbar small { display: block; color: var(--biru-sedang); font-size: 10px; letter-spacing: 1px; }
-        .topbar strong { font-size: 16px; }
-        .konten { padding: 16px; min-width: 0; }
-        h1 { margin: 0 0 12px; font-size: 20px; }
-        .tautan-kembali { display: inline-block; margin-bottom: 14px; color: var(--biru-tua); font-size: 13px; }
-        .pesan { padding: 10px 12px; margin: 0 0 10px; border-radius: 10px; background: #fff; font-size: 13px; }
-        .pesan.error { color: #991b1b; border: 1px solid #fecaca; }
-        .peta-wrap { border: 2px solid var(--biru-sedang); border-radius: 16px; overflow: hidden; margin-bottom: 14px; }
-        #map { width: 100%; height: 270px; }
-        h2 { margin: 14px 0 8px; font-size: 15px; }
-        .perbandingan-wrap { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; margin: 10px 0; border: 1px solid var(--biru-sedang); border-radius: 12px; background: #fff; }
-        .perbandingan { width: 100%; min-width: 370px; border-collapse: collapse; font-size: 11px; }
-        .perbandingan th, .perbandingan td { min-width: 82px; padding: 8px 6px; border-bottom: 1px solid var(--biru-muda); text-align: center; vertical-align: middle; }
-        .perbandingan th:first-child, .perbandingan td:first-child { min-width: 96px; text-align: left; }
-        .perbandingan th { background: var(--biru-muda); }
-        .pilih-kolom { width: 100%; padding: 6px 3px; border: 0; border-radius: 6px; color: var(--biru-tua); background: transparent; font: inherit; font-weight: bold; cursor: pointer; }
-        .perbandingan [data-route-id].terpilih { background: #d8ecff; }
-        .perbandingan th.terpilih .pilih-kolom { background: #c2e2ff; }
-        button:focus-visible, a:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
-        .tag { display: inline-block; margin: 2px; padding: 3px 6px; border-radius: 999px; background: var(--hijau); color: #fff; font-size: 9px; font-weight: bold; white-space: nowrap; }
-        .tag.alt { background: var(--biru-utama); }
-        .level-badge { display: inline-block; padding: 3px 7px; border-radius: 999px; font-size: 10px; font-weight: bold; white-space: nowrap; }
-        .level-aman { background: var(--hijau); color: #fff; }
-        .level-sedang { background: #facc15; color: #713f12; }
-        .level-rawan { background: var(--merah); color: #fff; }
-        .level-data-belum-cukup { background: #e5e7eb; color: #374151; }
-        .disclaimer, .bantuan { margin: 8px 0; color: #5b7aa5; font-size: 11px; line-height: 1.45; }
-        .btn { padding: 10px 14px; border: 0; border-radius: 10px; background: var(--biru-tua); color: #fff; font-size: 13px; font-weight: bold; cursor: pointer; }
-        .btn:disabled { opacity: .6; cursor: wait; }
-        .kartu-rute { width: 100%; margin: 5px 0; padding: 10px; border: 2px solid var(--biru-sedang); border-radius: 12px; background: #fff; color: var(--biru-tua); text-align: left; cursor: pointer; }
-        .kartu-rute.terpilih { border-color: var(--biru-utama); box-shadow: 0 2px 10px rgba(33,150,243,.25); }
-        .faktor { margin: 8px 0; padding: 10px; border: 1px solid var(--biru-sedang); border-radius: 10px; background: #fff; }
-        .faktor.tidak-tersedia { opacity: .55; }
-        .faktor-atas { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; }
-        .bar-latar { height: 7px; margin-top: 7px; border-radius: 999px; background: var(--biru-muda); overflow: hidden; }
-        .bar-nilai { height: 100%; border-radius: inherit; background: var(--biru-utama); }
-        .faktor-note { margin-top: 5px; color: #5b7aa5; font-size: 11px; }
-        [hidden] { display: none !important; }
-        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
-    </style>
-</head>
-<body>
-<div class="app">
-    <header class="topbar">
-        <a class="back" href="{{ url('/rute') }}" aria-label="Kembali ke pencarian">&#8249;</a>
-        <div class="judul"><small>SAFEROAD</small><strong>Bandingkan rute</strong></div>
-    </header>
-    <main class="konten">
-        <h1>Bandingkan rute</h1>
-        <a class="tautan-kembali" href="{{ url('/rute') }}">Kembali ke pencarian</a>
-        <section id="tanpa-data" hidden>
-            <p class="pesan">Belum ada rute untuk dibandingkan.</p>
-            <a class="btn" href="{{ url('/rute') }}" style="display:inline-block;text-decoration:none">Cari rute</a>
-        </section>
-        <section id="konten-rute" hidden>
-            <p id="pesan-info" class="pesan" hidden></p>
-            <div class="peta-wrap"><div id="map" aria-label="Peta perbandingan rute"></div></div>
-            <p id="pesan-satu" class="pesan" hidden>Hanya ada satu rute, tidak ada yang perlu dibandingkan.</p>
-            <section id="bagian-perbandingan" hidden>
-                <h2>Perbandingan rute</h2>
-                <p class="bantuan">Rute tercepat belum tentu teraman.</p>
-                <div class="perbandingan-wrap" tabindex="0" aria-label="Tabel perbandingan rute, dapat digulir mendatar">
-                    <table class="perbandingan" id="tabel-perbandingan"></table>
+@endpush
+
+@section('content')
+<div class="compare-page-container">
+    <!-- Breadcrumb & Kembali -->
+    <div class="compare-nav-bar">
+        <a href="{{ url('/rute') }}" class="btn-back-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Kembali ke Pencarian Rute</span>
+        </a>
+    </div>
+
+    <!-- State Ketika Belum Ada Data Rute Dipilih -->
+    <section id="tanpa-data" class="empty-state-card" hidden>
+        <div class="empty-icon-circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+        </div>
+        <h2>Belum Ada Rute untuk Dibandingkan</h2>
+        <p>Silakan tentukan titik asal dan tujuan terlebih dahulu di halaman pencarian rute untuk membandingkan alternatif rute perjalanan.</p>
+        <a href="{{ url('/rute') }}" class="btn-primary-action">
+            <span>Cari Rute Sekarang</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+        </a>
+    </section>
+
+    <!-- State Utama Ketika Data Rute Tersedia -->
+    <section id="konten-rute" hidden>
+        <header class="compare-header">
+            <div>
+                <span class="compare-tag">ANALISIS MULTI-RUTE</span>
+                <h1>Perbandingan Alternatif Rute</h1>
+                <p>Bandingkan metrik efisiensi jarak, estimasi durasi, dan indikator keamanan sebelum memulai perjalanan.</p>
+            </div>
+        </header>
+
+        <p id="pesan-info" class="status-alert-banner" hidden></p>
+        <p id="pesan-satu" class="status-alert-banner info" hidden>
+            Hanya ada satu rute yang ditemukan, sehingga tidak ada rute alternatif lain untuk diperbandingkan.
+        </p>
+
+        <!-- Grid Komparasi: Peta & Tabel -->
+        <div class="compare-main-grid">
+            <!-- Kolom Kiri: Peta Interaktif -->
+            <div class="map-comparison-card">
+                <div class="card-header-bar">
+                    <h3>Visualisasi Peta Rute</h3>
+                    <div class="map-legend-pills">
+                        <span class="pill-legenda rute-1">Rute 1</span>
+                        <span class="pill-legenda rute-2">Rute 2</span>
+                        <span class="pill-legenda rute-3">Rute 3</span>
+                    </div>
                 </div>
-                <button type="button" class="btn" id="coba-lagi" hidden>Coba lagi</button>
-                <p class="disclaimer" id="disclaimer"></p>
-            </section>
-            <section id="bagian-rincian">
-                <h2 id="judul-rincian">Rincian keamanan</h2>
-                <div id="kartu-rute"></div>
-                <div id="daftar-faktor"></div>
-            </section>
+                <div class="map-viewport-wrapper">
+                    <div id="map" aria-label="Peta perbandingan rute"></div>
+                </div>
+                <div class="map-card-note">
+                    Garis tebal solid menandai rute yang saat ini Anda pilih untuk inspeksi detail.
+                </div>
+            </div>
+
+            <!-- Kolom Kanan: Rincian Keamanan & Faktor -->
+            <div class="details-comparison-card">
+                <section id="bagian-rincian">
+                    <h3 id="judul-rincian">Rincian Keamanan Rute Terpilih</h3>
+                    <div id="kartu-rute" class="route-selector-pills"></div>
+                    <div id="daftar-faktor" class="factors-container"></div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Tabel Perbandingan Komprehensif -->
+        <section id="bagian-perbandingan" class="table-section-card" hidden>
+            <div class="table-card-header">
+                <div>
+                    <h2>Tabel Evaluasi & Rekomendasi Rute</h2>
+                    <p class="bantuan-note">Rute tercepat belum tentu rute teraman. Pertimbangkan pencahayaan dan titik pantau CCTV.</p>
+                </div>
+                <button type="button" class="btn-refresh" id="coba-lagi" hidden>
+                    Muat Ulang Skor
+                </button>
+            </div>
+
+            <div class="table-scroll-container" tabindex="0" aria-label="Tabel perbandingan rute">
+                <table class="table-compare" id="tabel-perbandingan"></table>
+            </div>
+
+            <p class="disclaimer-text" id="disclaimer"></p>
         </section>
-    </main>
+    </section>
 </div>
+
+<style>
+    .compare-page-container {
+        width: min(100% - 32px, 1140px);
+        margin: 32px auto 60px;
+    }
+
+    .compare-nav-bar {
+        margin-bottom: 20px;
+    }
+
+    .btn-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--primary-600);
+        transition: transform 0.15s ease;
+    }
+
+    .btn-back-link:hover {
+        transform: translateX(-3px);
+    }
+
+    .btn-back-link svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Empty State */
+    .empty-state-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        border-radius: 20px;
+        padding: 60px 24px;
+        text-align: center;
+        box-shadow: var(--shadow-card);
+        max-width: 580px;
+        margin: 40px auto;
+    }
+
+    .empty-icon-circle {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background-color: var(--primary-50);
+        color: var(--primary-600);
+        display: grid;
+        place-items: center;
+        margin: 0 auto 20px;
+    }
+
+    .empty-icon-circle svg {
+        width: 32px;
+        height: 32px;
+    }
+
+    .empty-state-card h2 {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text-heading);
+        margin-bottom: 8px;
+    }
+
+    .empty-state-card p {
+        font-size: 14px;
+        color: var(--text-muted);
+        line-height: 1.6;
+        margin-bottom: 24px;
+    }
+
+    .btn-primary-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+        color: #ffffff;
+        border-radius: 11px;
+        font-size: 14px;
+        font-weight: 700;
+        box-shadow: var(--shadow-btn);
+        transition: transform 0.15s ease;
+    }
+
+    .btn-primary-action:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-primary-action svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Header */
+    .compare-header {
+        margin-bottom: 24px;
+    }
+
+    .compare-tag {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--primary-600);
+        background-color: var(--primary-50);
+        padding: 4px 10px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+    }
+
+    .compare-header h1 {
+        font-size: clamp(24px, 3vw, 32px);
+        font-weight: 800;
+        color: var(--text-heading);
+        letter-spacing: -0.03em;
+        margin-bottom: 6px;
+    }
+
+    .compare-header p {
+        font-size: 14px;
+        color: var(--text-muted);
+    }
+
+    .status-alert-banner {
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 13.5px;
+        margin-bottom: 20px;
+        background-color: var(--danger-50);
+        border: 1px solid var(--danger-100);
+        color: var(--danger-600);
+    }
+
+    .status-alert-banner.info {
+        background-color: var(--primary-50);
+        border-color: var(--primary-100);
+        color: var(--primary-700);
+    }
+
+    /* Grid Utama Komparasi */
+    .compare-main-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 24px;
+        margin-bottom: 28px;
+    }
+
+    .map-comparison-card,
+    .details-comparison-card,
+    .table-section-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: var(--shadow-card);
+    }
+
+    .card-header-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+    }
+
+    .card-header-bar h3,
+    .details-comparison-card h3 {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text-heading);
+    }
+
+    .map-legend-pills {
+        display: flex;
+        gap: 6px;
+    }
+
+    .pill-legenda {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+        color: #ffffff;
+    }
+
+    .pill-legenda.rute-1 { background-color: #1e3a8a; }
+    .pill-legenda.rute-2 { background-color: #d97706; }
+    .pill-legenda.rute-3 { background-color: #7c3aed; }
+
+    .map-viewport-wrapper {
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1.5px solid var(--border-soft);
+    }
+
+    #map {
+        height: 380px;
+        width: 100%;
+        background-color: #e2e8f0;
+    }
+
+    .map-card-note {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 10px;
+    }
+
+    /* Route Selector Pills */
+    .route-selector-pills {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 14px 0 20px;
+    }
+
+    .kartu-rute {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1.5px solid var(--border-soft);
+        border-radius: 12px;
+        background-color: #ffffff;
+        color: var(--text-heading);
+        text-align: left;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .kartu-rute:hover {
+        border-color: var(--primary-500);
+        background-color: var(--primary-50);
+    }
+
+    .kartu-rute.terpilih {
+        border-color: var(--primary-600);
+        background-color: var(--primary-50);
+        color: var(--primary-800);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+
+    /* Factors Container */
+    .factors-container {
+        display: grid;
+        gap: 12px;
+    }
+
+    .faktor {
+        padding: 12px 14px;
+        border: 1px solid var(--border-soft);
+        border-radius: 12px;
+        background-color: var(--bg-canvas);
+    }
+
+    .faktor.tidak-tersedia {
+        opacity: 0.6;
+    }
+
+    .faktor-atas {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-heading);
+    }
+
+    .bar-latar {
+        height: 7px;
+        margin-top: 8px;
+        border-radius: 999px;
+        background-color: var(--border-soft);
+        overflow: hidden;
+    }
+
+    .bar-nilai {
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+    }
+
+    .faktor-note {
+        margin-top: 6px;
+        font-size: 11.5px;
+        color: var(--text-muted);
+    }
+
+    /* Tabel Perbandingan */
+    .table-section-card {
+        margin-top: 24px;
+    }
+
+    .table-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 18px;
+    }
+
+    .table-card-header h2 {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text-heading);
+        margin-bottom: 4px;
+    }
+
+    .bantuan-note {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .btn-refresh {
+        padding: 8px 14px;
+        background-color: var(--primary-50);
+        color: var(--primary-700);
+        border: 1px solid var(--primary-100);
+        border-radius: 8px;
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .table-scroll-container {
+        overflow-x: auto;
+        border: 1px solid var(--border-soft);
+        border-radius: 14px;
+    }
+
+    .table-compare {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .table-compare th,
+    .table-compare td {
+        padding: 12px 16px;
+        text-align: center;
+        border-bottom: 1px solid var(--border-soft);
+    }
+
+    .table-compare th:first-child,
+    .table-compare td:first-child {
+        text-align: left;
+        font-weight: 700;
+        color: var(--text-heading);
+        background-color: #f8fafc;
+        width: 180px;
+    }
+
+    .table-compare th {
+        background-color: var(--primary-50);
+    }
+
+    .pilih-kolom {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 8px;
+        background-color: transparent;
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--primary-800);
+        cursor: pointer;
+        transition: background-color 0.15s;
+    }
+
+    .table-compare th.terpilih .pilih-kolom {
+        background-color: var(--primary-600);
+        color: #ffffff;
+    }
+
+    .table-compare [data-route-id].terpilih {
+        background-color: #eff6ff;
+    }
+
+    /* Badges & Tags */
+    .tag {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 2px 7px;
+        border-radius: 9999px;
+        background-color: var(--success-600);
+        color: #ffffff;
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .tag.alt {
+        background-color: var(--primary-600);
+    }
+
+    .level-badge {
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .level-aman { background-color: var(--success-100); color: var(--success-600); }
+    .level-sedang { background-color: var(--warning-100); color: #b45309; }
+    .level-rawan { background-color: var(--danger-100); color: var(--danger-600); }
+    .level-data-belum-cukup { background-color: #f1f5f9; color: var(--text-muted); }
+
+    .disclaimer-text {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 14px;
+        text-align: right;
+        font-style: italic;
+    }
+
+    @media (max-width: 900px) {
+        .compare-main-grid {
+            grid-template-columns: 1fr;
+        }
+
+        #map {
+            height: 280px;
+        }
+    }
+</style>
+@endsection
+
+@push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     const URL_SKOR = "{{ url('/api/routes/score') }}";
     const KUNCI_DATA = 'saferoad.perbandingan';
     const KUNCI_PILIHAN = 'saferoad.rutePilihan';
-    const DISCLAIMER_FALLBACK = 'Skor adalah indikator, bukan jaminan keamanan.';
-    const WARNA_RUTE = ['#0D47A1', '#e67e22', '#7b1fa2'];
+    const DISCLAIMER_FALLBACK = 'Skor adalah indikator, bukan jaminan mutlak keamanan.';
+    const WARNA_RUTE = ['#1e3a8a', '#d97706', '#7c3aed'];
     const $ = id => document.getElementById(id);
     let dataRute = null;
     let hasilSkor = new Map();
@@ -150,7 +584,7 @@
                 body: JSON.stringify({ routes: payload })
             });
         } catch (error) {
-            throw new Error('Koneksi gagal. Skor belum tersedia.');
+            throw new Error('Koneksi layanan skor gagal.');
         }
         let result = {};
         try { result = await response.json(); } catch (error) { result = {}; }
@@ -159,9 +593,9 @@
                 const errors = result.errors && Object.values(result.errors).flat();
                 throw new Error((errors && errors[0]) || result.message || 'Data rute tidak dapat dihitung.');
             }
-            if (response.status === 429) throw new Error('Permintaan skor terlalu sering. Skor belum tersedia.');
-            if (response.status === 404) throw new Error('Layanan skor belum tersedia. Skor belum tersedia.');
-            if (response.status >= 500) throw new Error('Layanan skor sedang bermasalah. Skor belum tersedia.');
+            if (response.status === 429) throw new Error('Permintaan skor terlalu sering.');
+            if (response.status === 404) throw new Error('Layanan kalkulasi skor belum terhubung.');
+            if (response.status >= 500) throw new Error('Layanan skor sedang bermasalah.');
             throw new Error(result.message || 'Skor belum tersedia.');
         }
         return result;
@@ -204,7 +638,7 @@
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
         const originName = typeof dataRute.origin.name === 'string' ? dataRute.origin.name : 'Asal';
         const destinationName = typeof dataRute.destination.name === 'string' ? dataRute.destination.name : 'Tujuan';
-        L.circleMarker([dataRute.origin.lat, dataRute.origin.lng], { radius: 8, color: '#fff', weight: 3, fillColor: '#0D47A1', fillOpacity: 1 }).addTo(map).bindPopup(originName);
+        L.circleMarker([dataRute.origin.lat, dataRute.origin.lng], { radius: 8, color: '#fff', weight: 3, fillColor: '#1e3a8a', fillOpacity: 1 }).addTo(map).bindPopup(originName);
         L.marker([dataRute.destination.lat, dataRute.destination.lng]).addTo(map).bindPopup(destinationName);
         dataRute.routes.forEach((route, index) => {
             const line = L.polyline(route.coordinates.map(point => [point[1], point[0]]), { color: WARNA_RUTE[index], weight: 5, opacity: .45, dashArray: '8 7' }).addTo(map);
@@ -218,7 +652,7 @@
         table.replaceChildren();
         const head = document.createElement('thead');
         const headRow = document.createElement('tr');
-        headRow.appendChild(buatElemen('th', '', ''));
+        headRow.appendChild(buatElemen('th', '', 'Indikator Evaluasi'));
         dataRute.routes.forEach((route, index) => {
             const th = document.createElement('th');
             th.dataset.routeId = route.id;
@@ -234,10 +668,10 @@
         const body = document.createElement('tbody');
         const markers = hitungPenanda();
         const rows = [
-            ['Jarak (km)', (route, index) => nilaiMetrik(route, 'jarak', index, markers)],
-            ['Waktu (menit)', (route, index) => nilaiMetrik(route, 'waktu', index, markers)],
-            ['Level keamanan', (route, index) => nilaiLevel(route, index, markers)],
-            ['Skor', (route, index) => nilaiSkor(route)]
+            ['Jarak Tempuh (km)', (route, index) => nilaiMetrik(route, 'jarak', index, markers)],
+            ['Estimasi Waktu', (route, index) => nilaiMetrik(route, 'waktu', index, markers)],
+            ['Tingkat Keamanan', (route, index) => nilaiLevel(route, index, markers)],
+            ['Skor Keamanan (0-100)', (route, index) => nilaiSkor(route)]
         ];
         rows.forEach(([label, render]) => {
             const tr = document.createElement('tr');
@@ -256,7 +690,7 @@
 
     function nilaiMetrik(route, type, index, markers) {
         const metric = konversiMetrikRute(route);
-        const value = type === 'jarak' ? metric.jarakKm.toFixed(1) : String(metric.waktuMenit);
+        const value = type === 'jarak' ? metric.jarakKm.toFixed(1) + ' km' : String(metric.waktuMenit) + ' mnt';
         const nodes = [document.createTextNode(value)];
         if (type === 'jarak' && markers.shortest === index) nodes.push(buatElemen('span', 'tag alt', 'Terpendek'));
         if (type === 'waktu' && markers.fastest === index) nodes.push(buatElemen('span', 'tag alt', 'Tercepat'));
@@ -299,14 +733,14 @@
         const result = hasilSkor.get(dataRute.routes[indeksTerpilih].id);
         const factors = result && Array.isArray(result.factors) ? result.factors : [];
         if (!factors.length) {
-            container.appendChild(buatElemen('p', 'bantuan', statusSkor === 'pending' ? 'Rincian keamanan sedang dihitung.' : 'Rincian faktor belum tersedia.'));
+            container.appendChild(buatElemen('p', 'bantuan-note', statusSkor === 'pending' ? 'Rincian faktor keamanan sedang dianalisis...' : 'Rincian faktor penerangan dan CCTV belum tersedia pada rute ini.'));
             return;
         }
         factors.forEach(factor => {
             const available = factor.available === true;
             const wrapper = buatElemen('div', 'faktor' + (available ? '' : ' tidak-tersedia'));
             const top = buatElemen('div', 'faktor-atas');
-            top.append(buatElemen('strong', '', factor.label || factor.key || 'Faktor'), buatElemen('span', '', typeof factor.score === 'number' ? String(Math.round(factor.score)) : '-'));
+            top.append(buatElemen('strong', '', factor.label || factor.key || 'Faktor Keamanan'), buatElemen('span', '', typeof factor.score === 'number' ? String(Math.round(factor.score)) : '-'));
             wrapper.appendChild(top);
             const track = buatElemen('div', 'bar-latar');
             const bar = buatElemen('div', 'bar-nilai');
@@ -334,7 +768,7 @@
 
     function pilihRute(index) {
         indeksTerpilih = index;
-        try { sessionStorage.setItem(KUNCI_PILIHAN, JSON.stringify({ id: dataRute.routes[index].id, savedAt: new Date().toISOString() })); } catch (error) { /* Penyimpanan pilihan bersifat tambahan. */ }
+        try { sessionStorage.setItem(KUNCI_PILIHAN, JSON.stringify({ id: dataRute.routes[index].id, savedAt: new Date().toISOString() })); } catch (error) {}
         tandaiPilihan();
         renderFaktor();
     }
@@ -364,8 +798,8 @@
             if (request !== nomorPermintaan) return;
             statusSkor = 'unavailable';
             disclaimerAktif = DISCLAIMER_FALLBACK;
-            $('pesan-info').textContent = error.message || 'Skor belum tersedia.';
-            $('pesan-info').className = 'pesan error';
+            $('pesan-info').textContent = error.message || 'Layanan kalkulasi skor rute belum terhubung.';
+            $('pesan-info').className = 'status-alert-banner';
             $('pesan-info').hidden = false;
             $('coba-lagi').hidden = false;
         }
@@ -387,7 +821,7 @@
             $('bagian-perbandingan').hidden = false;
         }
         initPeta();
-        try { sessionStorage.setItem(KUNCI_PILIHAN, JSON.stringify({ id: dataRute.routes[indeksTerpilih].id, savedAt: new Date().toISOString() })); } catch (error) { /* Penyimpanan pilihan bersifat tambahan. */ }
+        try { sessionStorage.setItem(KUNCI_PILIHAN, JSON.stringify({ id: dataRute.routes[indeksTerpilih].id, savedAt: new Date().toISOString() })); } catch (error) {}
         if (dataRute.routes.length > 1) renderSemua();
         else renderFaktor();
         $('coba-lagi').addEventListener('click', muatSkor);
@@ -396,5 +830,4 @@
 
     mulai();
 </script>
-</body>
-</html>
+@endpush
