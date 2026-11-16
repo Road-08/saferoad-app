@@ -124,6 +124,12 @@
             gap: 6px;
         }
 
+        .nav-role-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .nav-link-pill {
             padding: 8px 14px;
             border-radius: 8px;
@@ -242,6 +248,86 @@
                 padding-bottom: 90px; /* Ruang untuk bottom nav */
             }
         }
+
+        /* Badge Role Pengguna Aktif (Berdasarkan Login di Awal) */
+        .active-role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+            letter-spacing: 0.02em;
+            user-select: none;
+        }
+        .active-role-badge.role-badge-keamanan {
+            background: #f0fdf4;
+            color: #166534;
+            border-color: #bbf7d0;
+        }
+        .active-role-badge.role-badge-admin {
+            background: #f5f3ff;
+            color: #4338ca;
+            border-color: #ddd6fe;
+        }
+        .role-badge-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: currentColor;
+        }
+
+        /* Floating SOS Button */
+        .floating-sos-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 24px;
+            z-index: 1050;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 9999px;
+            font-size: 13.5px;
+            font-weight: 800;
+            border: 2px solid #ffffff;
+            box-shadow: 0 8px 24px -4px rgba(220, 38, 38, 0.45);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .floating-sos-btn:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 12px 28px -4px rgba(220, 38, 38, 0.6);
+            color: #fff;
+        }
+        .sos-pulse-ring {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            box-shadow: 0 0 8px #ffffff;
+            animation: pulseSos 1.5s infinite;
+        }
+        @keyframes pulseSos {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+        @media (max-width: 768px) {
+            .floating-sos-btn {
+                bottom: 80px;
+                right: 16px;
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+        }
     </style>
 
     @stack('styles')
@@ -261,23 +347,72 @@
         </a>
 
         <nav class="nav-center-menu" aria-label="Menu Utama">
-            @auth
-                <a href="{{ route('dashboard') }}" class="nav-link-pill {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                    Dashboard
+            {{-- Navigasi Role: Masyarakat --}}
+            <div id="navGroupMasyarakat" class="nav-role-group">
+                @auth
+                    <a href="{{ route('dashboard') }}" class="nav-link-pill {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                        Dashboard
+                    </a>
+                @endauth
+                <a href="{{ url('/rute') }}" class="nav-link-pill {{ request()->is('rute*') ? 'active' : '' }}">
+                    Cari Rute
                 </a>
-            @endauth
-            <a href="{{ url('/rute') }}" class="nav-link-pill {{ request()->is('rute') ? 'active' : '' }}">
-                Cari Rute
-            </a>
-            <a href="{{ url('/rute/bandingkan') }}" class="nav-link-pill {{ request()->is('rute/bandingkan') ? 'active' : '' }}">
-                Bandingkan Rute
-            </a>
-            <a href="{{ url('/profil') }}" class="nav-link-pill {{ request()->is('profil*') || request()->is('verifikasi*') ? 'active' : '' }}">
-                Profil Saya
-            </a>
+                <a href="{{ url('/womens-zone') }}" id="navLinkWomensZone" class="nav-link-pill {{ request()->is('womens-zone*') ? 'active' : '' }}" style="color: {{ request()->is('womens-zone*') ? '#fff' : '#be185d' }}; background-color: {{ request()->is('womens-zone*') ? '#be185d' : 'rgba(251, 207, 232, 0.4)' }}; font-weight: 700;">
+                    ♀ Women's Zone
+                </a>
+                <a href="{{ url('/laporkan') }}" class="nav-link-pill {{ request()->is('laporkan*') ? 'active' : '' }}">
+                    Laporkan
+                </a>
+                <a href="{{ url('/laporan/riwayat') }}" class="nav-link-pill {{ request()->is('laporan/riwayat*') ? 'active' : '' }}">
+                    Riwayat
+                </a>
+                <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
+                    🚨 Darurat
+                </a>
+                <a href="{{ url('/profil') }}" class="nav-link-pill {{ request()->is('profil*') || request()->is('verifikasi*') ? 'active' : '' }}">
+                    Profil
+                </a>
+            </div>
+
+            {{-- Navigasi Role: Petugas Keamanan --}}
+            <div id="navGroupKeamanan" class="nav-role-group" style="display: none;">
+                <a href="{{ route('keamanan.dashboard') }}" class="nav-link-pill {{ request()->is('keamanan*') ? 'active' : '' }}" style="background-color: #0f2d59; color: #fff; font-weight: 700;">
+                    🛡️ Dashboard Keamanan
+                </a>
+                <a href="{{ route('keamanan.dashboard') }}#tabelAduan" class="nav-link-pill">
+                    📋 Laporan Masuk &amp; TKP
+                </a>
+                <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
+                    🚨 Hotline Siaga
+                </a>
+            </div>
+
+            {{-- Navigasi Role: Administrator (Halaman Terpisah) --}}
+            <div id="navGroupAdmin" class="nav-role-group" style="display: none;">
+                <a href="{{ route('admin.dashboard') }}" class="nav-link-pill {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" style="{{ request()->routeIs('admin.dashboard') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
+                    ⚡ Dashboard
+                </a>
+                <a href="{{ route('admin.validasi') }}" class="nav-link-pill {{ request()->routeIs('admin.validasi') ? 'active' : '' }}" style="{{ request()->routeIs('admin.validasi') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
+                    ⚖️ Validasi Laporan
+                </a>
+                <a href="{{ route('admin.peta') }}" class="nav-link-pill {{ request()->routeIs('admin.peta') ? 'active' : '' }}" style="{{ request()->routeIs('admin.peta') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
+                    🗺️ Pantau Peta
+                </a>
+                <a href="{{ route('admin.statistik') }}" class="nav-link-pill {{ request()->routeIs('admin.statistik') ? 'active' : '' }}" style="{{ request()->routeIs('admin.statistik') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
+                    📊 Statistik &amp; Rekap
+                </a>
+                <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
+                    🚨 Pengaturan Darurat
+                </a>
+            </div>
         </nav>
 
         <div class="top-user-actions">
+            <!-- Badge Role Aktif Pengguna (Ditentukan saat login di awal) -->
+            <div class="active-role-badge role-badge-masyarakat" id="topActiveRoleBadge" title="Role Anda yang aktif dari login">
+                <span class="role-badge-dot"></span>
+                <span id="topActiveRoleText">👤 Masyarakat</span>
+            </div>
             @auth
                 <div class="user-pill" title="{{ auth()->user()->email }}">
                     <div class="avatar-circle">
@@ -319,6 +454,74 @@
             Pusat Bantuan & Respon Darurat: <strong>112</strong>
         </div>
     </footer>
+
+    <!-- Floating Quick SOS Button (Global) -->
+    <a href="{{ url('/darurat') }}" class="floating-sos-btn" id="btnFloatingSos" title="Panggilan Darurat Cepat SafeRoad">
+        <span class="sos-pulse-ring"></span>
+        <span>🚨 SOS DARURAT</span>
+    </a>
+
+    <script>
+        // Menampilkan badge role pengguna sesuai role yang dipilih saat login di awal
+        (function() {
+            const path = window.location.pathname;
+            let role = localStorage.getItem('saferoad_active_role');
+
+            if (path.startsWith('/keamanan')) {
+                role = 'keamanan';
+                localStorage.setItem('saferoad_active_role', 'keamanan');
+            } else if (path.startsWith('/admin')) {
+                role = 'admin';
+                localStorage.setItem('saferoad_active_role', 'admin');
+            } else if (!role) {
+                role = 'masyarakat';
+                localStorage.setItem('saferoad_active_role', 'masyarakat');
+            }
+
+            const badge = document.getElementById('topActiveRoleBadge');
+            const badgeText = document.getElementById('topActiveRoleText');
+            const brandLink = document.querySelector('.brand-link');
+
+            // Sinkronkan grup menu navigasi sesuai role aktif
+            const navMasyarakat = document.getElementById('navGroupMasyarakat');
+            const navKeamanan = document.getElementById('navGroupKeamanan');
+            const navAdmin = document.getElementById('navGroupAdmin');
+
+            if (navMasyarakat) navMasyarakat.style.display = (role === 'masyarakat') ? 'inline-flex' : 'none';
+            if (navKeamanan) navKeamanan.style.display = (role === 'keamanan') ? 'inline-flex' : 'none';
+            if (navAdmin) navAdmin.style.display = (role === 'admin') ? 'inline-flex' : 'none';
+
+            // Pengecekan status verifikasi Mode Perempuan pada menu Women's Zone
+            const isFemaleVerified = (localStorage.getItem('saferoad_verified') === 'true' && localStorage.getItem('saferoad_gender') === 'perempuan');
+            const wzLink = document.getElementById('navLinkWomensZone');
+            if (wzLink) {
+                if (!isFemaleVerified) {
+                    wzLink.innerHTML = '🔒 Women\'s Zone <small style="font-size:10px;opacity:0.85;background:rgba(0,0,0,0.08);padding:1px 5px;border-radius:4px;margin-left:3px;">Kunci</small>';
+                    wzLink.title = 'Perlu verifikasi gender perempuan untuk membuka akses';
+                } else {
+                    wzLink.innerHTML = '♀ Women\'s Zone ✨';
+                    wzLink.title = 'Mode Perempuan Terverifikasi Aktif';
+                }
+            }
+
+            if (badge && badgeText) {
+                badge.classList.remove('role-badge-masyarakat', 'role-badge-keamanan', 'role-badge-admin');
+                if (role === 'keamanan') {
+                    badge.classList.add('role-badge-keamanan');
+                    badgeText.textContent = '🛡️ Petugas Keamanan';
+                    if (brandLink) brandLink.href = "{{ route('keamanan.dashboard') }}";
+                } else if (role === 'admin') {
+                    badge.classList.add('role-badge-admin');
+                    badgeText.textContent = '⚡ Administrator';
+                    if (brandLink) brandLink.href = "{{ route('admin.dashboard') }}";
+                } else {
+                    badge.classList.add('role-badge-masyarakat');
+                    badgeText.textContent = '👤 Masyarakat';
+                    if (brandLink) brandLink.href = "{{ route('dashboard') }}";
+                }
+            }
+        })();
+    </script>
 
     @stack('scripts')
 </body>

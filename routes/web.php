@@ -17,7 +17,23 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.store');
+
+    // Route khusus portal login per role
+    Route::get('/login/keamanan', function () {
+        return view('auth.form', ['mode' => 'login', 'initialRole' => 'keamanan']);
+    })->name('login.keamanan');
+
+    Route::get('/login/admin', function () {
+        return view('auth.form', ['mode' => 'login', 'initialRole' => 'admin']);
+    })->name('login.admin');
+
+    Route::get('/login/masyarakat', function () {
+        return view('auth.form', ['mode' => 'login', 'initialRole' => 'masyarakat']);
+    })->name('login.masyarakat');
 });
+
+Route::redirect('/keamanan/login', '/login/keamanan');
+Route::redirect('/admin/login', '/login/admin');
 
 Route::middleware('auth')->group(function () {
     Route::view('/dashboard', 'dashboard')->name('dashboard');
@@ -47,4 +63,30 @@ Route::get('/verifikasi-identitas', function () {
 })->name('profile.verifikasi');
 
 Route::view('/rute', 'rute')->name('rute');
-Route::view('/rute/bandingkan', 'rute.bandingkan')->name('rute.bandingkan');
+Route::redirect('/rute/bandingkan', '/rute')->name('rute.bandingkan');
+
+// Incident report page route
+Route::view('/laporkan', 'laporkan')->name('laporkan');
+Route::view('/laporan/riwayat', 'laporan.riwayat')->name('laporan.riwayat');
+
+// SR-4: Women's Zone
+Route::view('/womens-zone', 'womens-zone')->name('womens-zone');
+
+// SR-9: Pusat Informasi Darurat
+Route::view('/darurat', 'darurat')->name('darurat');
+
+// SR-8: Role Keamanan (Security Officers)
+Route::prefix('keamanan')->name('keamanan.')->group(function () {
+    Route::view('/dashboard', 'keamanan.dashboard')->name('dashboard');
+    Route::view('/laporan', 'keamanan.laporan')->name('laporan');
+});
+
+// SR-8: Role Admin
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::view('/dashboard', 'admin.dashboard')->name('dashboard');
+    Route::view('/validasi', 'admin.validasi')->name('validasi');
+    Route::view('/peta', 'admin.peta')->name('peta');
+    Route::view('/statistik', 'admin.statistik')->name('statistik');
+    Route::view('/users', 'admin.users')->name('users');
+    Route::view('/fasilitas', 'admin.fasilitas')->name('fasilitas');
+});
