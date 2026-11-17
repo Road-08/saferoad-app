@@ -14,8 +14,19 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function showLogin(): View
+    public function showLogin(): View|RedirectResponse
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+            if ($user->role === 'keamanan') {
+                return redirect()->route('keamanan.dashboard');
+            }
+            return redirect()->route('dashboard');
+        }
+
         return view('auth.form', ['mode' => 'login']);
     }
 
@@ -61,6 +72,16 @@ class AuthController extends Controller
 
         RateLimiter::clear($throttleKey);
         $request->session()->regenerate();
+
+        $user = Auth::user();
+
+        if ($user->role === 'admin') {
+            return redirect()->intended(route('admin.dashboard'));
+        }
+
+        if ($user->role === 'keamanan') {
+            return redirect()->intended(route('keamanan.dashboard'));
+        }
 
         return redirect()->intended(route('dashboard'));
     }

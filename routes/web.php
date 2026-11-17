@@ -19,9 +19,19 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    return auth()->check()
-        ? redirect()->route('dashboard')
-        : app(AuthController::class)->showLogin();
+    if (! auth()->check()) {
+        return app(AuthController::class)->showLogin();
+    }
+
+    $user = auth()->user();
+    if ($user->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
+    if ($user->role === 'keamanan') {
+        return redirect()->route('keamanan.dashboard');
+    }
+
+    return redirect()->route('dashboard');
 })->name('home');
 
 Route::middleware('guest')->group(function () {
@@ -31,18 +41,9 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.store');
 
-    // Route khusus portal login per role
-    Route::get('/login/keamanan', function () {
-        return view('auth.form', ['mode' => 'login', 'initialRole' => 'keamanan']);
-    })->name('login.keamanan');
-
-    Route::get('/login/admin', function () {
-        return view('auth.form', ['mode' => 'login', 'initialRole' => 'admin']);
-    })->name('login.admin');
-
-    Route::get('/login/masyarakat', function () {
-        return view('auth.form', ['mode' => 'login', 'initialRole' => 'masyarakat']);
-    })->name('login.masyarakat');
+    Route::redirect('/login/keamanan', '/login');
+    Route::redirect('/login/admin', '/login');
+    Route::redirect('/login/masyarakat', '/login');
 });
 
 Route::redirect('/keamanan/login', '/login/keamanan');

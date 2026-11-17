@@ -130,4 +130,54 @@ class AuthenticationTest extends TestCase
             ])
             ->assertSessionHasErrors('email');
     }
+
+    public function test_login_redirects_to_respective_dashboard_based_on_role(): void
+    {
+        // 1. Masyarakat login redirects to masyarakat dashboard
+        $masyarakat = User::factory()->create([
+            'email' => 'warga@saferoad.test',
+            'password' => 'Password123',
+            'role' => 'masyarakat',
+        ]);
+
+        $this->post('/login', [
+            'email' => 'warga@saferoad.test',
+            'password' => 'Password123',
+        ])->assertRedirect(route('dashboard'));
+
+        $this->post('/logout');
+
+        // 2. Petugas Keamanan login redirects to keamanan dashboard
+        $keamanan = User::factory()->create([
+            'email' => 'petugas@saferoad.test',
+            'password' => 'Password123',
+            'role' => 'keamanan',
+        ]);
+
+        $this->post('/login', [
+            'email' => 'petugas@saferoad.test',
+            'password' => 'Password123',
+        ])->assertRedirect(route('keamanan.dashboard'));
+
+        $this->post('/logout');
+
+        // 3. Admin login redirects to admin dashboard
+        $admin = User::factory()->create([
+            'email' => 'admin@saferoad.test',
+            'password' => 'Password123',
+            'role' => 'admin',
+        ]);
+
+        $this->post('/login', [
+            'email' => 'admin@saferoad.test',
+            'password' => 'Password123',
+        ])->assertRedirect(route('admin.dashboard'));
+    }
+
+    public function test_legacy_role_login_urls_redirect_to_unified_login_page(): void
+    {
+        $this->get('/login/keamanan')->assertRedirect('/login');
+        $this->get('/login/admin')->assertRedirect('/login');
+        $this->get('/login/masyarakat')->assertRedirect('/login');
+    }
 }
