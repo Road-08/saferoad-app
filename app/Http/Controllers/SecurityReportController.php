@@ -3,13 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Models\SecurityReport;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class SecurityReportController extends Controller
 {
-    // Mengirim laporan keamanan
+    // Menampilkan riwayat semua laporan milik pengguna yang sedang login
+    public function index(Request $request): JsonResponse
+    {
+        $reports = SecurityReport::with('histories')
+            ->where('user_id', $request->user()->getAuthIdentifier())
+            ->latest()
+            ->paginate(15);
+
+        return response()->json([
+            'success' => true,
+            'data' => $reports,
+        ]);
+    }
+
+    // Mengirim laporan keamanan baru
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -44,7 +59,7 @@ class SecurityReportController extends Controller
             return $report;
         });
 
-        if ($request->expectsJson()) {
+        if ($request->expectsJson() || $request->is('api/*')) {
             return response()->json([
                 'success' => true,
                 'message' => 'Laporan berhasil dikirim.',
@@ -63,7 +78,7 @@ class SecurityReportController extends Controller
             ->latest()
             ->first();
 
-        if (!$report) {
+        if (! $report) {
             return response()->json([
                 'success' => false,
                 'message' => 'Belum ada laporan keamanan.',
@@ -73,6 +88,25 @@ class SecurityReportController extends Controller
         return response()->json([
             'success' => true,
             'data' => $report,
+        ]);
+    }
+
+    // Melihat detail laporan tertentu
+    public function show(Request $request, SecurityReport $report): JsonResponse
+    {
+        $user = $request->user();
+
+        // Hanya pemilik laporan, petugas keamanan, atau admin yang dapat melihat
+        if ($report->user_id !== $user->getAuthIdentifier() && ! $user->hasRole(['admin', 'keamanan'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak untuk melihat laporan ini.',
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $report->load(['histories', 'user:id,name,email']),
         ]);
     }
 }
