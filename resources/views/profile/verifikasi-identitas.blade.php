@@ -40,7 +40,7 @@
         </div>
     @endif
 
-    <form id="verificationForm" action="#" method="POST" enctype="multipart/form-data" class="verify-form" onsubmit="event.preventDefault(); alert('Verifikasi identitas Anda telah berhasil dikirim untuk proses peninjauan sistem SafeRoad.');">
+    <form id="verificationForm" action="#" method="POST" enctype="multipart/form-data" class="verify-form" onsubmit="handleVerifikasi(event)">
         @csrf
 
         <!-- Langkah 1: Unggah Dokumen KTP -->
@@ -447,8 +447,7 @@
     const previewName = document.getElementById('previewFileName');
     const uploadError = document.getElementById('uploadError');
 
-    ktpInput.addEventListener('change', function () {
-        uploadError.style.display = 'none';
+    ktpInput.addEventListener('change', function () {        uploadError.style.display = 'none';
         uploadError.textContent = '';
 
         if (!this.files || !this.files[0]) {
@@ -484,5 +483,65 @@
         uploadTitle.style.display = 'none';
         uploadDesc.style.display = 'none';
     });
+
+    function handleVerifikasi(event) {
+        event.preventDefault();
+
+        const gender = document.getElementById('gender').value;
+        const consent = document.getElementById('genderConsent').checked;
+        const ktp = document.getElementById('ktp').files[0];
+
+        if (!ktp) {
+            alert('Harap unggah dokumen KTP terlebih dahulu.');
+            return;
+        }
+        if (!gender) {
+            alert('Harap pilih gender terlebih dahulu.');
+            return;
+        }
+        if (!consent) {
+            alert('Harap centang persetujuan penggunaan data.');
+            return;
+        }
+
+        // Simpan data verifikasi ke localStorage (front-end only, karena backend belum tersedia)
+        localStorage.setItem('saferoad_verified', 'true');
+        localStorage.setItem('saferoad_gender', gender);
+
+        // Tampilkan pesan sukses dan redirect ke dashboard
+        const msgBox = document.createElement('div');
+        msgBox.style.cssText = `
+            position:fixed; inset:0; background:rgba(0,0,0,.5);
+            display:flex; align-items:center; justify-content:center; z-index:9999;
+        `;
+        msgBox.innerHTML = `
+            <div style="background:#fff; border-radius:20px; padding:36px 32px; max-width:420px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.2);">
+                <div style="width:60px;height:60px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <h2 style="font-size:20px;font-weight:800;color:#0f172a;margin-bottom:8px;">Verifikasi Berhasil!</h2>
+                <p style="font-size:14px;color:#64748b;margin-bottom:4px;">Gender tercatat: <strong style="color:#2563eb;">${gender === 'perempuan' ? '♀ Perempuan' : gender === 'laki-laki' ? '♂ Laki-laki' : gender}</strong></p>
+                ${gender === 'perempuan' ? `
+                    <div style="background:#fdf2f8;border:1px solid #fbcfe8;border-radius:12px;padding:12px;margin:12px 0;text-align:left;">
+                        <span style="font-size:13px;color:#be185d;font-weight:700;display:block;">✨ Mode Perempuan Berhasil Aktif!</span>
+                        <p style="font-size:12px;color:#831843;margin:4px 0 0;line-height:1.4;">Akses penuh ke <strong>Women's Safe Zone</strong> dan fitur <strong>Monitoring Pengemudi</strong> di peta rute kini telah terbuka.</p>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:16px;justify-content:center;flex-wrap:wrap;">
+                        <a href="{{ url('/womens-zone') }}" style="display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#be185d;color:#fff;border-radius:9px;font-weight:700;font-size:13px;text-decoration:none;">🌸 Buka Women's Zone</a>
+                        <a href="{{ url('/dashboard') }}" style="display:inline-flex;align-items:center;gap:6px;padding:10px 16px;background:#f1f5f9;color:#334155;border-radius:9px;font-weight:700;font-size:13px;text-decoration:none;">🏠 Dashboard</a>
+                    </div>
+                ` : `
+                    <p style="font-size:12px;color:#94a3b8;margin-top:8px;">Mengalihkan ke Dashboard…</p>
+                `}
+            </div>
+        `;
+        document.body.appendChild(msgBox);
+
+        if (gender !== 'perempuan') {
+            setTimeout(() => {
+                window.location.href = '{{ url("/dashboard") }}';
+            }, 2500);
+        }
+    }
 </script>
 @endsection

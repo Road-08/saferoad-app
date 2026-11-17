@@ -13,6 +13,11 @@ use App\Http\Controllers\SuspiciousReportFlagController;
 use App\Http\Controllers\UserProfileController;
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| Public & Guest Routes
+|--------------------------------------------------------------------------
+*/
 Route::get('/', function () {
     return auth()->check()
         ? redirect()->route('dashboard')
@@ -25,8 +30,29 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.store');
+
+    // Route khusus portal login per role
+    Route::get('/login/keamanan', function () {
+        return view('auth.form', ['mode' => 'login', 'initialRole' => 'keamanan']);
+    })->name('login.keamanan');
+
+    Route::get('/login/admin', function () {
+        return view('auth.form', ['mode' => 'login', 'initialRole' => 'admin']);
+    })->name('login.admin');
+
+    Route::get('/login/masyarakat', function () {
+        return view('auth.form', ['mode' => 'login', 'initialRole' => 'masyarakat']);
+    })->name('login.masyarakat');
 });
 
+Route::redirect('/keamanan/login', '/login/keamanan');
+Route::redirect('/admin/login', '/login/admin');
+
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
     Route::view('/dashboard', 'dashboard')->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -51,18 +77,27 @@ Route::middleware('auth')->group(function () {
     Route::get('/verifikasi-identitas', [IdentityVerificationController::class, 'show'])->name('profile.verifikasi');
     Route::post('/verifikasi-identitas', [IdentityVerificationController::class, 'submit'])->name('profile.verifikasi.store');
 
-    // Area Khusus Role Keamanan (Web & API)
+    // Area Khusus Role Keamanan
     Route::middleware('role:keamanan,admin')->prefix('keamanan')->name('keamanan.')->group(function () {
-        Route::get('/laporan', [IncidentFollowUpController::class, 'index'])->name('laporan.index');
+        Route::view('/dashboard', 'keamanan.dashboard')->name('dashboard');
+        Route::view('/laporan', 'keamanan.dashboard')->name('laporan');
+        Route::get('/data/laporan', [IncidentFollowUpController::class, 'index'])->name('data.laporan');
         Route::post('/laporan/{report}/tindak-lanjut', [IncidentFollowUpController::class, 'followUp'])->name('laporan.followUp');
     });
 
-    // Area Khusus Role Admin (Web & API)
+    // Area Khusus Role Admin
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::view('/dashboard', 'admin.dashboard')->name('dashboard');
+        Route::view('/validasi', 'admin.validasi')->name('validasi');
+        Route::view('/peta', 'admin.peta')->name('peta');
+        Route::view('/statistik', 'admin.statistik')->name('statistik');
+        Route::view('/users', 'admin.dashboard')->name('users');
+        Route::view('/fasilitas', 'admin.peta')->name('fasilitas');
+
         Route::get('/stats', [AdminDashboardController::class, 'stats'])->name('stats');
-        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
-        Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
-        Route::put('/users/{user}/role', [AdminUserController::class, 'updateRole'])->name('users.role');
+        Route::get('/data/users', [AdminUserController::class, 'index'])->name('data.users');
+        Route::get('/data/users/{user}', [AdminUserController::class, 'show'])->name('data.users.show');
+        Route::put('/data/users/{user}/role', [AdminUserController::class, 'updateRole'])->name('data.users.role');
 
         Route::get('/verifikasi-identitas', [AdminVerificationController::class, 'index'])->name('verifikasi.index');
         Route::post('/verifikasi-identitas/{user}/approve', [AdminVerificationController::class, 'approve'])->name('verifikasi.approve');
@@ -73,6 +108,19 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-// Peta & Navigasi Rute
+/*
+|--------------------------------------------------------------------------
+| Public Feature & Navigation Views
+|--------------------------------------------------------------------------
+*/
 Route::view('/rute', 'rute')->name('rute');
-Route::view('/rute/bandingkan', 'rute.bandingkan')->name('rute.bandingkan');
+Route::redirect('/rute/bandingkan', '/rute')->name('rute.bandingkan');
+
+Route::view('/laporkan', 'laporkan')->name('laporkan');
+Route::view('/laporan/riwayat', 'laporan.riwayat')->name('laporan.riwayat');
+
+// SR-4: Women's Zone
+Route::view('/womens-zone', 'womens-zone')->name('womens-zone');
+
+// SR-9: Pusat Informasi Darurat
+Route::view('/darurat', 'darurat')->name('darurat');
