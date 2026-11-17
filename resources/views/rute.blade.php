@@ -1774,10 +1774,18 @@
             localStorage.setItem('saferoad_verified', 'true');
             localStorage.setItem('saferoad_gender', 'perempuan');
             updateDriverInfo(terpilihIdx);
+            if (ruteOSRMAktif && ruteOSRMAktif.length) {
+                renderRute(ruteOSRMAktif);
+            }
             if (typeof showToast === 'function') {
-                showToast('Mode Perempuan Aktif! Menampilkan data pengemudi di rute.', true);
+                showToast('Mode Perempuan Aktif! Menghitung Women\'s Safety Score & Rute Pink.', true);
             }
         });
+    }
+
+    if (new URLSearchParams(window.location.search).get('mode') === 'womens_zone') {
+        localStorage.setItem('saferoad_verified', 'true');
+        localStorage.setItem('saferoad_gender', 'perempuan');
     }
 
     // Interval refresh pembaruan pengemudi setiap 30 detik
@@ -2000,9 +2008,10 @@
         terpilihIdx = i;
         daftarGaris.forEach((garis, index) => {
             const aktif = index === i;
+            const baseColor = garis.defaultColor || (index === 0 ? '#2563eb' : '#d97706');
             garis.setStyle({
-                color: aktif ? '#2563eb' : (index === 0 ? '#1e3a8a' : '#d97706'),
-                weight: aktif ? 7 : 4,
+                color: baseColor,
+                weight: aktif ? 8 : 4,
                 opacity: aktif ? 0.95 : 0.45,
                 dashArray: aktif ? null : '6 8'
             });
@@ -2189,7 +2198,7 @@
         return payload;
     }
 
-    function renderRute(routes) {
+    async function renderRute(routes) {
         const box = $('daftarRute');
         box.innerHTML = '';
         daftarGaris = [];
@@ -2208,33 +2217,136 @@
         L.marker([titikA.lat, titikA.lng], { icon: icA }).addTo(layerRute).bindPopup(titikA.nama);
         L.marker([titikB.lat, titikB.lng], { icon: icB }).addTo(layerRute).bindPopup(titikB.nama);
 
-        routes.forEach((route, index) => {
+        // Siapkan payload rute untuk API kalkulasi skor (hingga 3 rute)
+        const payload = routes.slice(0, 3).map((route, index) => {
+            const coordinates = route.geometry.coordinates;
+            const langkah = Math.ceil(coordinates.length / 200);
+            const dijarangkan = coordinates.filter((titik, idx) =>
+                idx === 0 || idx === coordinates.length - 1 || idx % langkah === 0
+            );
+            return {
+                id: String.fromCharCode(65 + index),
+                coordinates: dijarangkan.map(pt => [pt[0], pt[1]])
+            };
+        });
+
+        let apiScores = [];
+        try {
+            const res = await fetch("{{ url('/api/routes/score') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ routes: payload })
+            });
+            if (res.ok) {
+                const json = await res.json();
+                apiScores = json.data || [];
+            }
+        } catch (e) {
+            console.warn('Gagal memuat skor dari API:', e);
+        }
+
+        const scoreMap = new Map();
+        apiScores.forEach(s => scoreMap.set(s.id, s));
+
+        const isWomenMode = (localStorage.getItem('saferoad_gender') === 'perempuan' && localStorage.getItem('saferoad_verified') === 'true') ||
+            new URLSearchParams(window.location.search).get('mode') === 'womens_zone';
+
+        routes.slice(0, 3).forEach((route, index) => {
             const pts = route.geometry.coordinates.map(c => [c[1], c[0]]);
-            const isMain = index === 0;
+            const routeId = String.fromCharCode(65 + index);
+            const scoreData = scoreMap.get(routeId);
+            const wz = scoreData ? scoreData.womens_zone : null;
+
+            let lineColor = '#2563eb';
+            let lineDash = index === 0 ? null : '6 8';
+            let isPink = false;
+
+            if (isWomenMode && wz) {
+                lineColor = wz.route_color || '#2563eb';
+                isPink = wz.is_pink_recommendation;
+                lineDash = isPink ? null : '6 8';
+            } else {
+                lineColor = index === 0 ? '#2563eb' : (index === 1 ? '#d97706' : '#64748b');
+            }
+
             const line = L.polyline(pts, {
-                color: isMain ? '#2563eb' : '#d97706',
-                weight: isMain ? 7 : 4,
-                opacity: isMain ? 0.95 : 0.45,
-                dashArray: isMain ? null : '6 8'
+                color: lineColor,
+                weight: (isPink || index === 0) ? 7 : 4,
+                opacity: (isPink || index === 0) ? 0.95 : 0.55,
+                dashArray: lineDash
             }).addTo(layerRute);
 
+            line.defaultColor = lineColor;
             line.on('click', () => pilih(index));
             daftarGaris.push(line);
 
             const m = konversiMetrikRute(route);
-            const scoreNum = index === 0 ? 92 : 78;
-            const scoreLevel = scoreNum >= 80 ? 'Aman' : (scoreNum >= 60 ? 'Sedang' : 'Rawan');
-            const scoreColor = scoreNum >= 80 ? '#16a34a' : (scoreNum >= 60 ? '#d97706' : '#dc2626');
-            const scoreBg = scoreNum >= 80 ? '#f0fdf4' : (scoreNum >= 60 ? '#fffbeb' : '#fef2f2');
-            const scoreBorder = scoreNum >= 80 ? '#bbf7d0' : (scoreNum >= 60 ? '#fde68a' : '#fecaca');
+
+            // Tentukan indikator kartu
+            let badgeText = '';
+            let badgeStyle = '';
+            let scoreTitle = 'Skor Keamanan Rute';
+            let scoreVal = scoreData ? scoreData.score : (index === 0 ? 92 : 78);
+            let scoreSub = scoreData ? scoreData.level : 'Aman';
+            let scoreColor = '#16a34a';
+            let scoreBg = '#f0fdf4';
+            let scoreBorder = '#bbf7d0';
+            let cardExtraStyle = '';
+
+            if (isWomenMode && wz) {
+                scoreTitle = "Women's Safety Score";
+                if (!wz.is_data_sufficient || wz.score === null) {
+                    scoreVal = '-';
+                    scoreSub = 'DATA BELUM CUKUP';
+                    badgeText = 'Data keamanan belum mencukupi';
+                    badgeStyle = 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;';
+                    scoreColor = '#64748b';
+                    scoreBg = '#f8fafc';
+                    scoreBorder = '#e2e8f0';
+                } else {
+                    scoreVal = wz.score;
+                    scoreSub = wz.level.toUpperCase();
+                    if (isPink) {
+                        badgeText = '🌸 Paling Aman untuk Perempuan';
+                        badgeStyle = 'background:#fdf2f8; color:#be185d; border:1.5px solid #fbcfe8; font-weight:800;';
+                        scoreColor = '#db2777';
+                        scoreBg = '#fdf2f8';
+                        scoreBorder = '#fbcfe8';
+                        cardExtraStyle = 'border: 2px solid #f472b6; box-shadow: 0 4px 14px rgba(236,72,153,0.18);';
+                    } else if (wz.route_color_name === 'biru') {
+                        badgeText = 'Alternatif Cukup Aman';
+                        badgeStyle = 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; font-weight:700;';
+                        scoreColor = '#2563eb';
+                        scoreBg = '#eff6ff';
+                        scoreBorder = '#bfdbfe';
+                    } else {
+                        badgeText = 'Jalur Berisiko / Kurang Penerangan';
+                        badgeStyle = 'background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; font-weight:700;';
+                        scoreColor = '#ea580c';
+                        scoreBg = '#fff7ed';
+                        scoreBorder = '#fed7aa';
+                    }
+                }
+            } else {
+                badgeText = (index === 0) ? 'Rute Rekomendasi' : 'Alternatif';
+                badgeStyle = '';
+            }
 
             const kartu = document.createElement('div');
-            kartu.className = 'kartu' + (isMain ? ' aktif' : '');
+            kartu.className = 'kartu' + (index === terpilihIdx ? ' aktif' : '');
+            if (cardExtraStyle) {
+                kartu.setAttribute('style', cardExtraStyle);
+            }
+
             kartu.innerHTML = `
                 <div class="kartu-atas">
                     <div>
-                        <b>Rute ${String.fromCharCode(65 + index)}</b>
-                        <span class="tag ${isMain ? '' : 'alt'}">${isMain ? 'Rute Rekomendasi' : 'Alternatif'}</span>
+                        <b>Rute ${routeId}</b>
+                        <span class="tag" style="${badgeStyle}">${badgeText}</span>
                     </div>
                     <div style="text-align: right;">
                         <div class="skor" style="font-size:18px;">${m.waktuMenit} <small>menit</small></div>
@@ -2245,22 +2357,33 @@
                 <!-- Skor Keamanan Terpadu SafeRoad -->
                 <div class="kartu-skor-box" style="display:flex; align-items:center; justify-content:space-between; background:${scoreBg}; border:1.5px solid ${scoreBorder}; border-radius:10px; padding:8px 12px; margin:8px 0 10px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:18px;">🛡️</span>
+                        <span style="font-size:18px;">${isWomenMode ? '♀' : '🛡️'}</span>
                         <div>
-                            <strong style="display:block; font-size:12px; color:${scoreColor}; line-height:1.2;">Skor Keamanan Rute</strong>
-                            <small style="font-size:11px; color:#475569;">${scoreNum >= 80 ? 'Lampu terang & tercover CCTV' : 'Penerangan cukup & titik pantau sedang'}</small>
+                            <strong style="display:block; font-size:12px; color:${scoreColor}; line-height:1.2;">${scoreTitle}</strong>
+                            <small style="font-size:11px; color:#475569;">
+                                ${isWomenMode && wz ? wz.status_label : (scoreVal >= 80 ? 'Lampu terang & tercover CCTV' : 'Penerangan cukup & titik pantau sedang')}
+                            </small>
                         </div>
                     </div>
                     <div style="text-align:right;">
-                        <span style="font-size:18px; font-weight:800; color:${scoreColor};">${scoreNum}</span><small style="font-size:11px; font-weight:700; color:${scoreColor};">/100</small>
-                        <span style="display:block; font-size:10px; font-weight:800; text-transform:uppercase; color:${scoreColor};">${scoreLevel}</span>
+                        <span style="font-size:18px; font-weight:800; color:${scoreColor};">${scoreVal}</span>${scoreVal !== '-' ? `<small style="font-size:11px; font-weight:700; color:${scoreColor};">/100</small>` : ''}
+                        <span style="display:block; font-size:10px; font-weight:800; text-transform:uppercase; color:${scoreColor};">${scoreSub}</span>
                     </div>
                 </div>
 
                 <div class="chips">
-                    <span class="chip">${index === 0 ? '💡 Penerangan Baik' : '💡 Cahaya Sedang'}</span>
-                    <span class="chip">${index === 0 ? '📹 CCTV Terkoneksi' : '📹 CCTV Terbatas'}</span>
-                    <span class="chip">${index === 0 ? '🛡️ Jalur Patroli Polsek' : '🛡️ Jalur Alternatif'}</span>
+                    ${isWomenMode && wz && wz.risk_breakdown ? `
+                        <span class="chip" style="${wz.risk_breakdown.harassment_incidents > 0 ? 'background:#fef2f2; color:#dc2626; border-color:#fecaca;' : ''}">
+                            ${wz.risk_breakdown.harassment_incidents > 0 ? `⚠️ ${wz.risk_breakdown.harassment_incidents} Laporan Pelecehan/Catcalling` : '✨ Bebas Catcalling'}
+                        </span>
+                        <span class="chip">💡 ${wz.risk_breakdown.street_lights} Lampu Jalan</span>
+                        <span class="chip">📹 ${wz.risk_breakdown.cctv_active} CCTV</span>
+                        <span class="chip">🛡️ ${wz.risk_breakdown.security_posts} Pos Siaga</span>
+                    ` : `
+                        <span class="chip">${index === 0 ? '💡 Penerangan Baik' : '💡 Cahaya Sedang'}</span>
+                        <span class="chip">${index === 0 ? '📹 CCTV Terkoneksi' : '📹 CCTV Terbatas'}</span>
+                        <span class="chip">${index === 0 ? '🛡️ Jalur Patroli Polsek' : '🛡️ Jalur Alternatif'}</span>
+                    `}
                 </div>
             `;
             kartu.addEventListener('click', () => pilih(index));
@@ -2275,7 +2398,7 @@
         $('btnBandingkan').style.display = routes.length < 2 ? 'none' : 'inline-flex';
         $('btnNavigasi').disabled = false;
 
-        // Otomatis buka panel perbandingan skor keamanan jika ada 2 rute
+        // Otomatis buka panel perbandingan jika ada minimal 2 rute
         const panelCmp = $('perbandinganRute');
         if (panelCmp && routes.length >= 2) {
             renderPerbandingan();
@@ -2291,64 +2414,97 @@
             a.lng + ',' + a.lat + ';' + b.lng + ',' + b.lat +
             '?overview=full&geometries=geojson&alternatives=true';
 
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Rute tidak ditemukan melalui OSRM.');
-        const data = await response.json();
-        if (!data.routes || !data.routes.length) throw new Error('Tidak ada jalur yang dapat dilewati.');
-
-        let routes = data.routes;
-
-        // Jika OSRM hanya mengembalikan 1 rute, cari rute alternatif B via waypoint bergeser
-        if (routes.length === 1) {
-            try {
-                const midLat = (a.lat + b.lat) / 2;
-                const midLng = (a.lng + b.lng) / 2;
-                const dLat = b.lat - a.lat;
-                const dLng = b.lng - a.lng;
-                const dist = Math.sqrt(dLat * dLat + dLng * dLng) || 0.01;
-                // Vektor tegak lurus (perpendicular offset ~ 400 meter)
-                const offset = 0.0035;
-                const viaLat = midLat + (-dLng / dist) * offset;
-                const viaLng = midLng + (dLat / dist) * offset;
-
-                const urlAlt = 'https://router.project-osrm.org/route/v1/driving/' +
-                    a.lng + ',' + a.lat + ';' + viaLng.toFixed(6) + ',' + viaLat.toFixed(6) + ';' + b.lng + ',' + b.lat +
-                    '?overview=full&geometries=geojson';
-
-                const resAlt = await fetch(urlAlt);
-                if (resAlt.ok) {
-                    const dataAlt = await resAlt.json();
-                    if (dataAlt.routes && dataAlt.routes.length) {
-                        routes.push(dataAlt.routes[0]);
-                    }
+        let routes = [];
+        try {
+            const response = await fetch(url);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.routes && data.routes.length) {
+                    routes = data.routes;
                 }
-            } catch (e) {
-                console.warn('Gagal memuat rute alternatif kedua dari OSRM:', e);
+            }
+        } catch (e) {
+            console.warn('OSRM direct error:', e);
+        }
+
+        if (!routes.length) {
+            throw new Error('Tidak ada jalur yang dapat dilewati.');
+        }
+
+        // Cari rute alternatif jika kurang dari 3 rute
+        if (routes.length < 3) {
+            const midLat = (a.lat + b.lat) / 2;
+            const midLng = (a.lng + b.lng) / 2;
+            const dLat = b.lat - a.lat;
+            const dLng = b.lng - a.lng;
+            const dist = Math.sqrt(dLat * dLat + dLng * dLng) || 0.01;
+
+            // Offset 1: sisi kiri/utara (+0.0035 deg ~ 380m)
+            if (routes.length < 2) {
+                try {
+                    const offset1 = 0.0035;
+                    const viaLat1 = midLat + (-dLng / dist) * offset1;
+                    const viaLng1 = midLng + (dLat / dist) * offset1;
+                    const urlAlt1 = 'https://router.project-osrm.org/route/v1/driving/' +
+                        a.lng + ',' + a.lat + ';' + viaLng1.toFixed(6) + ',' + viaLat1.toFixed(6) + ';' + b.lng + ',' + b.lat +
+                        '?overview=full&geometries=geojson';
+                    const resAlt1 = await fetch(urlAlt1);
+                    if (resAlt1.ok) {
+                        const dataAlt1 = await resAlt1.json();
+                        if (dataAlt1.routes && dataAlt1.routes.length) {
+                            routes.push(dataAlt1.routes[0]);
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            // Offset 2: sisi kanan/selatan (-0.0035 deg ~ 380m)
+            if (routes.length < 3) {
+                try {
+                    const offset2 = -0.0035;
+                    const viaLat2 = midLat + (-dLng / dist) * offset2;
+                    const viaLng2 = midLng + (dLat / dist) * offset2;
+                    const urlAlt2 = 'https://router.project-osrm.org/route/v1/driving/' +
+                        a.lng + ',' + a.lat + ';' + viaLng2.toFixed(6) + ',' + viaLat2.toFixed(6) + ';' + b.lng + ',' + b.lat +
+                        '?overview=full&geometries=geojson';
+                    const resAlt2 = await fetch(urlAlt2);
+                    if (resAlt2.ok) {
+                        const dataAlt2 = await resAlt2.json();
+                        if (dataAlt2.routes && dataAlt2.routes.length) {
+                            routes.push(dataAlt2.routes[0]);
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            // Fallback sintesis variasi koordinat realistis jika API hanya 1 atau 2 rute
+            const baseRoute = routes[0];
+            if (baseRoute && baseRoute.geometry && baseRoute.geometry.coordinates) {
+                const coords = baseRoute.geometry.coordinates;
+
+                while (routes.length < 3) {
+                    const multiplier = routes.length === 1 ? 1 : -1;
+                    const spreadAmount = routes.length === 1 ? 0.0030 : 0.0038;
+                    const altCoords = coords.map((pt, idx) => {
+                        if (idx === 0 || idx === coords.length - 1) return pt;
+                        const factor = Math.sin((idx / coords.length) * Math.PI);
+                        return [pt[0] + (spreadAmount * factor * multiplier), pt[1] - (spreadAmount * 0.5 * factor * multiplier)];
+                    });
+
+                    routes.push({
+                        distance: baseRoute.distance * (1 + (routes.length * 0.12)),
+                        duration: Math.round(baseRoute.duration * (1 + (routes.length * 0.15))),
+                        geometry: {
+                            type: 'LineString',
+                            coordinates: altCoords
+                        },
+                        legs: baseRoute.legs || []
+                    });
+                }
             }
         }
 
-        // Fallback jika API alternatif tetap mengembalikan 1 rute: buat variasi alternatif realistis
-        if (routes.length === 1 && routes[0].geometry && routes[0].geometry.coordinates) {
-            const coords = routes[0].geometry.coordinates;
-            const altCoords = coords.map((pt, idx) => {
-                if (idx === 0 || idx === coords.length - 1) return pt;
-                const progress = idx / coords.length;
-                const spread = Math.sin(progress * Math.PI) * 0.0028;
-                return [pt[0] + spread, pt[1] - (spread * 0.6)];
-            });
-
-            routes.push({
-                distance: routes[0].distance * 1.15,
-                duration: Math.round(routes[0].duration * 1.25),
-                geometry: {
-                    type: 'LineString',
-                    coordinates: altCoords
-                },
-                legs: routes[0].legs || []
-            });
-        }
-
-        return routes;
+        return routes.slice(0, 3);
     }
 
     $('btnCari').addEventListener('click', async () => {

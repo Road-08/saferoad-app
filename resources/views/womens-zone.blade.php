@@ -175,23 +175,23 @@
 
             <!-- Card Rekomendasi Rute Terang -->
             <div class="wz-card">
-                <div class="wz-card-title">
+                <div class="wz-card-title text-pink">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="7 10 12 15 17 10"/>
                         <line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
-                    <span>Rute Utama Prioritas Perempuan</span>
+                    <span>Alternatif Rute Women's Zone</span>
                 </div>
-                <p class="wz-route-note">Jalur rekomendasi yang menghindari gang sempit tanpa penerangan:</p>
-                <div class="wz-route-pill">
-                    <span class="wrp-dot"></span>
+                <p class="wz-route-note">Sistem membandingkan hingga 3 alternatif rute dan menandai rute teraman dengan warna <strong>Pink (🌸 Paling Aman untuk Perempuan)</strong> berdasarkan laporan pelecehan/catcalling, penerangan, dan pos shelter:</p>
+                <div class="wz-route-pill" style="border-left: 4px solid #ec4899;">
+                    <span class="wrp-dot" style="background:#ec4899;"></span>
                     <div>
-                        <strong>Koridor Jl. Ketintang Utama → Kampus</strong>
-                        <small>CCTV 100% aktif · 4 Pos Jaga siaga</small>
+                        <strong style="color:#be185d;">Jalur Rekomendasi Terverifikasi Pink</strong>
+                        <small>Penerangan optimal · Terpantau CCTV · Bebas catcalling</small>
                     </div>
                 </div>
-                <a href="{{ url('/rute') }}" class="btn-open-route">
-                    Buka Navigasi Rute Ini →
+                <a href="{{ url('/rute?mode=womens_zone') }}" class="btn-open-route" style="background:#fdf2f8; color:#be185d; border:1px solid #fbcfe8; font-weight:800;">
+                    🌸 Cari & Bandingkan Rute Perempuan →
                 </a>
             </div>
 

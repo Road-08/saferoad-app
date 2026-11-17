@@ -90,6 +90,102 @@ class SafeRoadBackendTest extends TestCase
         $this->assertCount(4, $response->json('data.0.factors'));
     }
 
+    public function test_womens_zone_route_selection_assigns_pink_to_safest_women_route(): void
+    {
+        $user = User::factory()->create();
+
+        // Fasilitas penerangan & CCTV di koridor Rute B
+        SafetyFacility::create([
+            'name' => 'Lampu LED Terang Ketintang',
+            'type' => 'street_light',
+            'latitude' => -7.3110,
+            'longitude' => 112.7210,
+            'status' => 'active',
+        ]);
+        SafetyFacility::create([
+            'name' => 'CCTV Pengawas Simpang',
+            'type' => 'cctv',
+            'latitude' => -7.3115,
+            'longitude' => 112.7215,
+            'status' => 'active',
+        ]);
+
+        // Laporan pelecehan/catcalling di koridor Rute A
+        SecurityReport::create([
+            'report_code' => 'SR-WOMEN-01',
+            'user_id' => $user->id,
+            'category' => 'Pelecehan Seksual',
+            'description' => 'Ada tindakan catcalling dan intimidasi verbal di gang gelap.',
+            'address' => 'Gang Gelap Rute A',
+            'latitude' => -7.3200,
+            'longitude' => 112.7300,
+            'status' => 'map_updated',
+        ]);
+
+        $response = $this->postJson('/api/routes/score', [
+            'routes' => [
+                [
+                    'id' => 'rute_a', // Rute dengan insiden pelecehan
+                    'coordinates' => [
+                        [112.7295, -7.3195],
+                        [112.7300, -7.3200],
+                        [112.7305, -7.3205],
+                    ],
+                ],
+                [
+                    'id' => 'rute_b', // Rute dengan lampu & CCTV terang
+                    'coordinates' => [
+                        [112.7205, -7.3105],
+                        [112.7210, -7.3110],
+                        [112.7215, -7.3115],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(200);
+
+        $ruteAData = collect($response->json('data'))->firstWhere('id', 'rute_a');
+        $ruteBData = collect($response->json('data'))->firstWhere('id', 'rute_b');
+
+        // Pastikan Rute B (skor tertinggi untuk perempuan) mendapatkan warna PINK dan label "Paling Aman untuk Perempuan"
+        $this->assertTrue($ruteBData['womens_zone']['is_pink_recommendation']);
+        $this->assertEquals('#ec4899', $ruteBData['womens_zone']['route_color']);
+        $this->assertEquals('pink', $ruteBData['womens_zone']['route_color_name']);
+        $this->assertEquals('Paling Aman untuk Perempuan', $ruteBData['womens_zone']['badge_label']);
+
+        // Rute A (terdapat laporan pelecehan) tidak boleh berwarna pink
+        $this->assertFalse($ruteAData['womens_zone']['is_pink_recommendation']);
+        $this->assertNotEquals('#ec4899', $ruteAData['womens_zone']['route_color']);
+        $this->assertGreaterThan(
+            $ruteAData['womens_zone']['score'],
+            $ruteBData['womens_zone']['score'],
+            "Skor keselamatan perempuan Rute B harus lebih tinggi dibanding Rute A yang ada laporan pelecehan."
+        );
+    }
+
+    public function test_womens_zone_displays_insufficient_data_when_telemetry_lacking(): void
+    {
+        $response = $this->postJson('/api/routes/score', [
+            'routes' => [
+                [
+                    'id' => 'rute_terpencil',
+                    'coordinates' => [
+                        [115.0000, -8.0000],
+                        [115.0100, -8.0100],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(200);
+        $ruteData = $response->json('data.0');
+
+        $this->assertFalse($ruteData['womens_zone']['is_data_sufficient']);
+        $this->assertEquals('Data keamanan belum mencukupi', $ruteData['womens_zone']['badge_label']);
+        $this->assertFalse($ruteData['womens_zone']['is_pink_recommendation']);
+    }
+
     public function test_route_comparison_view_and_api_endpoint(): void
     {
         // 1. Halaman perbandingan rute dapat diakses
