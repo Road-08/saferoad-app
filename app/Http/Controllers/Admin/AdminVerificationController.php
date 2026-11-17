@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response;
 
 class AdminVerificationController extends Controller
 {
@@ -64,5 +66,20 @@ class AdminVerificationController extends Controller
             'message' => "Verifikasi identitas pengguna {$user->name} ditolak.",
             'data' => $user,
         ]);
+    }
+
+    public function document(User $user): Response
+    {
+        if (! $user->ktp_path) {
+            abort(404, 'Dokumen KTP tidak ditemukan.');
+        }
+
+        $disk = Storage::disk('local')->exists($user->ktp_path) ? 'local' : 'public';
+
+        if (! Storage::disk($disk)->exists($user->ktp_path)) {
+            abort(404, 'Berkas dokumen KTP tidak tersedia pada storage.');
+        }
+
+        return Storage::disk($disk)->response($user->ktp_path);
     }
 }

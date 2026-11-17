@@ -32,12 +32,18 @@ class IdentityVerificationController extends Controller
         /** @var \App\Models\User $user */
         $user = $request->user();
 
-        // Hapus berkas KTP lama jika ada
-        if ($user->ktp_path && Storage::disk('public')->exists($user->ktp_path)) {
-            Storage::disk('public')->delete($user->ktp_path);
+        // Hapus berkas KTP lama jika ada (cek disk local dan public)
+        if ($user->ktp_path) {
+            if (Storage::disk('local')->exists($user->ktp_path)) {
+                Storage::disk('local')->delete($user->ktp_path);
+            }
+            if (Storage::disk('public')->exists($user->ktp_path)) {
+                Storage::disk('public')->delete($user->ktp_path);
+            }
         }
 
-        $path = $request->file('ktp')->store('identitas_ktp', 'public');
+        // Simpan dokumen KTP di storage privat (tidak terekspos langsung ke web public)
+        $path = $request->file('ktp')->store('identitas_ktp', 'local');
 
         $user->update([
             'ktp_path' => $path,

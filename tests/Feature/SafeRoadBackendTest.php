@@ -219,7 +219,7 @@ class SafeRoadBackendTest extends TestCase
 
     public function test_user_can_submit_identity_verification(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
 
         $user = User::factory()->create([
             'role' => 'masyarakat',
@@ -241,7 +241,73 @@ class SafeRoadBackendTest extends TestCase
         $this->assertEquals('perempuan', $user->gender);
         $this->assertTrue($user->gender_consent);
         $this->assertNotNull($user->ktp_path);
-        Storage::disk('public')->assertExists($user->ktp_path);
+        Storage::disk('local')->assertExists($user->ktp_path);
+    }
+
+    public function test_womens_zone_access_rules_based_on_gender_and_verification(): void
+    {
+        // 1. Pengguna laki-laki DITOLAK (403)
+        $male = User::factory()->create([
+            'role' => 'masyarakat',
+            'gender' => 'laki-laki',
+            'identity_status' => 'verified',
+        ]);
+        $this->actingAs($male)->get('/womens-zone')->assertStatus(403);
+        $this->actingAs($male)->getJson('/api/womens-zone/status')->assertStatus(403);
+
+        // 2. Pengguna perempuan belum verifikasi -> melihat info verifikasi diperlukan
+        $unverifiedFemale = User::factory()->create([
+            'role' => 'masyarakat',
+            'gender' => 'perempuan',
+            'identity_status' => 'unverified',
+        ]);
+        $this->actingAs($unverifiedFemale)->get('/womens-zone')
+            ->assertOk()
+            ->assertSeeText('Akses Women\'s Zone Memerlukan Verifikasi Gender Perempuan');
+        $this->actingAs($unverifiedFemale)->getJson('/api/womens-zone/status')->assertStatus(403);
+
+        // 3. Pengguna perempuan status pending -> melihat info menunggu persetujuan admin
+        $pendingFemale = User::factory()->create([
+            'role' => 'masyarakat',
+            'gender' => 'perempuan',
+            'identity_status' => 'pending',
+        ]);
+        $this->actingAs($pendingFemale)->get('/womens-zone')
+            ->assertOk()
+            ->assertSee('STATUS VERIFIKASI: MENUNGGU PERSETUJUAN ADMIN');
+        $this->actingAs($pendingFemale)->getJson('/api/womens-zone/status')->assertStatus(403);
+
+        // 4. Pengguna perempuan status rejected -> melihat catatan penolakan
+        $rejectedFemale = User::factory()->create([
+            'role' => 'masyarakat',
+            'gender' => 'perempuan',
+            'identity_status' => 'rejected',
+            'identity_rejection_note' => 'Foto KTP tidak jelas dan buram.',
+        ]);
+        $this->actingAs($rejectedFemale)->get('/womens-zone')
+            ->assertOk()
+            ->assertSee('Foto KTP tidak jelas dan buram.');
+        $this->actingAs($rejectedFemale)->getJson('/api/womens-zone/status')->assertStatus(403);
+
+        // 5. Pengguna perempuan status verified -> akses penuh
+        $verifiedFemale = User::factory()->create([
+            'role' => 'masyarakat',
+            'gender' => 'perempuan',
+            'identity_status' => 'verified',
+        ]);
+        $this->actingAs($verifiedFemale)->get('/womens-zone')
+            ->assertOk()
+            ->assertSee('Mode Perempuan Terverifikasi Aktif ✨');
+        $this->actingAs($verifiedFemale)->getJson('/api/womens-zone/status')
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        // 6. Admin dan Petugas Keamanan dialihkan ke dashboard masing-masing
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin)->get('/womens-zone')->assertRedirect(route('admin.dashboard'));
+
+        $keamanan = User::factory()->create(['role' => 'keamanan']);
+        $this->actingAs($keamanan)->get('/womens-zone')->assertRedirect(route('keamanan.dashboard'));
     }
 
     public function test_admin_can_approve_and_reject_identity_verification(): void

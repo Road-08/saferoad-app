@@ -11,6 +11,7 @@ use App\Http\Controllers\Keamanan\IncidentFollowUpController;
 use App\Http\Controllers\SecurityReportController;
 use App\Http\Controllers\SuspiciousReportFlagController;
 use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\WomensZoneController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -120,8 +121,8 @@ Route::view('/rute/bandingkan', 'rute.bandingkan')->name('rute.bandingkan');
 Route::view('/laporkan', 'laporkan')->name('laporkan');
 Route::view('/laporan/riwayat', 'laporan.riwayat')->name('laporan.riwayat');
 
-// SR-4: Women's Zone
-Route::view('/womens-zone', 'womens-zone')->name('womens-zone');
+// SR-4: Women's Zone (Validasi Gender & Identitas Terverifikasi via Database)
+Route::get('/womens-zone', [WomensZoneController::class, 'index'])->middleware('auth')->name('womens-zone');
 
 // SR-9: Pusat Informasi Darurat
 Route::view('/darurat', 'darurat')->name('darurat');

@@ -65,6 +65,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/{report}', [SecurityReportController::class, 'show']);
     Route::post('/reports/{report}/flag', [SuspiciousReportFlagController::class, 'store']);
 
+    // Women Zone Protected API
+    Route::middleware('women.zone')->prefix('womens-zone')->group(function () {
+        Route::get('/status', function (Request $request) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Akses Women Zone terverifikasi dari database.',
+                'data' => [
+                    'gender' => $request->user()->gender,
+                    'identity_status' => $request->user()->identity_status,
+                    'can_access' => true,
+                ],
+            ]);
+        });
+    });
+
     // Role Keamanan API
     Route::middleware('role:keamanan,admin')->prefix('keamanan')->group(function () {
         Route::get('/reports', [IncidentFollowUpController::class, 'index']);
@@ -79,6 +94,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/users/{user}/role', [AdminUserController::class, 'updateRole']);
 
         Route::get('/verifications', [AdminVerificationController::class, 'index']);
+        Route::get('/verifications/{user}/document', [AdminVerificationController::class, 'document']);
         Route::post('/verifications/{user}/approve', [AdminVerificationController::class, 'approve']);
         Route::post('/verifications/{user}/reject', [AdminVerificationController::class, 'reject']);
 

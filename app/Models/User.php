@@ -73,6 +73,21 @@ class User extends Authenticatable
         return $this->identity_status === 'verified';
     }
 
+    public function isFemale(): bool
+    {
+        return strtolower((string) $this->gender) === 'perempuan';
+    }
+
+    public function isMale(): bool
+    {
+        return strtolower((string) $this->gender) === 'laki-laki';
+    }
+
+    public function canAccessWomenZone(): bool
+    {
+        return $this->isMasyarakat() && $this->isFemale() && $this->isIdentityVerified();
+    }
+
     public function securityReports(): HasMany
     {
         return $this->hasMany(SecurityReport::class);
