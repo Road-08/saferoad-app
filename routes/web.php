@@ -115,7 +115,7 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::view('/rute', 'rute')->name('rute');
-Route::redirect('/rute/bandingkan', '/rute')->name('rute.bandingkan');
+Route::view('/rute/bandingkan', 'rute.bandingkan')->name('rute.bandingkan');
 
 Route::view('/laporkan', 'laporkan')->name('laporkan');
 Route::view('/laporan/riwayat', 'laporan.riwayat')->name('laporan.riwayat');

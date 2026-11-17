@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\DangerZone;
+use App\Models\Rute;
 use App\Models\SafetyFacility;
 use App\Models\SecurityReport;
 use App\Models\User;
@@ -87,6 +88,37 @@ class SafeRoadBackendTest extends TestCase
         $this->assertArrayHasKey('score', $response->json('data.0'));
         $this->assertArrayHasKey('factors', $response->json('data.0'));
         $this->assertCount(4, $response->json('data.0.factors'));
+    }
+
+    public function test_route_comparison_view_and_api_endpoint(): void
+    {
+        // 1. Halaman perbandingan rute dapat diakses
+        $this->get('/rute/bandingkan')->assertOk();
+
+        // 2. Endpoint API perbandingan rute
+        $ruteA = Rute::create([
+            'start_location' => 'Titik A',
+            'destination' => 'Titik B',
+            'distance' => 5.2,
+            'duration' => 15,
+            'security_score' => 88.5,
+            'security_level' => 'aman',
+        ]);
+
+        $ruteB = Rute::create([
+            'start_location' => 'Titik A',
+            'destination' => 'Titik B',
+            'distance' => 4.8,
+            'duration' => 18,
+            'security_score' => 65.0,
+            'security_level' => 'sedang',
+        ]);
+
+        $response = $this->getJson("/api/routes/compare?ids[]={$ruteA->route_id}&ids[]={$ruteB->route_id}");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('recommended_id', $ruteA->route_id)
+            ->assertJsonCount(2, 'routes');
     }
 
     public function test_user_can_submit_identity_verification(): void
