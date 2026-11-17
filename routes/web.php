@@ -4,9 +4,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDangerZoneController;
 use App\Http\Controllers\Admin\AdminFacilityController;
 use App\Http\Controllers\Admin\AdminUserController;
-use App\Http\Controllers\Admin\AdminVerificationController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Controllers\Keamanan\IncidentFollowUpController;
 use App\Http\Controllers\SecurityReportController;
 use App\Http\Controllers\SuspiciousReportFlagController;
@@ -31,8 +29,11 @@ Route::get('/', function () {
     if ($user->role === 'keamanan') {
         return redirect()->route('keamanan.dashboard');
     }
+    if ($user->canAccessWomenZone()) {
+        return redirect()->route('rute', ['mode' => 'women']);
+    }
 
-    return redirect()->route('dashboard');
+    return redirect()->route('rute');
 })->name('home');
 
 Route::middleware('guest')->group(function () {
@@ -63,7 +64,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan', [SecurityReportController::class, 'index'])->name('laporan.index');
     Route::post('/laporan', [SecurityReportController::class, 'store'])->name('laporan.store');
     Route::get('/laporan/terakhir', [SecurityReportController::class, 'latest'])->name('laporan.latest');
-    Route::get('/laporan/{report}', [SecurityReportController::class, 'show'])->name('laporan.show');
+    Route::get('/laporan/{report}', [SecurityReportController::class, 'show'])->whereNumber('report')->name('laporan.show');
 
     // Fitur penandaan laporan mencurigakan (SR-61)
     Route::post(
@@ -74,10 +75,6 @@ Route::middleware('auth')->group(function () {
     // User Profile
     Route::get('/profil', [UserProfileController::class, 'index'])->name('profile.index');
     Route::put('/profil', [UserProfileController::class, 'update'])->name('profile.update');
-
-    // Identity Verification (KTP & Gender)
-    Route::get('/verifikasi-identitas', [IdentityVerificationController::class, 'show'])->name('profile.verifikasi');
-    Route::post('/verifikasi-identitas', [IdentityVerificationController::class, 'submit'])->name('profile.verifikasi.store');
 
     // Area Khusus Role Keamanan
     Route::middleware('role:keamanan,admin')->prefix('keamanan')->name('keamanan.')->group(function () {
@@ -101,10 +98,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/data/users/{user}', [AdminUserController::class, 'show'])->name('data.users.show');
         Route::put('/data/users/{user}/role', [AdminUserController::class, 'updateRole'])->name('data.users.role');
 
-        Route::get('/verifikasi-identitas', [AdminVerificationController::class, 'index'])->name('verifikasi.index');
-        Route::post('/verifikasi-identitas/{user}/approve', [AdminVerificationController::class, 'approve'])->name('verifikasi.approve');
-        Route::post('/verifikasi-identitas/{user}/reject', [AdminVerificationController::class, 'reject'])->name('verifikasi.reject');
-
         Route::apiResource('facilities', AdminFacilityController::class);
         Route::apiResource('danger-zones', AdminDangerZoneController::class);
     });
@@ -117,34 +110,13 @@ Route::middleware('auth')->group(function () {
 */
 Route::get('/rute', function () {
     $user = auth()->user() ? auth()->user()->fresh() : null;
-    $gateState = 'not_logged_in';
-    $canAccessWomenZone = false;
-    $identityStatus = 'unverified';
-    $gender = null;
-
-    if ($user) {
-        $gender = $user->gender;
-        $identityStatus = $user->identity_status ?? 'unverified';
-        if ($user->isMale()) {
-            $gateState = 'male_forbidden';
-        } elseif ($user->isFemale() && $identityStatus === 'verified') {
-            $gateState = 'verified';
-            $canAccessWomenZone = true;
-        } elseif ($identityStatus === 'pending') {
-            $gateState = 'pending';
-        } elseif ($identityStatus === 'rejected') {
-            $gateState = 'rejected';
-        } else {
-            $gateState = 'not_submitted';
-        }
-    }
+    $canAccessWomenZone = $user ? $user->canAccessWomenZone() : false;
 
     return view('rute', [
         'currentUser' => $user,
-        'userGateState' => $gateState,
         'canAccessWomenZone' => $canAccessWomenZone,
-        'userGender' => $gender,
-        'userIdentityStatus' => $identityStatus,
+        'userGender' => $user?->gender,
+        'userIdentityStatus' => $user?->identity_status ?? 'unverified',
     ]);
 })->name('rute');
 
@@ -162,7 +134,7 @@ Route::view('/laporkan', 'laporkan')->name('laporkan');
 Route::view('/laporan/riwayat', 'laporan.riwayat')->name('laporan.riwayat');
 
 // SR-4: Women's Zone (Validasi Gender & Identitas Terverifikasi via Database)
-Route::get('/womens-zone', [WomensZoneController::class, 'index'])->middleware('auth')->name('womens-zone');
+Route::get('/womens-zone', [WomensZoneController::class, 'index'])->middleware(['auth', 'women.zone'])->name('womens-zone');
 
 // SR-9: Pusat Informasi Darurat
 Route::view('/darurat', 'darurat')->name('darurat');

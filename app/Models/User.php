@@ -10,7 +10,6 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     protected $fillable = [
@@ -22,10 +21,11 @@ class User extends Authenticatable
         'avatar',
         'gender',
         'gender_consent',
-        'ktp_path',
+        'nik_hash',
         'identity_status',
         'identity_verified_at',
         'identity_rejection_note',
+        'ktp_path',
     ];
 
     protected $hidden = [
@@ -33,15 +33,12 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'gender_consent' => 'boolean',
-            'identity_verified_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'gender_consent' => 'boolean',
+        'identity_verified_at' => 'datetime',
+    ];
 
     public function isAdmin(): bool
     {
@@ -58,13 +55,9 @@ class User extends Authenticatable
         return $this->role === 'masyarakat' || empty($this->role);
     }
 
-    /**
-     * @param string|array<int, string> $roles
-     */
     public function hasRole(string|array $roles): bool
     {
         $roleList = is_array($roles) ? $roles : func_get_args();
-
         return in_array($this->role, $roleList, true);
     }
 
@@ -86,6 +79,29 @@ class User extends Authenticatable
     public function canAccessWomenZone(): bool
     {
         return $this->isMasyarakat() && $this->isFemale() && $this->isIdentityVerified();
+    }
+
+    public function setGenderAttribute(?string $value): void
+    {
+        if ($value === null) {
+            $this->attributes['gender'] = null;
+            return;
+        }
+
+        $val = strtolower(trim($value));
+        $map = [
+            'p' => 'perempuan',
+            'perempuan' => 'perempuan',
+            'female' => 'perempuan',
+            'wanita' => 'perempuan',
+            'l' => 'laki-laki',
+            'laki' => 'laki-laki',
+            'male' => 'laki-laki',
+            'pria' => 'laki-laki',
+            'laki-laki' => 'laki-laki',
+        ];
+
+        $this->attributes['gender'] = $map[$val] ?? $val;
     }
 
     public function securityReports(): HasMany

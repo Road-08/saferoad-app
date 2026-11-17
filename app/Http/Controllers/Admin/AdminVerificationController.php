@@ -5,81 +5,64 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\Response;
 
 class AdminVerificationController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    /**
+     * Show the admin verification page.
+     */
+    public function index()
     {
-        $status = $request->query('status', 'pending');
-
-        $users = User::where('identity_status', $status)
-            ->latest()
-            ->paginate(15);
-
-        return response()->json([
-            'success' => true,
-            'data' => $users,
-        ]);
+        // Load view that contains a DataTable of users with pending verification
+        return view('admin.verifikasi');
     }
 
-    public function approve(Request $request, User $user): JsonResponse
+    /**
+     * Return JSON data for pending users (used by DataTables).
+     */
+    public function data(): JsonResponse
     {
-        if ($user->identity_status !== 'pending') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Hanya pengajuan dengan status pending yang dapat disetujui.',
-            ], 422);
-        }
+        $users = User::where('identity_status', 'pending')
+            ->select('id', 'name', 'email', 'nik', 'identity_status')
+            ->get();
 
+        // Attach action buttons (Approve / Reject) for each user
+        $users->transform(function ($user) {
+            $approveUrl = route('admin.verifikasi.approve', $user);
+            $rejectUrl  = route('admin.verifikasi.reject', $user);
+            $buttons = "<form method='POST' action='$approveUrl' style='display:inline;'>" .
+                csrf_field() .
+                "<button type='submit' class='btn btn-success btn-sm'>Approve</button></form>" .
+                " <form method='POST' action='$rejectUrl' style='display:inline;'>" .
+                csrf_field() .
+                "<button type='submit' class='btn btn-danger btn-sm'>Reject</button></form>";
+            $user->action = $buttons;
+            return $user;
+        });
+
+        return response()->json(['data' => $users]);
+    }
+
+    /**
+     * Approve a user's KTP verification.
+     */
+    public function approve(User $user): JsonResponse
+    {
         $user->update([
-            'identity_status' => 'verified',
+            'identity_status'      => 'verified',
             'identity_verified_at' => now(),
-            'identity_rejection_note' => null,
         ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => "Identitas pengguna {$user->name} berhasil diverifikasi.",
-            'data' => $user,
-        ]);
+        return response()->json(['success' => true, 'message' => 'User verified.']);
     }
 
-    public function reject(Request $request, User $user): JsonResponse
+    /**
+     * Reject a user's KTP verification.
+     */
+    public function reject(User $user): JsonResponse
     {
-        $validated = $request->validate([
-            'reason' => ['required', 'string', 'max:255'],
-        ], [
-            'reason.required' => 'Alasan penolakan verifikasi wajib diisi.',
-        ]);
-
         $user->update([
             'identity_status' => 'rejected',
-            'identity_verified_at' => null,
-            'identity_rejection_note' => $validated['reason'],
         ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => "Verifikasi identitas pengguna {$user->name} ditolak.",
-            'data' => $user,
-        ]);
-    }
-
-    public function document(User $user): Response
-    {
-        if (! $user->ktp_path) {
-            abort(404, 'Dokumen KTP tidak ditemukan.');
-        }
-
-        $disk = Storage::disk('local')->exists($user->ktp_path) ? 'local' : 'public';
-
-        if (! Storage::disk($disk)->exists($user->ktp_path)) {
-            abort(404, 'Berkas dokumen KTP tidak tersedia pada storage.');
-        }
-
-        return Storage::disk($disk)->response($user->ktp_path);
+        return response()->json(['success' => true, 'message' => 'User rejected.']);
     }
 }

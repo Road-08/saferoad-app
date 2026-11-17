@@ -23,24 +23,57 @@ class AuthenticationTest extends TestCase
             ->assertSee('Mulai perjalananmu');
     }
 
-    public function test_user_can_register_and_is_authenticated(): void
+    public function test_female_user_can_register_and_is_redirected_to_womens_mode(): void
     {
+        // NIK Perempuan: digit 7-8 = 55 (> 40)
+        $nikPerempuan = '3201015505950001';
+
         $response = $this->post('/register', [
             'name' => 'Rina Aman',
             'email' => 'Rina@example.com',
             'password' => 'SafeRoad123',
             'password_confirmation' => 'SafeRoad123',
+            'nik' => $nikPerempuan,
         ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('rute', ['mode' => 'women']));
         $this->assertAuthenticated();
         $this->assertDatabaseHas('users', [
             'name' => 'Rina Aman',
             'email' => 'rina@example.com',
+            'gender' => 'perempuan',
+            'identity_status' => 'verified',
         ]);
 
         $user = User::where('email', 'rina@example.com')->firstOrFail();
         $this->assertTrue(Hash::check('SafeRoad123', $user->password));
+        $this->assertTrue($user->canAccessWomenZone());
+    }
+
+    public function test_male_user_can_register_and_is_redirected_to_regular_route(): void
+    {
+        // NIK Laki-laki: digit 7-8 = 15 (<= 40)
+        $nikLaki = '3201011505950001';
+
+        $response = $this->post('/register', [
+            'name' => 'Budi Santoso',
+            'email' => 'budi@example.com',
+            'password' => 'SafeRoad123',
+            'password_confirmation' => 'SafeRoad123',
+            'nik' => $nikLaki,
+        ]);
+
+        $response->assertRedirect(route('rute'));
+        $this->assertAuthenticated();
+        $this->assertDatabaseHas('users', [
+            'name' => 'Budi Santoso',
+            'email' => 'budi@example.com',
+            'gender' => 'laki-laki',
+            'identity_status' => 'verified',
+        ]);
+
+        $user = User::where('email', 'budi@example.com')->firstOrFail();
+        $this->assertFalse($user->canAccessWomenZone());
     }
 
     public function test_registration_rejects_unconfirmed_password(): void
@@ -51,6 +84,7 @@ class AuthenticationTest extends TestCase
                 'email' => 'rina@example.com',
                 'password' => 'SafeRoad123',
                 'password_confirmation' => 'Different123',
+                'nik' => '3201015505950001',
             ])
             ->assertRedirect('/register')
             ->assertSessionHasErrors('password');
@@ -64,13 +98,15 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create([
             'email' => 'sam@example.com',
             'password' => 'SafeRoad123',
+            'role' => 'masyarakat',
+            'gender' => 'laki-laki',
         ]);
 
         $this->post('/login', [
             'email' => 'SAM@example.com',
             'password' => 'SafeRoad123',
             'remember' => '1',
-        ])->assertRedirect(route('dashboard'));
+        ])->assertRedirect(route('rute'));
 
         $this->assertAuthenticatedAs($user);
 
@@ -133,21 +169,38 @@ class AuthenticationTest extends TestCase
 
     public function test_login_redirects_to_respective_dashboard_based_on_role(): void
     {
-        // 1. Masyarakat login redirects to masyarakat dashboard
+        // 1. Masyarakat laki-laki login redirects ke rute umum
         $masyarakat = User::factory()->create([
             'email' => 'warga@saferoad.test',
             'password' => 'Password123',
             'role' => 'masyarakat',
+            'gender' => 'laki-laki',
         ]);
 
         $this->post('/login', [
             'email' => 'warga@saferoad.test',
             'password' => 'Password123',
-        ])->assertRedirect(route('dashboard'));
+        ])->assertRedirect(route('rute'));
 
         $this->post('/logout');
 
-        // 2. Petugas Keamanan login redirects to keamanan dashboard
+        // 2. Masyarakat perempuan terverifikasi login redirects ke rute mode women
+        $wanita = User::factory()->create([
+            'email' => 'wanita@saferoad.test',
+            'password' => 'Password123',
+            'role' => 'masyarakat',
+            'gender' => 'perempuan',
+            'identity_status' => 'verified',
+        ]);
+
+        $this->post('/login', [
+            'email' => 'wanita@saferoad.test',
+            'password' => 'Password123',
+        ])->assertRedirect(route('rute', ['mode' => 'women']));
+
+        $this->post('/logout');
+
+        // 3. Petugas Keamanan login redirects to keamanan dashboard
         $keamanan = User::factory()->create([
             'email' => 'petugas@saferoad.test',
             'password' => 'Password123',
@@ -161,7 +214,7 @@ class AuthenticationTest extends TestCase
 
         $this->post('/logout');
 
-        // 3. Admin login redirects to admin dashboard
+        // 4. Admin login redirects to admin dashboard
         $admin = User::factory()->create([
             'email' => 'admin@saferoad.test',
             'password' => 'Password123',
@@ -172,12 +225,5 @@ class AuthenticationTest extends TestCase
             'email' => 'admin@saferoad.test',
             'password' => 'Password123',
         ])->assertRedirect(route('admin.dashboard'));
-    }
-
-    public function test_legacy_role_login_urls_redirect_to_unified_login_page(): void
-    {
-        $this->get('/login/keamanan')->assertRedirect('/login');
-        $this->get('/login/admin')->assertRedirect('/login');
-        $this->get('/login/masyarakat')->assertRedirect('/login');
     }
 }

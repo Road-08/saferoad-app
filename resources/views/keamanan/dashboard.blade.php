@@ -58,7 +58,7 @@
     <!-- Patrol Map & Quick Tasks -->
     <div class="officer-main-grid">
         <!-- Tabel Laporan Lapangan -->
-        <div class="officer-table-card">
+        <div class="officer-table-card" id="tabelAduan">
             <div class="otc-header">
                 <div>
                     <h2>Daftar Tugas Verifikasi Lapangan (TKP)</h2>

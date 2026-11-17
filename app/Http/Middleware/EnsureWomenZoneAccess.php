@@ -17,7 +17,6 @@ class EnsureWomenZoneAccess
     {
         $user = $request->user();
 
-        // 1. Wajib autentikasi
         if (! $user) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
@@ -29,49 +28,37 @@ class EnsureWomenZoneAccess
             return redirect()->route('login');
         }
 
-        // 2. Petugas keamanan dan admin bukan pengguna Women Zone
-        if (! $user->isMasyarakat()) {
+        if ($user->isAdmin()) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Akses ditolak. Fitur Women Zone hanya diperuntukkan bagi masyarakat.',
                 ], 403);
             }
+            return redirect()->route('admin.dashboard');
+        }
 
-            if ($user->isAdmin()) {
-                return redirect()->route('admin.dashboard');
+        if ($user->isKeamanan()) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses ditolak. Fitur Women Zone hanya diperuntukkan bagi masyarakat.',
+                ], 403);
             }
-
             return redirect()->route('keamanan.dashboard');
         }
 
-        // 3. Pengguna laki-laki ditolak secara ketat
-        if ($user->isMale()) {
+        if (! $user->canAccessWomenZone()) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Akses ditolak. Fitur Women Zone khusus diperuntukkan bagi pengguna perempuan.',
-                ], 403);
-            }
-
-            abort(403, 'Akses ditolak. Fitur Women Zone khusus diperuntukkan bagi pengguna perempuan.');
-        }
-
-        // 4. Pengguna perempuan harus berstatus 'verified' di database
-        if (! $user->isFemale() || ! $user->isIdentityVerified()) {
-            if ($request->expectsJson() || $request->is('api/*')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Akses ditolak. Fitur Women Zone memerlukan akun perempuan dengan status verifikasi aktif (verified).',
+                    'message' => 'Zona Perempuan khusus pengguna perempuan terverifikasi.',
                     'identity_status' => $user->identity_status ?? 'unverified',
                     'gender' => $user->gender,
                 ], 403);
             }
 
-            // Untuk web request ke fitur penuh Women Zone, arahkan ke halaman info verifikasi
-            if ($request->routeIs('womens-zone.features*')) {
-                return redirect()->route('womens-zone');
-            }
+            return redirect()->route('rute')->with('error', 'Zona Perempuan khusus pengguna perempuan terverifikasi.');
         }
 
         return $next($request);

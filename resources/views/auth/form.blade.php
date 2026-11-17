@@ -1126,6 +1126,38 @@
                             <p class="field-error-msg" id="name-error">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    <!-- Field NIK (Registrasi - Deteksi Otomatis Jenis Kelamin) -->
+                    <div class="form-field">
+                        <label for="nik">NIK</label>
+                        <div class="input-group">
+                            <span class="input-icon-left" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="16" rx="2"/>
+                                    <line x1="7" y1="8" x2="17" y2="8"/>
+                                    <line x1="7" y1="12" x2="17" y2="12"/>
+                                    <line x1="7" y1="16" x2="13" y2="16"/>
+                                </svg>
+                            </span>
+                            <input
+                                id="nik"
+                                name="nik"
+                                type="text"
+                                inputmode="numeric"
+                                maxlength="16"
+                                pattern="\d{16}"
+                                required
+                                class="input-control @error('nik') has-error @enderror"
+                                placeholder="16 digit NIK"
+                                value="{{ old('nik') }}"
+                            >
+                        </div>
+                        <p style="font-size: 12px; color: #64748b; margin-top: 4px;">NIK hanya dipakai untuk mendeteksi jenis kelamin dan tidak disimpan.</p>
+                        <div id="nik-detection-status" style="margin-top: 6px; font-size: 13px; font-weight: 600; display: none;"></div>
+                        @error('nik')
+                            <p class="field-error-msg" id="nik-error">{{ $message }}</p>
+                        @enderror
+                    </div>
                 @endif
 
                 <!-- Field Email / ID Petugas / Email Admin -->
@@ -1157,7 +1189,6 @@
                         <p class="field-error-msg" id="email-error">{{ $message }}</p>
                     @enderror
                 </div>
-
                 <!-- Field Kata Sandi -->
                 <div class="form-field">
                     <div style="display: flex; justify-content: space-between; align-items: baseline;">
@@ -1547,18 +1578,57 @@
         }
     }
 
-    // Loncat Langsung ke Dashboard Role Terpilih (Mode Frontend)
-    function jumpToActiveDashboard() {
-        const cfg = roleConfig[currentRole];
-        if (!cfg) return;
-        localStorage.setItem('saferoad_active_role', currentRole);
-        window.location.href = cfg.dashboardUrl;
+    // Deteksi Gender dari NIK secara realtime
+    const nikInput = document.getElementById('nik');
+    const nikStatus = document.getElementById('nik-detection-status');
+
+    if (nikInput && nikStatus) {
+        function evaluateNik() {
+            const raw = nikInput.value.replace(/\D/g, '');
+            nikInput.value = raw.slice(0, 16);
+
+            if (nikInput.value.length === 16) {
+                const nik = nikInput.value;
+                const tgl = parseInt(nik.substring(6, 8), 10);
+                const bln = parseInt(nik.substring(8, 10), 10);
+
+                let gender = null;
+                let realTgl = tgl;
+
+                if (tgl > 40) {
+                    gender = 'Perempuan';
+                    realTgl = tgl - 40;
+                } else {
+                    gender = 'Laki-laki';
+                    realTgl = tgl;
+                }
+
+                if (realTgl < 1 || realTgl > 31 || bln < 1 || bln > 12) {
+                    nikStatus.style.display = 'block';
+                    nikStatus.style.color = '#ef4444';
+                    nikStatus.textContent = '⚠️ NIK tidak valid';
+                } else {
+                    nikStatus.style.display = 'block';
+                    nikStatus.style.color = gender === 'Perempuan' ? '#ec4899' : '#2563eb';
+                    nikStatus.textContent = '✓ Terdeteksi: ' + gender;
+                }
+            } else if (nikInput.value.length > 0) {
+                nikStatus.style.display = 'block';
+                nikStatus.style.color = '#64748b';
+                nikStatus.textContent = nikInput.value.length + ' / 16 digit';
+            } else {
+                nikStatus.style.display = 'none';
+                nikStatus.textContent = '';
+            }
+        }
+
+        nikInput.addEventListener('input', evaluateNik);
+        evaluateNik();
     }
 
     // Inisialisasi saat Halaman Dimuat
     document.addEventListener('DOMContentLoaded', function () {
-        // Role selector dihapus — login otomatis berdasarkan data dari database
-        // switchLoginRole tidak dipanggil lagi; semua pengguna menggunakan form yang sama
+        // Form inisialisasi
     });
 
     // Interaktivitas Show / Hide Password dengan SVG ikon mata & coret
@@ -1592,9 +1662,6 @@
 
     if (form && submitBtn) {
         form.addEventListener('submit', function (e) {
-            // Pastikan role tersimpan di localStorage sebelum submit
-            localStorage.setItem('saferoad_active_role', currentRole);
-
             // Jika validasi native browser lolos
             if (form.checkValidity()) {
                 submitBtn.disabled = true;

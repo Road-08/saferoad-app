@@ -37,7 +37,7 @@
     </header>
 
     <!-- Banner Status Terverifikasi (Mode Perempuan Aktif) -->
-    <div id="wzVerifiedNotice" class="wz-verified-strip" style="{{ ($gateState ?? '') === 'verified' ? 'display: flex;' : 'display: none;' }}">
+    <div id="wzVerifiedNotice" class="wz-verified-strip" style="display: flex;">
         <div class="wz-verified-inner">
             <span class="wz-verified-icon">♀</span>
             <div>
@@ -47,113 +47,8 @@
         </div>
     </div>
 
-    <!-- TAMPILAN INFORMASI VERIFIKASI GENDER DI DATABASE -->
-    <section id="wzLockedGate" class="wz-locked-card" style="{{ ($gateState ?? '') === 'verified' ? 'display: none;' : 'display: block;' }}">
-        @if (($gateState ?? '') === 'pending')
-            <div class="wz-locked-header-tag" style="background:#fef3c7; color:#b45309; border-color:#fde68a;">
-                <span class="lock-tag-icon">⏳</span>
-                <span>STATUS VERIFIKASI: MENUNGGU PERSETUJUAN ADMIN</span>
-            </div>
-            <div class="wz-locked-icon-badge">
-                <span class="wz-flower-icon">🌸</span>
-                <span class="wz-lock-mini">⏳</span>
-            </div>
-            <h2>Pengajuan Verifikasi Gender Anda Sedang Ditinjau Admin</h2>
-            <p class="wz-locked-desc">
-                Data KTP dan deklarasi gender perempuan Anda telah tersimpan dengan aman pada sistem SafeRoad dan saat ini sedang dalam antrean verifikasi oleh administrator. Anda akan dapat mengakses seluruh modul dan peta <strong>Women's Safe Zone</strong> segera setelah disetujui.
-            </p>
-            <div class="wz-locked-btn-group">
-                <a href="{{ route('profile.index') }}" class="btn-wz-verify-primary" style="background:#0284c7;">
-                    <span>Lihat Status di Profil Pengguna</span>
-                </a>
-                <a href="{{ url('/rute') }}" class="btn-wz-back-general">
-                    <span>← Kembali ke Peta Rute Umum</span>
-                </a>
-            </div>
-        @elseif (($gateState ?? '') === 'rejected')
-            <div class="wz-locked-header-tag" style="background:#fee2e2; color:#b91c1c; border-color:#fecaca;">
-                <span class="lock-tag-icon">❌</span>
-                <span>STATUS VERIFIKASI: BELUM DISETUJUI</span>
-            </div>
-            <div class="wz-locked-icon-badge">
-                <span class="wz-flower-icon">🌸</span>
-                <span class="wz-lock-mini">❌</span>
-            </div>
-            <h2>Verifikasi Identitas Anda Belum Disetujui</h2>
-            <p class="wz-locked-desc">
-                Pengajuan verifikasi gender perempuan Anda ditolak oleh admin dengan catatan:
-                <br>
-                <strong style="color:#b91c1c;">"{{ $rejectionNote ?? 'Dokumen KTP tidak memenuhi kriteria verifikasi' }}"</strong>
-                <br><br>
-                Silakan lakukan pengajuan ulang dokumen KTP yang valid dan terbaca dengan jelas untuk membuka akses Women's Zone.
-            </p>
-            <div class="wz-locked-btn-group">
-                <a href="{{ url('/verifikasi-identitas') }}" class="btn-wz-verify-primary">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        <polyline points="9 12 11 14 15 10"/>
-                    </svg>
-                    <span>Ajukan Ulang Verifikasi KTP</span>
-                </a>
-                <a href="{{ url('/rute') }}" class="btn-wz-back-general">
-                    <span>← Kembali ke Peta Rute Umum</span>
-                </a>
-            </div>
-        @else
-            <div class="wz-locked-header-tag">
-                <span class="lock-tag-icon">🔒</span>
-                <span>HAK AKSES PRIVAT · KHUSUS PENGGUNA PEREMPUAN TERVERIFIKASI</span>
-            </div>
-            <div class="wz-locked-icon-badge">
-                <span class="wz-flower-icon">🌸</span>
-                <span class="wz-lock-mini">🔒</span>
-            </div>
-            <h2>Akses Women's Zone Memerlukan Verifikasi Gender Perempuan</h2>
-            <p class="wz-locked-desc">
-                Untuk menjaga kenyamanan, keamanan ruang privat, dan memastikan data perlindungan perjalanan digunakan secara tepat sasaran, modul <strong>Women's Safe Zone</strong> dan fitur <strong>Mode Perempuan</strong> hanya dapat diakses setelah akun diverifikasi dengan identitas (KTP) berjenis kelamin <strong>Perempuan</strong>.
-            </p>
-
-            <div class="wz-feature-pillars">
-                <div class="wz-pillar-card">
-                    <div class="wz-pillar-icon">💡</div>
-                    <div>
-                        <strong>Penerangan &amp; CCTV Terintegrasi</strong>
-                        <p>Visualisasi jalur perjalanan dengan penerangan maksimal dan jangkauan kamera pengawas aktif.</p>
-                    </div>
-                </div>
-                <div class="wz-pillar-card">
-                    <div class="wz-pillar-icon">🛡️</div>
-                    <div>
-                        <strong>Pos Shelter &amp; Titik Bantuan 24 Jam</strong>
-                        <p>Lokasi pos satpam kawasan dan shelter siaga terdekat dengan kontak respon cepat SAPA 129.</p>
-                    </div>
-                </div>
-                <div class="wz-pillar-card">
-                    <div class="wz-pillar-icon">🚗</div>
-                    <div>
-                        <strong>Monitoring Komposisi Pengemudi</strong>
-                        <p>Fitur pemantauan jumlah driver laki-laki vs perempuan di rute yang Anda lalui.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="wz-locked-btn-group">
-                <a href="{{ url('/verifikasi-identitas') }}" class="btn-wz-verify-primary">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        <polyline points="9 12 11 14 15 10"/>
-                    </svg>
-                    <span>Verifikasi Identitas Sekarang</span>
-                </a>
-                <a href="{{ url('/rute') }}" class="btn-wz-back-general">
-                    <span>← Kembali ke Peta Rute Umum</span>
-                </a>
-            </div>
-        @endif
-    </section>
-
     <!-- Main Grid: Peta & Panel Kontrol -->
-    <div class="wz-layout-grid" style="{{ ($gateState ?? '') === 'verified' ? 'display: grid;' : 'display: none;' }}">
+    <div class="wz-layout-grid" style="display: grid;">
         <!-- Area Kiri: Peta Interaktif -->
         <div class="wz-map-section">
             <div class="wz-map-card">
@@ -797,55 +692,7 @@
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// Fungsi aktivasi cepat untuk keperluan demonstrasi
-function demoActivateFemaleMode() {
-    localStorage.setItem('saferoad_verified', 'true');
-    localStorage.setItem('saferoad_gender', 'perempuan');
-    alert('Mode Perempuan berhasil diaktifkan! Fitur Women\'s Zone dan Driver Monitoring kini terbuka.');
-    window.location.reload();
-}
-const activateFemaleModeDemo = demoActivateFemaleMode;
-
-function demoResetVerification() {
-    localStorage.removeItem('saferoad_verified');
-    localStorage.removeItem('saferoad_gender');
-    alert('Status verifikasi direset. Halaman Women\'s Zone kembali terkunci.');
-    window.location.reload();
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Pengecekan Hak Akses Role: Women's Zone murni untuk Masyarakat
-    const activeRole = localStorage.getItem('saferoad_active_role') || 'masyarakat';
-    const urlParams = new URLSearchParams(window.location.search);
-    if (!urlParams.has('stay')) {
-        if (activeRole === 'admin') {
-            window.location.replace("{{ route('admin.dashboard') }}");
-            return;
-        } else if (activeRole === 'keamanan') {
-            window.location.replace("{{ route('keamanan.dashboard') }}");
-            return;
-        }
-    }
-
-    // Pengecekan Verifikasi Gender Perempuan Berdasarkan Database Server
-    const serverGateState = "{{ $gateState ?? 'not_submitted' }}";
-    const isFemale = serverGateState === 'verified';
-
-    const lockedGate = document.getElementById('wzLockedGate');
-    const verifiedNotice = document.getElementById('wzVerifiedNotice');
-    const mapGrid = document.querySelector('.wz-layout-grid');
-
-    if (!isFemale) {
-        if (lockedGate) lockedGate.style.display = 'block';
-        if (verifiedNotice) verifiedNotice.style.display = 'none';
-        if (mapGrid) mapGrid.style.display = 'none';
-        return; // Jangan muat peta jika belum terverifikasi di database
-    } else {
-        if (lockedGate) lockedGate.style.display = 'none';
-        if (verifiedNotice) verifiedNotice.style.display = 'flex';
-        if (mapGrid) mapGrid.style.display = 'grid';
-    }
-
     const PUSAT = { lat: -7.3140, lng: 112.7280 };
     const map = L.map('wzMap', { zoomControl: false }).setView([PUSAT.lat, PUSAT.lng], 15);
     L.control.zoom({ position: 'topright' }).addTo(map);

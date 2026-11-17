@@ -352,39 +352,43 @@
                 @auth
                     <a href="{{ route('dashboard') }}" class="nav-link-pill {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                         Dashboard
-                    </a>
+    
                 @endauth
                 <a href="{{ url('/rute') }}" class="nav-link-pill {{ request()->is('rute*') ? 'active' : '' }}">
                     Cari Rute
                 </a>
+
+                @if(auth()->user()?->canAccessWomenZone())
                 <a href="{{ url('/womens-zone') }}" id="navLinkWomensZone" class="nav-link-pill {{ request()->is('womens-zone*') ? 'active' : '' }}" style="color: {{ request()->is('womens-zone*') ? '#fff' : '#be185d' }}; background-color: {{ request()->is('womens-zone*') ? '#be185d' : 'rgba(251, 207, 232, 0.4)' }}; font-weight: 700;">
                     ♀ Women's Zone
                 </a>
+                @endif
+
                 <a href="{{ url('/laporkan') }}" class="nav-link-pill {{ request()->is('laporkan*') ? 'active' : '' }}">
                     Laporkan
-                </a>
+
                 <a href="{{ url('/laporan/riwayat') }}" class="nav-link-pill {{ request()->is('laporan/riwayat*') ? 'active' : '' }}">
                     Riwayat
-                </a>
+
                 <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
                     🚨 Darurat
-                </a>
+
                 <a href="{{ url('/profil') }}" class="nav-link-pill {{ request()->is('profil*') || request()->is('verifikasi*') ? 'active' : '' }}">
                     Profil
-                </a>
+
             </div>
 
             {{-- Navigasi Role: Petugas Keamanan --}}
             <div id="navGroupKeamanan" class="nav-role-group" style="display: none;">
                 <a href="{{ route('keamanan.dashboard') }}" class="nav-link-pill {{ request()->is('keamanan*') ? 'active' : '' }}" style="background-color: #0f2d59; color: #fff; font-weight: 700;">
                     🛡️ Dashboard Keamanan
-                </a>
+
                 <a href="{{ route('keamanan.dashboard') }}#tabelAduan" class="nav-link-pill">
                     📋 Laporan Masuk &amp; TKP
-                </a>
+
                 <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
                     🚨 Hotline Siaga
-                </a>
+
             </div>
 
             {{-- Navigasi Role: Administrator (Halaman Terpisah) --}}
@@ -392,18 +396,19 @@
                 <a href="{{ route('admin.dashboard') }}" class="nav-link-pill {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" style="{{ request()->routeIs('admin.dashboard') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
                     ⚡ Dashboard
                 </a>
-                <a href="{{ route('admin.validasi') }}" class="nav-link-pill {{ request()->routeIs('admin.validasi') ? 'active' : '' }}" style="{{ request()->routeIs('admin.validasi') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
-                    ⚖️ Validasi Laporan
-                </a>
+
+
+
+
                 <a href="{{ route('admin.peta') }}" class="nav-link-pill {{ request()->routeIs('admin.peta') ? 'active' : '' }}" style="{{ request()->routeIs('admin.peta') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
                     🗺️ Pantau Peta
-                </a>
+
                 <a href="{{ route('admin.statistik') }}" class="nav-link-pill {{ request()->routeIs('admin.statistik') ? 'active' : '' }}" style="{{ request()->routeIs('admin.statistik') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
                     📊 Statistik &amp; Rekap
-                </a>
+
                 <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
                     🚨 Pengaturan Darurat
-                </a>
+
             </div>
         </nav>
 
@@ -435,7 +440,7 @@
             @else
                 <a href="{{ route('login') }}" class="nav-link-pill active" style="background-color: var(--primary-600); color: #fff;">
                     Masuk
-                </a>
+
             @endauth
         </div>
     </header>
@@ -491,18 +496,9 @@
             if (navKeamanan) navKeamanan.style.display = (role === 'keamanan') ? 'inline-flex' : 'none';
             if (navAdmin) navAdmin.style.display = (role === 'admin') ? 'inline-flex' : 'none';
 
-            // Pengecekan status verifikasi Mode Perempuan pada menu Women's Zone
-            const isFemaleVerified = (localStorage.getItem('saferoad_verified') === 'true' && localStorage.getItem('saferoad_gender') === 'perempuan');
-            const wzLink = document.getElementById('navLinkWomensZone');
-            if (wzLink) {
-                if (!isFemaleVerified) {
-                    wzLink.innerHTML = '🔒 Women\'s Zone <small style="font-size:10px;opacity:0.85;background:rgba(0,0,0,0.08);padding:1px 5px;border-radius:4px;margin-left:3px;">Kunci</small>';
-                    wzLink.title = 'Perlu verifikasi gender perempuan untuk membuka akses';
-                } else {
-                    wzLink.innerHTML = '♀ Women\'s Zone ✨';
-                    wzLink.title = 'Mode Perempuan Terverifikasi Aktif';
-                }
-            }
+            // Bersihkan status verifikasi lama dari client-side localStorage
+            localStorage.removeItem('saferoad_verified');
+            localStorage.removeItem('saferoad_gender');
 
             if (badge && badgeText) {
                 badge.classList.remove('role-badge-masyarakat', 'role-badge-keamanan', 'role-badge-admin');

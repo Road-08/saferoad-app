@@ -19,16 +19,15 @@
 
             <!-- Card Input Form Rute -->
             <div class="route-form-card">
-                <!-- PILIHAN JENIS RUTE (RUTE UMUM VS RUTE PEREMPUAN) -->
+                <!-- PILIHAN JENIS RUTE (HANYA DITAMPILKAN JIKA MEMILIKI AKSES WOMEN ZONE) -->
+                @if($canAccessWomenZone)
                 <div class="route-mode-selector-wrap">
                     <div class="mode-selector-header">
                         <span class="mode-selector-heading">PILIHAN JENIS RUTE</span>
-                        @if($userGateState === 'verified')
-                            <span class="badge-verified-indicator" title="Akun perempuan telah terverifikasi identitas">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                                <span>Terverifikasi</span>
-                            </span>
-                        @endif
+                        <span class="badge-verified-indicator" title="Akun perempuan telah terverifikasi identitas">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            <span>Terverifikasi</span>
+                        </span>
                     </div>
                     <div class="route-mode-toggle-group" role="tablist">
                         <button type="button" class="btn-mode-tab mode-general-tab active" id="tabModeGeneral" role="tab" aria-selected="true">
@@ -47,90 +46,6 @@
                                 <small class="tab-subtitle">Maksimal 3 Alternatif · Khusus Terverifikasi</small>
                             </div>
                         </button>
-                    </div>
-                </div>
-
-                <!-- Banner Informasi Verifikasi Gender Women Zone (Hanya untuk yang belum lolos verifikasi) -->
-                @if($userGateState !== 'verified')
-                <div id="wzAuthNotice" class="wz-auth-notice wz-state-{{ $userGateState }}" hidden>
-                    <div class="wz-notice-icon" id="wzNoticeIcon">
-                        @if($userGateState === 'pending')
-                            ⏳
-                        @elseif($userGateState === 'rejected')
-                            ⚠️
-                        @elseif($userGateState === 'male_forbidden')
-                            ℹ️
-                        @else
-                            🔒
-                        @endif
-                    </div>
-                    <div class="wz-notice-body">
-                        <div class="wz-notice-header-row">
-                            <strong id="wzNoticeTitle">
-                                @if($userGateState === 'pending')
-                                    Verifikasi Sedang Diproses
-                                @elseif($userGateState === 'rejected')
-                                    Verifikasi Belum Disetujui
-                                @elseif($userGateState === 'male_forbidden')
-                                    Khusus Pengguna Perempuan
-                                @elseif($userGateState === 'not_logged_in')
-                                    Masuk Akun Diperlukan
-                                @else
-                                    Verifikasi Gender Diperlukan
-                                @endif
-                            </strong>
-                            <span class="wz-status-badge wz-badge-{{ $userGateState }}">
-                                @if($userGateState === 'pending')
-                                    Menunggu Persetujuan
-                                @elseif($userGateState === 'rejected')
-                                    Ditolak
-                                @elseif($userGateState === 'male_forbidden')
-                                    Akses Terbatas
-                                @elseif($userGateState === 'not_logged_in')
-                                    Tamu
-                                @else
-                                    Belum Verifikasi
-                                @endif
-                            </span>
-                        </div>
-                        <p id="wzNoticeDesc">
-                            @if($userGateState === 'pending')
-                                Pengajuan verifikasi identitas gender Anda sedang dalam peninjauan oleh administrator. Harap menunggu hingga proses validasi disetujui.
-                            @elseif($userGateState === 'rejected')
-                                Pengajuan verifikasi identitas gender Anda belum disetujui. Silakan periksa kembali foto kartu identitas Anda dan ajukan verifikasi ulang.
-                            @elseif($userGateState === 'male_forbidden')
-                                Fitur Rute Perempuan dan Women Zone hanya dapat diakses oleh akun perempuan terverifikasi demi privasi dan keselamatan komunitas SafeRoad. Anda dapat menggunakan Rute Umum dengan data keamanan lengkap.
-                            @elseif($userGateState === 'not_logged_in')
-                                Silakan masuk ke akun terdaftar Anda untuk melihat status verifikasi identitas dan menggunakan fitur Women Zone.
-                            @else
-                                Rute Perempuan hanya dapat digunakan setelah verifikasi disetujui demi keselamatan dan kenyamanan perjalanan.
-                            @endif
-                        </p>
-                        <div class="wz-notice-actions" id="wzNoticeActions">
-                            @if($userGateState === 'not_submitted')
-                                <a href="{{ route('profile.verifikasi') }}" class="btn-wz-action" id="btnWzAction">
-                                    <span>Verifikasi Sekarang</span>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                </a>
-                            @elseif($userGateState === 'rejected')
-                                <a href="{{ route('profile.verifikasi') }}" class="btn-wz-action retry" id="btnWzAction">
-                                    <span>Ajukan Ulang Verifikasi</span>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                                </a>
-                            @elseif($userGateState === 'not_logged_in')
-                                <a href="{{ route('login') }}" class="btn-wz-action" id="btnWzAction">
-                                    <span>Masuk Sekarang</span>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                </a>
-                            @elseif($userGateState === 'male_forbidden')
-                                <button type="button" class="btn-wz-action secondary" onclick="switchMode('general')">
-                                    <span>Tetap di Rute Umum</span>
-                                </button>
-                            @elseif($userGateState === 'pending')
-                                {{-- Jika status pending: JANGAN tampilkan tombol untuk mengakses Women Zone --}}
-                                <span class="wz-pending-text">Peninjauan admin diproses maksimal 1x24 jam kerja.</span>
-                            @endif
-                        </div>
                     </div>
                 </div>
                 @endif
@@ -493,6 +408,7 @@
                 </p>
             </section>
 
+            @if($canAccessWomenZone)
             <!-- Driver Monitoring Card (Khusus Mode Perempuan Terverifikasi) -->
             <div id="driverMonitor" class="driver-monitoring-card" style="display:none;">
                 <div class="dm-header">
@@ -552,6 +468,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             <!-- Tombol Navigasi ke Laporan Insiden (Disesuaikan Role) -->
             <a href="{{ url('/laporkan') }}" class="btn-route-incident-report" id="btnRouteReport">
@@ -2177,18 +2094,13 @@
     // =====================================================
     // OTORISASI GENDER & VERIFIKASI WOMEN ZONE (DATABASE BACKEND)
     // =====================================================
-    const serverGateState = @json($userGateState ?? 'not_logged_in');
-    const serverUserGender = @json($userGender ?? null);
-    const serverIdentityStatus = @json($userIdentityStatus ?? 'unverified');
     const serverCanAccess = @json($canAccessWomenZone ?? false);
 
     // Mode pencarian aktif: 'general' (Rute Umum) | 'women' (Rute Perempuan)
     let currentMode = 'general';
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('mode') === 'womens_zone' || urlParams.get('mode') === 'women') {
-        if (serverCanAccess) {
-            currentMode = 'women';
-        }
+    if ((urlParams.get('mode') === 'womens_zone' || urlParams.get('mode') === 'women') && serverCanAccess) {
+        currentMode = 'women';
     }
 
     // Variabel state rute
@@ -2223,56 +2135,13 @@
     }
 
     function switchMode(targetMode) {
-        const notice = $('wzAuthNotice');
-        const titleEl = $('wzNoticeTitle');
-        const descEl = $('wzNoticeDesc');
-        const btnAction = $('btnWzAction');
-
         if (targetMode === 'women') {
-            // Periksa Otorisasi Backend
             if (!serverCanAccess) {
-                if (notice) notice.hidden = false;
-                if (serverGateState === 'not_logged_in') {
-                    if (titleEl) titleEl.textContent = 'Silakan Masuk Terlebih Dahulu';
-                    if (descEl) descEl.textContent = 'Fitur Rute Perempuan (Women Zone) hanya dapat diakses setelah masuk dengan akun masyarakat terdaftar.';
-                    if (btnAction) {
-                        btnAction.textContent = 'Masuk Sekarang';
-                        btnAction.href = "{{ route('login') }}";
-                    }
-                } else if (serverGateState === 'male_forbidden') {
-                    if (titleEl) titleEl.textContent = 'Akses Ditolak';
-                    if (descEl) descEl.textContent = 'Fitur Rute Perempuan (Women Zone) khusus diperuntukkan bagi pengguna perempuan demi keselamatan dan privasi komunitas.';
-                    if (btnAction) {
-                        btnAction.textContent = 'Gunakan Rute Umum';
-                        btnAction.href = 'javascript:void(0)';
-                        btnAction.onclick = () => switchMode('general');
-                    }
-                } else if (serverGateState === 'pending') {
-                    if (titleEl) titleEl.textContent = 'Verifikasi Sedang Diproses';
-                    if (descEl) descEl.textContent = 'Pengajuan verifikasi gender Anda sedang dalam peninjauan oleh admin. Harap tunggu persetujuan sistem.';
-                    if (btnAction) {
-                        btnAction.textContent = 'Cek Status Verifikasi';
-                        btnAction.href = "{{ route('profile.verifikasi') }}";
-                    }
-                } else if (serverGateState === 'rejected') {
-                    if (titleEl) titleEl.textContent = 'Pengajuan Belum Disetujui';
-                    if (descEl) descEl.textContent = 'Pengajuan verifikasi gender Anda belum disetujui oleh admin. Silakan periksa dokumen dan ajukan ulang.';
-                    if (btnAction) {
-                        btnAction.textContent = 'Ajukan Ulang Verifikasi';
-                        btnAction.href = "{{ route('profile.verifikasi') }}";
-                    }
-                } else {
-                    if (titleEl) titleEl.textContent = 'Verifikasi Gender Diperlukan';
-                    if (descEl) descEl.textContent = 'Sebelum menggunakan Rute Perempuan, Anda wajib melakukan verifikasi identitas gender satu kali.';
-                    if (btnAction) {
-                        btnAction.textContent = 'Ajukan Verifikasi Gender';
-                        btnAction.href = "{{ route('profile.verifikasi') }}";
-                    }
-                }
+                currentMode = 'general';
+                updateModeTabsUI();
                 return false;
             }
 
-            if (notice) notice.hidden = true;
             currentMode = 'women';
             updateModeTabsUI();
             updateDriverInfo(terpilihIdx);
@@ -2282,7 +2151,6 @@
             }
             return true;
         } else {
-            if (notice) notice.hidden = true;
             currentMode = 'general';
             updateModeTabsUI();
             updateDriverInfo(terpilihIdx);
@@ -2291,6 +2159,8 @@
                 renderRute(ruteOSRMAktif);
             }
             return true;
+        }
+    }
         }
     }
 

@@ -4,12 +4,10 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDangerZoneController;
 use App\Http\Controllers\Admin\AdminFacilityController;
 use App\Http\Controllers\Admin\AdminUserController;
-use App\Http\Controllers\Admin\AdminVerificationController;
 use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\DangerZoneApiController;
 use App\Http\Controllers\Api\RouteScoreApiController;
 use App\Http\Controllers\Api\SafetyFacilityApiController;
-use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Controllers\Keamanan\IncidentFollowUpController;
 use App\Http\Controllers\RouteComparisonController;
 use App\Http\Controllers\SecurityReportController;
@@ -44,60 +42,24 @@ Route::get('/womens-zone/access', function (Request $request) {
     if (! $user) {
         return response()->json([
             'can_access' => false,
-            'gate_state' => 'not_logged_in',
             'message' => 'Silakan masuk terlebih dahulu untuk mengakses fitur Women Zone.',
             'redirect_url' => route('login'),
-        ]);
+        ], 401);
     }
 
-    if ($user->isMale()) {
+    if (! $user->canAccessWomenZone()) {
         return response()->json([
             'can_access' => false,
-            'gate_state' => 'male_forbidden',
-            'gender' => 'laki-laki',
-            'message' => 'Akses ditolak. Fitur Women Zone khusus diperuntukkan bagi pengguna perempuan.',
-        ]);
-    }
-
-    $identityStatus = $user->identity_status ?? 'unverified';
-    if ($user->isFemale() && $identityStatus === 'verified') {
-        return response()->json([
-            'can_access' => true,
-            'gate_state' => 'verified',
-            'gender' => 'perempuan',
-            'identity_status' => 'verified',
-            'message' => 'Akses Women Zone terverifikasi.',
-        ]);
-    }
-
-    if ($identityStatus === 'pending') {
-        return response()->json([
-            'can_access' => false,
-            'gate_state' => 'pending',
             'gender' => $user->gender,
-            'identity_status' => 'pending',
-            'message' => 'Verifikasi gender Anda sedang diproses oleh admin. Mohon tunggu persetujuan.',
-        ]);
-    }
-
-    if ($identityStatus === 'rejected') {
-        return response()->json([
-            'can_access' => false,
-            'gate_state' => 'rejected',
-            'gender' => $user->gender,
-            'identity_status' => 'rejected',
-            'message' => 'Pengajuan verifikasi gender Anda belum disetujui: ' . ($user->identity_rejection_note ?: 'Dokumen tidak memenuhi syarat.'),
-            'redirect_url' => route('profile.verifikasi'),
-        ]);
+            'message' => 'Zona Perempuan khusus pengguna perempuan terverifikasi.',
+        ], 403);
     }
 
     return response()->json([
-        'can_access' => false,
-        'gate_state' => 'not_submitted',
-        'gender' => $user->gender,
-        'identity_status' => 'unverified',
-        'message' => 'Silakan ajukan verifikasi gender terlebih dahulu untuk menggunakan Rute Perempuan.',
-        'redirect_url' => route('profile.verifikasi'),
+        'can_access' => true,
+        'gender' => 'perempuan',
+        'identity_status' => 'verified',
+        'message' => 'Akses Women Zone terverifikasi.',
     ]);
 });
 
@@ -119,7 +81,6 @@ Route::middleware('auth')->group(function () {
     // Profile Management
     Route::get('/profile', [UserProfileController::class, 'index']);
     Route::put('/profile', [UserProfileController::class, 'update']);
-    Route::post('/profile/verify-identity', [IdentityVerificationController::class, 'submit']);
 
     // Incident Reporting
     Route::get('/reports', [SecurityReportController::class, 'index']);
@@ -155,11 +116,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/users', [AdminUserController::class, 'index']);
         Route::get('/users/{user}', [AdminUserController::class, 'show']);
         Route::put('/users/{user}/role', [AdminUserController::class, 'updateRole']);
-
-        Route::get('/verifications', [AdminVerificationController::class, 'index']);
-        Route::get('/verifications/{user}/document', [AdminVerificationController::class, 'document']);
-        Route::post('/verifications/{user}/approve', [AdminVerificationController::class, 'approve']);
-        Route::post('/verifications/{user}/reject', [AdminVerificationController::class, 'reject']);
 
         Route::apiResource('facilities', AdminFacilityController::class);
         Route::apiResource('danger-zones', AdminDangerZoneController::class);

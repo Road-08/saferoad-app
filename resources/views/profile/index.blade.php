@@ -28,33 +28,31 @@
         </div>
     </header>
 
-    <!-- Kartu Pengingat Verifikasi Identitas -->
-    <section class="reminder-card">
+    <!-- Informasi Identitas & Gender dari NIK (Read-Only) -->
+    <section class="reminder-card" style="background: #f0fdf4; border-color: #bbf7d0;">
         <div class="reminder-content">
-            <div class="reminder-icon-box">
+            <div class="reminder-icon-box" style="background: #22c55e; color: #fff;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     <polyline points="9 12 11 14 15 10"/>
                 </svg>
             </div>
             <div>
-                <h3>Lengkapi Verifikasi Identitas Anda</h3>
-                <p>Verifikasi KTP dan persetujuan gender membantu komunitas menciptakan lingkungan perjalanan yang lebih aman bagi seluruh pengguna.</p>
+                <h3 style="color: #15803d;">Identitas Terverifikasi</h3>
+                <p style="color: #166534; font-size: 13px;">
+                    Jenis kelamin: <strong>{{ ucfirst(auth()->user()->gender ?? 'Belum terdata') }}</strong> — terverifikasi dari NIK saat pendaftaran. NIK asli Anda tidak disimpan di sistem.
+                </p>
             </div>
         </div>
-        <a href="{{ route('profile.verifikasi') }}" class="btn-verify-now">
-            Verifikasi Sekarang
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
-        </a>
+        <div style="font-size: 13px; font-weight: 700; color: #16a34a; display: flex; align-items: center; gap: 4px;">
+            <span>✓ Terverifikasi</span>
+        </div>
     </section>
 
     <!-- Menu Pengaturan & Navigasi -->
     <h2 class="section-title">Pengaturan Akun & Privasi</h2>
     <div class="menu-list-grid">
-        <a href="{{ route('profile.verifikasi') }}" class="menu-card-item">
+        <div class="menu-card-item" style="cursor: default;">
             <div class="menu-icon-box">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="4" width="18" height="16" rx="3"></rect>
@@ -65,15 +63,11 @@
                 </svg>
             </div>
             <div class="menu-text-wrap">
-                <h3>Verifikasi Identitas & Dokumen</h3>
-                <p>Kelola unggahan berkas KTP dan informasi preferensi gender</p>
+                <h3>Status Verifikasi Gender</h3>
+                <p>Jenis kelamin: {{ ucfirst(auth()->user()->gender ?? '-') }} — terverifikasi dari NIK saat pendaftaran</p>
             </div>
-            <span class="menu-arrow-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-            </span>
-        </a>
+            <span style="font-size: 12px; color: #16a34a; font-weight: 700;">Terkunci</span>
+        </div>
 
         <a href="javascript:void(0)" onclick="alert('Pengaturan privasi: Data perjalanan Anda tidak dibagikan secara publik tanpa izin. Mode anonim tersedia saat pelaporan kejadian.')" class="menu-card-item">
             <div class="menu-icon-box">

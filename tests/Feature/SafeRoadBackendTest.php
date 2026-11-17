@@ -23,12 +23,14 @@ class SafeRoadBackendTest extends TestCase
             'email' => 'budi@warga.test',
             'password' => 'SafeRoad123',
             'password_confirmation' => 'SafeRoad123',
+            'nik' => '3201011505950001',
         ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('rute'));
         $user = User::where('email', 'budi@warga.test')->firstOrFail();
         $this->assertEquals('masyarakat', $user->role);
-        $this->assertEquals('unverified', $user->identity_status);
+        $this->assertEquals('verified', $user->identity_status);
+        $this->assertEquals('laki-laki', $user->gender);
     }
 
     public function test_role_based_access_control_protects_admin_and_keamanan_routes(): void
@@ -217,79 +219,27 @@ class SafeRoadBackendTest extends TestCase
             ->assertJsonCount(2, 'routes');
     }
 
-    public function test_user_can_submit_identity_verification(): void
-    {
-        Storage::fake('local');
-
-        $user = User::factory()->create([
-            'role' => 'masyarakat',
-            'identity_status' => 'unverified',
-        ]);
-
-        $file = UploadedFile::fake()->create('ktp_saya.jpg', 500, 'image/jpeg');
-
-        $response = $this->actingAs($user)->post('/verifikasi-identitas', [
-            'ktp' => $file,
-            'gender' => 'perempuan',
-            'gender_consent' => '1',
-        ]);
-
-        $response->assertRedirect(route('profile.index'));
-
-        $user->refresh();
-        $this->assertEquals('pending', $user->identity_status);
-        $this->assertEquals('perempuan', $user->gender);
-        $this->assertTrue($user->gender_consent);
-        $this->assertNotNull($user->ktp_path);
-        Storage::disk('local')->assertExists($user->ktp_path);
-    }
-
     public function test_womens_zone_access_rules_based_on_gender_and_verification(): void
     {
-        // 1. Pengguna laki-laki DITOLAK (403)
+        // 1. Pengguna laki-laki DITOLAK: web redirect ke rute, api 403
         $male = User::factory()->create([
             'role' => 'masyarakat',
             'gender' => 'laki-laki',
             'identity_status' => 'verified',
         ]);
-        $this->actingAs($male)->get('/womens-zone')->assertStatus(403);
+        $this->actingAs($male)->get('/womens-zone')->assertRedirect(route('rute'));
         $this->actingAs($male)->getJson('/api/womens-zone/status')->assertStatus(403);
 
-        // 2. Pengguna perempuan belum verifikasi -> melihat info verifikasi diperlukan
+        // 2. Pengguna perempuan belum verifikasi -> dialihkan ke rute
         $unverifiedFemale = User::factory()->create([
             'role' => 'masyarakat',
             'gender' => 'perempuan',
             'identity_status' => 'unverified',
         ]);
-        $this->actingAs($unverifiedFemale)->get('/womens-zone')
-            ->assertOk()
-            ->assertSeeText('Akses Women\'s Zone Memerlukan Verifikasi Gender Perempuan');
+        $this->actingAs($unverifiedFemale)->get('/womens-zone')->assertRedirect(route('rute'));
         $this->actingAs($unverifiedFemale)->getJson('/api/womens-zone/status')->assertStatus(403);
 
-        // 3. Pengguna perempuan status pending -> melihat info menunggu persetujuan admin
-        $pendingFemale = User::factory()->create([
-            'role' => 'masyarakat',
-            'gender' => 'perempuan',
-            'identity_status' => 'pending',
-        ]);
-        $this->actingAs($pendingFemale)->get('/womens-zone')
-            ->assertOk()
-            ->assertSee('STATUS VERIFIKASI: MENUNGGU PERSETUJUAN ADMIN');
-        $this->actingAs($pendingFemale)->getJson('/api/womens-zone/status')->assertStatus(403);
-
-        // 4. Pengguna perempuan status rejected -> melihat catatan penolakan
-        $rejectedFemale = User::factory()->create([
-            'role' => 'masyarakat',
-            'gender' => 'perempuan',
-            'identity_status' => 'rejected',
-            'identity_rejection_note' => 'Foto KTP tidak jelas dan buram.',
-        ]);
-        $this->actingAs($rejectedFemale)->get('/womens-zone')
-            ->assertOk()
-            ->assertSee('Foto KTP tidak jelas dan buram.');
-        $this->actingAs($rejectedFemale)->getJson('/api/womens-zone/status')->assertStatus(403);
-
-        // 5. Pengguna perempuan status verified -> akses penuh
+        // 3. Pengguna perempuan status verified -> akses penuh
         $verifiedFemale = User::factory()->create([
             'role' => 'masyarakat',
             'gender' => 'perempuan',
@@ -302,46 +252,12 @@ class SafeRoadBackendTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true);
 
-        // 6. Admin dan Petugas Keamanan dialihkan ke dashboard masing-masing
+        // 4. Admin dan Petugas Keamanan dialihkan ke dashboard masing-masing
         $admin = User::factory()->create(['role' => 'admin']);
         $this->actingAs($admin)->get('/womens-zone')->assertRedirect(route('admin.dashboard'));
 
         $keamanan = User::factory()->create(['role' => 'keamanan']);
         $this->actingAs($keamanan)->get('/womens-zone')->assertRedirect(route('keamanan.dashboard'));
-    }
-
-    public function test_admin_can_approve_and_reject_identity_verification(): void
-    {
-        $admin = User::factory()->create(['role' => 'admin']);
-        $applicant = User::factory()->create([
-            'role' => 'masyarakat',
-            'identity_status' => 'pending',
-            'gender' => 'laki-laki',
-            'gender_consent' => true,
-        ]);
-
-        // Admin menyetujui
-        $this->actingAs($admin)
-            ->postJson("/api/admin/verifications/{$applicant->id}/approve")
-            ->assertStatus(200)
-            ->assertJsonPath('data.identity_status', 'verified');
-
-        $applicant->refresh();
-        $this->assertEquals('verified', $applicant->identity_status);
-        $this->assertNotNull($applicant->identity_verified_at);
-
-        // Test penolakan
-        $applicant2 = User::factory()->create(['identity_status' => 'pending']);
-        $this->actingAs($admin)
-            ->postJson("/api/admin/verifications/{$applicant2->id}/reject", [
-                'reason' => 'Foto KTP buram dan tidak terbaca.',
-            ])
-            ->assertStatus(200)
-            ->assertJsonPath('data.identity_status', 'rejected');
-
-        $applicant2->refresh();
-        $this->assertEquals('rejected', $applicant2->identity_status);
-        $this->assertEquals('Foto KTP buram dan tidak terbaca.', $applicant2->identity_rejection_note);
     }
 
     public function test_keamanan_can_follow_up_incident_reports(): void

@@ -5,8 +5,9 @@
 @section('content')
 <div class="dashboard-page-container">
 
-    {{-- ===== Banner Mode Perempuan (muncul setelah verifikasi) ===== --}}
-    <div id="femaleModeBar" class="female-mode-bar" style="display:none;">
+    @if(auth()->user()->canAccessWomenZone())
+    {{-- ===== Banner Mode Perempuan ===== --}}
+    <div id="femaleModeBar" class="female-mode-bar">
         <div class="female-mode-inner">
             <span class="female-mode-icon">♀</span>
             <div>
@@ -16,9 +17,10 @@
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <a href="{{ url('/womens-zone') }}" class="female-mode-cta" style="background:#be185d;">🌸 Women's Zone →</a>
-            <a href="{{ url('/rute') }}" class="female-mode-cta">Buka Rute →</a>
+            <a href="{{ route('rute', ['mode' => 'women']) }}" class="female-mode-cta">Buka Rute Perempuan →</a>
         </div>
     </div>
+    @endif
 
     {{-- ===== Banner Selamat Datang ===== --}}
     <section class="welcome-banner">
@@ -67,30 +69,32 @@
             </a>
         </div>
 
-        {{-- Card 2: Verifikasi Identitas --}}
-        <div class="action-card">
+        @if(auth()->user()->canAccessWomenZone())
+        {{-- Card: Women's Safe Zone (Hanya untuk Perempuan Terverifikasi) --}}
+        <div class="action-card" style="border-top: 3px solid #be185d;">
             <div class="action-card-body">
                 <div class="action-card-header">
-                    <div class="card-icon" aria-hidden="true">
+                    <div class="card-icon" style="background: rgba(251, 207, 232, 0.4); color: #be185d;" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                            <polyline points="9 12 11 14 15 10"/>
+                            <circle cx="12" cy="9" r="6"/>
+                            <path d="M12 15v7M9 19h6"/>
                         </svg>
                     </div>
                     <div>
-                        <h3>Verifikasi Identitas</h3>
-                        <p>Lengkapi dokumen identitas dan data gender untuk pengalaman perjalanan yang optimal.</p>
+                        <h3>Women's Safe Zone</h3>
+                        <p>Peta rute aman khusus perempuan dengan analisis CCTV, penerangan, dan pantauan shelter.</p>
                     </div>
                 </div>
             </div>
-            <a href="{{ url('/verifikasi-identitas') }}" class="card-footer-link">
-                Lengkapi Verifikasi
+            <a href="{{ url('/womens-zone') }}" class="card-footer-link" style="color: #be185d;">
+                Buka Zona Perempuan
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="5" y1="12" x2="19" y2="12"/>
                     <polyline points="12 5 19 12 12 19"/>
                 </svg>
             </a>
         </div>
+        @endif
 
         {{-- Card 3: Laporan Insiden --}}
         <div class="action-card">
@@ -513,13 +517,9 @@
             }
         }
 
-        // Cek apakah user telah verifikasi sebagai perempuan
-        const gender = localStorage.getItem('saferoad_gender');
-        const verified = localStorage.getItem('saferoad_verified');
-        const femaleBar = document.getElementById('femaleModeBar');
-        if (femaleBar && verified === 'true' && gender === 'perempuan') {
-            femaleBar.style.display = 'flex';
-        }
+        // Pembersihan status demo lama jika ada
+        localStorage.removeItem('saferoad_verified');
+        localStorage.removeItem('saferoad_gender');
     })();
 </script>
 @endpush

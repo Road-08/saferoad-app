@@ -25,6 +25,7 @@
             <span class="nav-tab-label">Rute</span>
         </a>
 
+        @if(auth()->user()?->canAccessWomenZone())
         <a href="{{ url('/womens-zone') }}" class="nav-tab {{ request()->is('womens-zone*') ? 'active' : '' }}" style="{{ request()->is('womens-zone*') ? 'color: #be185d;' : '' }}">
             <span class="nav-tab-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -34,6 +35,7 @@
             </span>
             <span class="nav-tab-label" style="font-weight: 700;">Women's</span>
         </a>
+        @endif
 
         <a href="{{ url('/laporkan') }}" class="nav-tab {{ request()->is('laporkan*') ? 'active' : '' }}">
             <span class="nav-tab-icon">
