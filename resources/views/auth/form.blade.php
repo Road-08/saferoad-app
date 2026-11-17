@@ -922,10 +922,6 @@
 <body>
 @php
     $isRegister = (($mode ?? 'login') === 'register');
-    $presetRole = $initialRole ?? request()->query('role', 'masyarakat');
-    if (!in_array($presetRole, ['masyarakat', 'keamanan', 'admin'])) {
-        $presetRole = 'masyarakat';
-    }
 @endphp
 
 <main class="auth-container">
@@ -1049,74 +1045,17 @@
 
         <div class="form-center-box">
 
-            <!-- PEMILIHAN ROLE LOGIN (Masyarakat, Pihak Keamanan, Admin) -->
-            @if (!$isRegister)
-                <div class="role-portal-box" aria-label="Pilih Role Pengguna">
-                    <div class="role-portal-header">
-                        <span class="role-portal-title">Pilih Role Akses Login:</span>
-                        <span class="role-active-indicator" id="roleActiveIndicator">👤 Mode: Masyarakat</span>
-                    </div>
-
-                    <div class="role-cards-grid">
-                        <!-- Role 1: Masyarakat -->
-                        <button type="button" class="role-card-btn role-masyarakat active" id="btnRoleMasyarakat" onclick="switchLoginRole('masyarakat')">
-                            <span class="role-icon-box">👤</span>
-                            <span class="role-name">Masyarakat</span>
-                            <span class="role-sub">Warga &amp; Rute</span>
-                        </button>
-
-                        <!-- Role 2: Pihak Keamanan -->
-                        <button type="button" class="role-card-btn role-keamanan" id="btnRoleKeamanan" onclick="switchLoginRole('keamanan')">
-                            <span class="role-icon-box">🛡️</span>
-                            <span class="role-name">Keamanan</span>
-                            <span class="role-sub">Petugas Lapangan</span>
-                        </button>
-
-                        <!-- Role 3: Administrator -->
-                        <button type="button" class="role-card-btn role-admin" id="btnRoleAdmin" onclick="switchLoginRole('admin')">
-                            <span class="role-icon-box">⚡</span>
-                            <span class="role-name">Admin</span>
-                            <span class="role-sub">Konsol Sistem</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Box Bantuan Akun Demo Cepat -->
-                <div class="demo-credentials-box" id="demoCredentialsBox">
-                    <div class="demo-cred-header">
-                        <span>Akses Demo Frontend:</span>
-                        <span style="font-weight: 500; color: #94a3b8;">Klik untuk kemudahan pengujian</span>
-                    </div>
-                    <div class="demo-cred-actions">
-                        <button type="button" class="btn-demo-fill" id="btnFillDemo" onclick="fillDemoCredentials()">
-                            👤 Isi Akun Warga Demo
-                        </button>
-                        <button type="button" class="btn-demo-jump" id="btnJumpDashboard" onclick="jumpToActiveDashboard()">
-                            🚀 Buka Dashboard Warga
-                        </button>
-                    </div>
-                </div>
-            @endif
-
             <header class="form-header">
                 <span class="form-subtitle-tag" id="formSubtitleTag">
-                    {{ $isRegister ? 'REGISTRASI WARGA SAFEROAD' : 'PORTAL WARGA & MASYARAKAT' }}
+                    {{ $isRegister ? 'REGISTRASI PENGGUNA SAFEROAD' : 'MASUK KE SAFEROAD' }}
                 </span>
                 <h2 id="formTitle">{{ $isRegister ? 'Mulai perjalananmu' : 'Selamat datang kembali' }}</h2>
                 <p id="formDesc">
                     {{ $isRegister
                         ? 'Daftarkan akun untuk mengakses fitur navigasi aman dan berpartisipasi menjaga lingkungan rute.'
-                        : 'Masuk dengan kredensial terdaftar untuk melanjutkan akses fitur keamanan perjalanan Anda.' }}
+                        : 'Masuk dengan email dan kata sandi akun Anda untuk melanjutkan.' }}
                 </p>
             </header>
-
-            <!-- Role Notice Banner -->
-            <div class="role-notice-banner role-notice-masyarakat" id="roleNoticeBanner" style="{{ $isRegister ? 'display:none;' : '' }}">
-                <span id="roleNoticeIcon">💡</span>
-                <div id="roleNoticeText">
-                    <strong>Akses Masyarakat Umum:</strong> Gunakan akun warga terdaftar Anda untuk melihat peta rute aman, Women's Zone, dan membuat laporan kejadian.
-                </div>
-            </div>
 
             <!-- Tab Masuk / Daftar -->
             <nav class="segmented-tabs" id="authSegmentedTabs" aria-label="Pilih Jenis Akses">
@@ -1158,7 +1097,6 @@
             <!-- Formulir Autentikasi -->
             <form class="auth-form" id="authForm" method="POST" action="{{ $isRegister ? route('register.store') : route('login.store') }}" novalidate>
                 @csrf
-                <input type="hidden" name="role" id="inputSelectedRole" value="{{ $presetRole }}">
 
                 <!-- Field Nama Lengkap (Khusus Mode Registrasi) -->
                 @if ($isRegister)
@@ -1314,7 +1252,7 @@
 
                 <!-- Tombol Submit -->
                 <button type="submit" class="btn-submit" id="btnSubmit">
-                    <span id="btnSubmitText">{{ $isRegister ? 'Daftar Akun SafeRoad' : 'Masuk sebagai Masyarakat' }}</span>
+                    <span id="btnSubmitText">{{ $isRegister ? 'Daftar Akun SafeRoad' : 'Masuk' }}</span>
                     <svg id="btnSubmitIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                         <polyline points="12 5 19 12 12 19"></polyline>
@@ -1343,7 +1281,7 @@
 
 <script>
     // State role saat ini
-    let currentRole = "{{ $presetRole }}";
+    let currentRole = "masyarakat";
     const isRegisterMode = {{ $isRegister ? 'true' : 'false' }};
 
     // Data konfigurasi setiap role
@@ -1619,15 +1557,8 @@
 
     // Inisialisasi saat Halaman Dimuat
     document.addEventListener('DOMContentLoaded', function () {
-        // Cek parameter role di URL atau localStorage
-        const urlParams = new URLSearchParams(window.location.search);
-        let activeRole = urlParams.get('role') || "{{ $presetRole }}" || localStorage.getItem('saferoad_active_role') || 'masyarakat';
-
-        if (roleConfig[activeRole]) {
-            switchLoginRole(activeRole);
-        } else {
-            switchLoginRole('masyarakat');
-        }
+        // Role selector dihapus — login otomatis berdasarkan data dari database
+        // switchLoginRole tidak dipanggil lagi; semua pengguna menggunakan form yang sama
     });
 
     // Interaktivitas Show / Hide Password dengan SVG ikon mata & coret
