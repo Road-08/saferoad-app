@@ -19,7 +19,10 @@ class SafetyFacility extends Model
         'longitude',
         'address',
         'status',
+        'condition',
+        'verification_status',
         'description',
+        'is_simulation',
     ];
 
     protected function casts(): array
@@ -27,6 +30,7 @@ class SafetyFacility extends Model
         return [
             'latitude' => 'float',
             'longitude' => 'float',
+            'is_simulation' => 'boolean',
         ];
     }
 

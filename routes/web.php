@@ -115,8 +115,48 @@ Route::middleware('auth')->group(function () {
 | Public Feature & Navigation Views
 |--------------------------------------------------------------------------
 */
-Route::view('/rute', 'rute')->name('rute');
-Route::view('/rute/bandingkan', 'rute.bandingkan')->name('rute.bandingkan');
+Route::get('/rute', function () {
+    $user = auth()->user() ? auth()->user()->fresh() : null;
+    $gateState = 'not_logged_in';
+    $canAccessWomenZone = false;
+    $identityStatus = 'unverified';
+    $gender = null;
+
+    if ($user) {
+        $gender = $user->gender;
+        $identityStatus = $user->identity_status ?? 'unverified';
+        if ($user->isMale()) {
+            $gateState = 'male_forbidden';
+        } elseif ($user->isFemale() && $identityStatus === 'verified') {
+            $gateState = 'verified';
+            $canAccessWomenZone = true;
+        } elseif ($identityStatus === 'pending') {
+            $gateState = 'pending';
+        } elseif ($identityStatus === 'rejected') {
+            $gateState = 'rejected';
+        } else {
+            $gateState = 'not_submitted';
+        }
+    }
+
+    return view('rute', [
+        'currentUser' => $user,
+        'userGateState' => $gateState,
+        'canAccessWomenZone' => $canAccessWomenZone,
+        'userGender' => $gender,
+        'userIdentityStatus' => $identityStatus,
+    ]);
+})->name('rute');
+
+Route::get('/rute/bandingkan', function () {
+    $user = auth()->user() ? auth()->user()->fresh() : null;
+    $canAccessWomenZone = $user ? $user->canAccessWomenZone() : false;
+
+    return view('rute.bandingkan', [
+        'currentUser' => $user,
+        'canAccessWomenZone' => $canAccessWomenZone,
+    ]);
+})->name('rute.bandingkan');
 
 Route::view('/laporkan', 'laporkan')->name('laporkan');
 Route::view('/laporan/riwayat', 'laporan.riwayat')->name('laporan.riwayat');

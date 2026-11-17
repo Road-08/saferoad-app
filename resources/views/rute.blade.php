@@ -19,6 +19,122 @@
 
             <!-- Card Input Form Rute -->
             <div class="route-form-card">
+                <!-- PILIHAN JENIS RUTE (RUTE UMUM VS RUTE PEREMPUAN) -->
+                <div class="route-mode-selector-wrap">
+                    <div class="mode-selector-header">
+                        <span class="mode-selector-heading">PILIHAN JENIS RUTE</span>
+                        @if($userGateState === 'verified')
+                            <span class="badge-verified-indicator" title="Akun perempuan telah terverifikasi identitas">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                <span>Terverifikasi</span>
+                            </span>
+                        @endif
+                    </div>
+                    <div class="route-mode-toggle-group" role="tablist">
+                        <button type="button" class="btn-mode-tab mode-general-tab active" id="tabModeGeneral" role="tab" aria-selected="true">
+                            <span class="tab-indicator-bar"></span>
+                            <span class="tab-icon">🛡️</span>
+                            <div class="tab-label-wrap">
+                                <strong class="tab-title">Rute Umum</strong>
+                                <small class="tab-subtitle">2 Alternatif Rute · Seluruh Pengguna</small>
+                            </div>
+                        </button>
+                        <button type="button" class="btn-mode-tab mode-women-tab" id="tabModeWomen" role="tab" aria-selected="false">
+                            <span class="tab-indicator-bar"></span>
+                            <span class="tab-icon">🌸</span>
+                            <div class="tab-label-wrap">
+                                <strong class="tab-title">Rute Perempuan <span class="badge-tab-pink">Women Zone</span></strong>
+                                <small class="tab-subtitle">Maksimal 3 Alternatif · Khusus Terverifikasi</small>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Banner Informasi Verifikasi Gender Women Zone (Hanya untuk yang belum lolos verifikasi) -->
+                @if($userGateState !== 'verified')
+                <div id="wzAuthNotice" class="wz-auth-notice wz-state-{{ $userGateState }}" hidden>
+                    <div class="wz-notice-icon" id="wzNoticeIcon">
+                        @if($userGateState === 'pending')
+                            ⏳
+                        @elseif($userGateState === 'rejected')
+                            ⚠️
+                        @elseif($userGateState === 'male_forbidden')
+                            ℹ️
+                        @else
+                            🔒
+                        @endif
+                    </div>
+                    <div class="wz-notice-body">
+                        <div class="wz-notice-header-row">
+                            <strong id="wzNoticeTitle">
+                                @if($userGateState === 'pending')
+                                    Verifikasi Sedang Diproses
+                                @elseif($userGateState === 'rejected')
+                                    Verifikasi Belum Disetujui
+                                @elseif($userGateState === 'male_forbidden')
+                                    Khusus Pengguna Perempuan
+                                @elseif($userGateState === 'not_logged_in')
+                                    Masuk Akun Diperlukan
+                                @else
+                                    Verifikasi Gender Diperlukan
+                                @endif
+                            </strong>
+                            <span class="wz-status-badge wz-badge-{{ $userGateState }}">
+                                @if($userGateState === 'pending')
+                                    Menunggu Persetujuan
+                                @elseif($userGateState === 'rejected')
+                                    Ditolak
+                                @elseif($userGateState === 'male_forbidden')
+                                    Akses Terbatas
+                                @elseif($userGateState === 'not_logged_in')
+                                    Tamu
+                                @else
+                                    Belum Verifikasi
+                                @endif
+                            </span>
+                        </div>
+                        <p id="wzNoticeDesc">
+                            @if($userGateState === 'pending')
+                                Pengajuan verifikasi identitas gender Anda sedang dalam peninjauan oleh administrator. Harap menunggu hingga proses validasi disetujui.
+                            @elseif($userGateState === 'rejected')
+                                Pengajuan verifikasi identitas gender Anda belum disetujui. Silakan periksa kembali foto kartu identitas Anda dan ajukan verifikasi ulang.
+                            @elseif($userGateState === 'male_forbidden')
+                                Fitur Rute Perempuan dan Women Zone hanya dapat diakses oleh akun perempuan terverifikasi demi privasi dan keselamatan komunitas SafeRoad. Anda dapat menggunakan Rute Umum dengan data keamanan lengkap.
+                            @elseif($userGateState === 'not_logged_in')
+                                Silakan masuk ke akun terdaftar Anda untuk melihat status verifikasi identitas dan menggunakan fitur Women Zone.
+                            @else
+                                Rute Perempuan hanya dapat digunakan setelah verifikasi disetujui demi keselamatan dan kenyamanan perjalanan.
+                            @endif
+                        </p>
+                        <div class="wz-notice-actions" id="wzNoticeActions">
+                            @if($userGateState === 'not_submitted')
+                                <a href="{{ route('profile.verifikasi') }}" class="btn-wz-action" id="btnWzAction">
+                                    <span>Verifikasi Sekarang</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                </a>
+                            @elseif($userGateState === 'rejected')
+                                <a href="{{ route('profile.verifikasi') }}" class="btn-wz-action retry" id="btnWzAction">
+                                    <span>Ajukan Ulang Verifikasi</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                </a>
+                            @elseif($userGateState === 'not_logged_in')
+                                <a href="{{ route('login') }}" class="btn-wz-action" id="btnWzAction">
+                                    <span>Masuk Sekarang</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                </a>
+                            @elseif($userGateState === 'male_forbidden')
+                                <button type="button" class="btn-wz-action secondary" onclick="switchMode('general')">
+                                    <span>Tetap di Rute Umum</span>
+                                </button>
+                            @elseif($userGateState === 'pending')
+                                {{-- Jika status pending: JANGAN tampilkan tombol untuk mengakses Women Zone --}}
+                                <span class="wz-pending-text">Peninjauan admin diproses maksimal 1x24 jam kerja.</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 <div class="inputs-stack">
                     <!-- Titik Asal -->
                     <div class="input-line-group">
@@ -103,16 +219,21 @@
                     <div class="compare-card-container">
                         <div class="compare-card-header">
                             <div>
-                                <span class="badge-compare-sub">EVALUASI MULTI-RUTE</span>
-                                <h3>Perbandingan Rute Langsung</h3>
-                                <p class="compare-subtext">Bandingkan metrik efisiensi dan indikator keamanan Rute A & B secara berdampingan.</p>
+                                <span class="badge-compare-sub" id="badgeCmpMode">EVALUASI MULTI-RUTE</span>
+                                <h3 id="titleCmpMode">Perbandingan Rute Langsung</h3>
+                                <p class="compare-subtext" id="subtextCmpMode">Bandingkan metrik efisiensi dan indikator keamanan secara berdampingan.</p>
                             </div>
-                            <button type="button" class="btn-close-comparison" id="btnTutupPerbandingan" title="Tutup Perbandingan">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </button>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <a href="{{ route('rute.bandingkan') }}" class="btn-open-full-compare" id="btnBukaBandingkanDetail" title="Buka tabel perbandingan lengkap">
+                                    <span>Tabel Lengkap ↗</span>
+                                </a>
+                                <button type="button" class="btn-close-comparison" id="btnTutupPerbandingan" title="Tutup Perbandingan">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Grid Dua Kolom Perbandingan -->
@@ -267,6 +388,80 @@
                                     <span>Pilih Rute B</span>
                                 </button>
                             </div>
+
+                            <!-- Kolom Rute C (Khusus Mode Perempuan Maks 3 Alternatif) -->
+                            <div class="compare-route-card" id="cardCmpC" data-index="2" style="display:none;">
+                                <div class="crc-top">
+                                    <div class="crc-badge-row">
+                                        <span class="route-pill pill-c" style="background:#f97316; color:#fff;">Rute C</span>
+                                        <span class="tag-recommend alt" id="tagRecommendC">Alternatif</span>
+                                    </div>
+                                    <div class="crc-score-row">
+                                        <div class="score-display">
+                                            <span class="score-num" id="valScoreC">-</span>
+                                            <span class="score-den">/100</span>
+                                        </div>
+                                        <span class="level-badge level-sedang" id="badgeLevelC">Sedang</span>
+                                    </div>
+                                </div>
+
+                                <div class="crc-metrics">
+                                    <!-- Jarak -->
+                                    <div class="metric-row">
+                                        <span class="metric-lbl">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                            Jarak Perjalanan
+                                        </span>
+                                        <div class="metric-val-wrap">
+                                            <strong class="metric-val" id="valJarakC">0.0 km</strong>
+                                            <span class="tag-metric" id="tagJarakC" hidden>Terpendek</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Waktu Tempuh -->
+                                    <div class="metric-row">
+                                        <span class="metric-lbl">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                            Estimasi Waktu
+                                        </span>
+                                        <div class="metric-val-wrap">
+                                            <strong class="metric-val highlight" id="valWaktuC">0 menit</strong>
+                                            <span class="tag-metric" id="tagWaktuC" hidden>Tercepat</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Lalu Lintas -->
+                                    <div class="metric-row">
+                                        <span class="metric-lbl">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>
+                                            Kondisi Lalu Lintas
+                                        </span>
+                                        <span class="metric-status-badge status-sedang" id="valLalinC">Padat Sedang</span>
+                                    </div>
+
+                                    <!-- Pencahayaan Jalan -->
+                                    <div class="metric-row">
+                                        <span class="metric-lbl">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                                            Pencahayaan Jalan
+                                        </span>
+                                        <span class="metric-status-badge status-sedang" id="valCahayaC">Penerangan Cukup</span>
+                                    </div>
+
+                                    <!-- Jangkauan CCTV -->
+                                    <div class="metric-row">
+                                        <span class="metric-lbl">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                                            Jangkauan CCTV
+                                        </span>
+                                        <span class="metric-status-badge status-sedang" id="valCctvC">Sedang (Terbatas)</span>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn-pick-route" id="btnPickC" data-index="2">
+                                    <span>Pilih Rute C</span>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Baris Ringkasan Komparasi Cepat -->
@@ -358,19 +553,6 @@
                 </div>
             </div>
 
-            <!-- Banner info jika belum verifikasi mode perempuan -->
-            <div id="driverMonitorPromo" class="driver-promo-card" style="display:none;">
-                <div class="dmp-icon">♀</div>
-                <div class="dmp-content">
-                    <h4>Fitur Monitoring Pengemudi Khusus Perempuan</h4>
-                    <p>Pantau jumlah pengemudi laki-laki dan perempuan di sepanjang rute secara real-time. Lengkapi verifikasi identitas untuk mengaktifkan fitur ini.</p>
-                    <div class="dmp-actions">
-                        <a href="{{ url('/verifikasi-identitas') }}" class="dmp-btn">Verifikasi Identitas →</a>
-                        <button type="button" id="btnDemoModePerempuan" class="dmp-demo-btn">Coba Demo Mode Perempuan</button>
-                    </div>
-                </div>
-            </div>
-
             <!-- Tombol Navigasi ke Laporan Insiden (Disesuaikan Role) -->
             <a href="{{ url('/laporkan') }}" class="btn-route-incident-report" id="btnRouteReport">
                 <div class="bri-icon">
@@ -441,16 +623,298 @@
 <style>
     .route-page-container {
         width: 100%;
-        max-width: 1600px;
+        max-width: 1560px;
         margin: 0 auto;
-        padding: 24px clamp(16px, 3vw, 40px) 40px;
+        padding: 20px clamp(16px, 2.5vw, 36px) 36px;
     }
 
     .route-split-layout {
         display: grid;
-        grid-template-columns: 460px 1fr;
-        gap: 28px;
+        grid-template-columns: 420px 1fr;
+        gap: 24px;
         align-items: start;
+    }
+
+    /* Pilihan Jenis Rute (Rute Umum vs Rute Perempuan) */
+    .route-mode-selector-wrap {
+        margin-bottom: 16px;
+    }
+    .mode-selector-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    .mode-selector-heading {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+    }
+    .badge-verified-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #059669;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        padding: 2px 8px;
+        border-radius: 9999px;
+    }
+    .badge-verified-indicator svg {
+        color: #059669;
+    }
+
+    .route-mode-toggle-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    .btn-mode-tab {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        background: #ffffff;
+        border: 1.5px solid var(--border-soft);
+        border-radius: 12px;
+        cursor: pointer;
+        text-align: left;
+        overflow: hidden;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-mode-tab:hover {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+        transform: translateY(-1px);
+    }
+    .tab-indicator-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: transparent;
+        transition: background 0.2s;
+    }
+    .btn-mode-tab .tab-icon {
+        font-size: 20px;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+    .btn-mode-tab .tab-label-wrap {
+        flex: 1;
+        min-width: 0;
+    }
+    .btn-mode-tab .tab-title {
+        display: block;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--text-heading);
+        line-height: 1.25;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .btn-mode-tab .tab-subtitle {
+        display: block;
+        font-size: 10px;
+        color: var(--text-muted);
+        line-height: 1.2;
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Rute Umum - Active State (Biru) */
+    .btn-mode-tab.mode-general-tab.active {
+        background: #eff6ff;
+        border-color: #2563eb;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15);
+    }
+    .btn-mode-tab.mode-general-tab.active .tab-indicator-bar {
+        background: #2563eb;
+    }
+    .btn-mode-tab.mode-general-tab.active .tab-title {
+        color: #1e40af;
+    }
+    .btn-mode-tab.mode-general-tab.active .tab-subtitle {
+        color: #3b82f6;
+    }
+
+    /* Rute Perempuan - Active State (Pink) */
+    .btn-mode-tab.mode-women-tab.active {
+        background: #fdf2f8;
+        border-color: #ec4899;
+        box-shadow: 0 4px 14px rgba(236, 72, 153, 0.18);
+    }
+    .btn-mode-tab.mode-women-tab.active .tab-indicator-bar {
+        background: #ec4899;
+    }
+    .btn-mode-tab.mode-women-tab.active .tab-title {
+        color: #be185d;
+    }
+    .btn-mode-tab.mode-women-tab.active .tab-subtitle {
+        color: #db2777;
+    }
+    .badge-tab-pink {
+        display: inline-block;
+        font-size: 9px;
+        font-weight: 800;
+        padding: 1px 5px;
+        border-radius: 4px;
+        background: #fce7f3;
+        color: #db2777;
+        margin-left: 2px;
+        vertical-align: middle;
+    }
+
+    /* Kotak Informasi Verifikasi Gender */
+    .wz-auth-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        border-radius: 14px;
+        padding: 14px;
+        margin-bottom: 16px;
+        transition: all 0.2s ease;
+    }
+    .wz-notice-icon {
+        font-size: 22px;
+        line-height: 1;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    .wz-notice-body {
+        flex: 1;
+        min-width: 0;
+    }
+    .wz-notice-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+    .wz-notice-header-row strong {
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1.25;
+    }
+    .wz-status-badge {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+    }
+    .wz-notice-body p {
+        font-size: 11.5px;
+        line-height: 1.45;
+        margin-bottom: 10px;
+    }
+    .wz-notice-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-wz-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 11.5px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.15s ease;
+    }
+    .btn-wz-action:hover {
+        transform: translateY(-1px);
+    }
+    .btn-wz-action.secondary {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #cbd5e1;
+    }
+
+    /* State: Not Submitted */
+    .wz-auth-notice.wz-state-not_submitted {
+        background: #fdf2f8;
+        border: 1.5px solid #fbcfe8;
+        color: #9d174d;
+    }
+    .wz-state-not_submitted .wz-notice-header-row strong { color: #be185d; }
+    .wz-state-not_submitted .wz-status-badge { background: #fce7f3; color: #db2777; }
+    .wz-state-not_submitted .wz-notice-body p { color: #831843; }
+    .wz-state-not_submitted .btn-wz-action { background: #db2777; color: #fff; }
+    .wz-state-not_submitted .btn-wz-action:hover { background: #be185d; }
+
+    /* State: Pending */
+    .wz-auth-notice.wz-state-pending {
+        background: #fffbeb;
+        border: 1.5px solid #fde68a;
+        color: #92400e;
+    }
+    .wz-state-pending .wz-notice-header-row strong { color: #92400e; }
+    .wz-state-pending .wz-status-badge { background: #fef3c7; color: #b45309; }
+    .wz-state-pending .wz-notice-body p { color: #78350f; }
+    .wz-pending-text { font-size: 11px; font-weight: 600; color: #b45309; font-style: italic; }
+
+    /* State: Rejected */
+    .wz-auth-notice.wz-state-rejected {
+        background: #fef2f2;
+        border: 1.5px solid #fecaca;
+        color: #991b1b;
+    }
+    .wz-state-rejected .wz-notice-header-row strong { color: #991b1b; }
+    .wz-state-rejected .wz-status-badge { background: #fee2e2; color: #b91c1c; }
+    .wz-state-rejected .wz-notice-body p { color: #7f1d1d; }
+    .wz-state-rejected .btn-wz-action.retry { background: #dc2626; color: #fff; }
+    .wz-state-rejected .btn-wz-action.retry:hover { background: #b91c1c; }
+
+    /* State: Male Forbidden */
+    .wz-auth-notice.wz-state-male_forbidden {
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        color: #334155;
+    }
+    .wz-state-male_forbidden .wz-notice-header-row strong { color: #1e293b; }
+    .wz-state-male_forbidden .wz-status-badge { background: #e2e8f0; color: #475569; }
+    .wz-state-male_forbidden .wz-notice-body p { color: #475569; }
+
+    /* State: Not Logged In */
+    .wz-auth-notice.wz-state-not_logged_in {
+        background: #f0fdf4;
+        border: 1.5px solid #bbf7d0;
+        color: #166534;
+    }
+    .wz-state-not_logged_in .btn-wz-action { background: #16a34a; color: #fff; }
+
+    .btn-open-full-compare {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 10px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+    .btn-open-full-compare:hover {
+        background: #dbeafe;
     }
 
     /* Toolbar Filter Fasilitas Peta */
@@ -1710,6 +2174,23 @@
     const inputKe = $('inputKe');
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+    // =====================================================
+    // OTORISASI GENDER & VERIFIKASI WOMEN ZONE (DATABASE BACKEND)
+    // =====================================================
+    const serverGateState = @json($userGateState ?? 'not_logged_in');
+    const serverUserGender = @json($userGender ?? null);
+    const serverIdentityStatus = @json($userIdentityStatus ?? 'unverified');
+    const serverCanAccess = @json($canAccessWomenZone ?? false);
+
+    // Mode pencarian aktif: 'general' (Rute Umum) | 'women' (Rute Perempuan)
+    let currentMode = 'general';
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'womens_zone' || urlParams.get('mode') === 'women') {
+        if (serverCanAccess) {
+            currentMode = 'women';
+        }
+    }
+
     // Variabel state rute
     let daftarGaris = [];
     let terpilihIdx = 0;
@@ -1722,21 +2203,114 @@
     let statusSkor = 'pending';
     let disclaimerAktif = DISCLAIMER_FALLBACK;
 
+    function updateModeTabsUI() {
+        const tabGen = $('tabModeGeneral');
+        const tabWom = $('tabModeWomen');
+        if (tabGen && tabWom) {
+            tabGen.classList.toggle('active', currentMode === 'general');
+            tabGen.setAttribute('aria-selected', currentMode === 'general');
+            tabWom.classList.toggle('active', currentMode === 'women');
+            tabWom.setAttribute('aria-selected', currentMode === 'women');
+        }
+        const badgeMode = $('badgeCmpMode');
+        const titleMode = $('titleCmpMode');
+        const subtextMode = $('subtextCmpMode');
+        if (badgeMode) badgeMode.textContent = currentMode === 'women' ? 'WOMEN ZONE · MULTI-RUTE' : 'EVALUASI MULTI-RUTE';
+        if (titleMode) titleMode.textContent = currentMode === 'women' ? 'Perbandingan Rute Perempuan' : 'Perbandingan Rute Umum';
+        if (subtextMode) subtextMode.textContent = currentMode === 'women'
+            ? 'Bandingkan Women\'s Safety Score, risiko catcalling, pelecehan, dan penerangan rute.'
+            : 'Bandingkan metrik efisiensi, Safety Score umum, kriminalitas, dan fasilitas keamanan.';
+    }
+
+    function switchMode(targetMode) {
+        const notice = $('wzAuthNotice');
+        const titleEl = $('wzNoticeTitle');
+        const descEl = $('wzNoticeDesc');
+        const btnAction = $('btnWzAction');
+
+        if (targetMode === 'women') {
+            // Periksa Otorisasi Backend
+            if (!serverCanAccess) {
+                if (notice) notice.hidden = false;
+                if (serverGateState === 'not_logged_in') {
+                    if (titleEl) titleEl.textContent = 'Silakan Masuk Terlebih Dahulu';
+                    if (descEl) descEl.textContent = 'Fitur Rute Perempuan (Women Zone) hanya dapat diakses setelah masuk dengan akun masyarakat terdaftar.';
+                    if (btnAction) {
+                        btnAction.textContent = 'Masuk Sekarang';
+                        btnAction.href = "{{ route('login') }}";
+                    }
+                } else if (serverGateState === 'male_forbidden') {
+                    if (titleEl) titleEl.textContent = 'Akses Ditolak';
+                    if (descEl) descEl.textContent = 'Fitur Rute Perempuan (Women Zone) khusus diperuntukkan bagi pengguna perempuan demi keselamatan dan privasi komunitas.';
+                    if (btnAction) {
+                        btnAction.textContent = 'Gunakan Rute Umum';
+                        btnAction.href = 'javascript:void(0)';
+                        btnAction.onclick = () => switchMode('general');
+                    }
+                } else if (serverGateState === 'pending') {
+                    if (titleEl) titleEl.textContent = 'Verifikasi Sedang Diproses';
+                    if (descEl) descEl.textContent = 'Pengajuan verifikasi gender Anda sedang dalam peninjauan oleh admin. Harap tunggu persetujuan sistem.';
+                    if (btnAction) {
+                        btnAction.textContent = 'Cek Status Verifikasi';
+                        btnAction.href = "{{ route('profile.verifikasi') }}";
+                    }
+                } else if (serverGateState === 'rejected') {
+                    if (titleEl) titleEl.textContent = 'Pengajuan Belum Disetujui';
+                    if (descEl) descEl.textContent = 'Pengajuan verifikasi gender Anda belum disetujui oleh admin. Silakan periksa dokumen dan ajukan ulang.';
+                    if (btnAction) {
+                        btnAction.textContent = 'Ajukan Ulang Verifikasi';
+                        btnAction.href = "{{ route('profile.verifikasi') }}";
+                    }
+                } else {
+                    if (titleEl) titleEl.textContent = 'Verifikasi Gender Diperlukan';
+                    if (descEl) descEl.textContent = 'Sebelum menggunakan Rute Perempuan, Anda wajib melakukan verifikasi identitas gender satu kali.';
+                    if (btnAction) {
+                        btnAction.textContent = 'Ajukan Verifikasi Gender';
+                        btnAction.href = "{{ route('profile.verifikasi') }}";
+                    }
+                }
+                return false;
+            }
+
+            if (notice) notice.hidden = true;
+            currentMode = 'women';
+            updateModeTabsUI();
+            updateDriverInfo(terpilihIdx);
+
+            if (ruteOSRMAktif && ruteOSRMAktif.length) {
+                renderRute(ruteOSRMAktif);
+            }
+            return true;
+        } else {
+            if (notice) notice.hidden = true;
+            currentMode = 'general';
+            updateModeTabsUI();
+            updateDriverInfo(terpilihIdx);
+
+            if (ruteOSRMAktif && ruteOSRMAktif.length) {
+                renderRute(ruteOSRMAktif);
+            }
+            return true;
+        }
+    }
+
+    $('tabModeGeneral')?.addEventListener('click', () => switchMode('general'));
+    $('tabModeWomen')?.addEventListener('click', () => switchMode('women'));
+
     // =====================================================
     // FITUR MONITORING PENGEMUDI (KHUSUS MODE PEREMPUAN MASYARAKAT)
     // =====================================================
     const mockDriverData = {
         0: { male: 14, female: 4, total: 18, label: 'Rute A' },
-        1: { male: 9, female: 2, total: 11, label: 'Rute B' }
+        1: { male: 9, female: 2, total: 11, label: 'Rute B' },
+        2: { male: 7, female: 5, total: 12, label: 'Rute C' }
     };
 
     function updateDriverInfo(idx = 0) {
-        const activeRole = localStorage.getItem('saferoad_active_role') || 'masyarakat';
         const card = $('driverMonitor');
         const promo = $('driverMonitorPromo');
 
-        // Admin dan Petugas Keamanan tidak memiliki Mode Perempuan / Driver Monitor
-        if (activeRole !== 'masyarakat') {
+        if (currentMode !== 'women' || !serverCanAccess) {
             if (card) card.style.display = 'none';
             if (promo) promo.style.display = 'none';
             return;
@@ -1755,42 +2329,16 @@
         if (labelEl) labelEl.textContent = `${data.label} (Terpilih)`;
         if (timeEl) timeEl.textContent = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
 
-        const gender = localStorage.getItem('saferoad_gender');
-        const verified = localStorage.getItem('saferoad_verified');
-
-        if (verified === 'true' && gender === 'perempuan') {
-            if (card) card.style.display = 'block';
-            if (promo) promo.style.display = 'none';
-        } else {
-            if (card) card.style.display = 'none';
-            if (promo) promo.style.display = 'flex';
-        }
-    }
-
-    // Tombol Coba Demo Mode Perempuan langsung
-    const btnDemo = $('btnDemoModePerempuan');
-    if (btnDemo) {
-        btnDemo.addEventListener('click', () => {
-            localStorage.setItem('saferoad_verified', 'true');
-            localStorage.setItem('saferoad_gender', 'perempuan');
-            updateDriverInfo(terpilihIdx);
-            if (ruteOSRMAktif && ruteOSRMAktif.length) {
-                renderRute(ruteOSRMAktif);
-            }
-            if (typeof showToast === 'function') {
-                showToast('Mode Perempuan Aktif! Menghitung Women\'s Safety Score & Rute Pink.', true);
-            }
-        });
-    }
-
-    if (new URLSearchParams(window.location.search).get('mode') === 'womens_zone') {
-        localStorage.setItem('saferoad_verified', 'true');
-        localStorage.setItem('saferoad_gender', 'perempuan');
+        if (card) card.style.display = 'block';
+        if (promo) promo.style.display = 'none';
     }
 
     // Interval refresh pembaruan pengemudi setiap 30 detik
     setInterval(() => updateDriverInfo(terpilihIdx), 30000);
-    setTimeout(() => updateDriverInfo(0), 100);
+    setTimeout(() => {
+        updateModeTabsUI();
+        updateDriverInfo(0);
+    }, 100);
 
     // =====================================================
     // MEMBUAT PETA
@@ -1967,7 +2515,8 @@
 
     function simpanDataPerbandinganStorage() {
         if (!ruteOSRMAktif || !ruteOSRMAktif.length || !titikA || !titikB) return;
-        const routes = ruteOSRMAktif.slice(0, 3).map((route, index) => {
+        const maxRoutes = currentMode === 'women' ? 3 : 2;
+        const routes = ruteOSRMAktif.slice(0, maxRoutes).map((route, index) => {
             const coordinates = route.geometry.coordinates;
             const langkah = Math.ceil(coordinates.length / 500);
             const dijarangkan = coordinates.filter((titik, titikIndex) =>
@@ -1988,6 +2537,7 @@
 
         const data = {
             version: 1,
+            mode: currentMode,
             createdAt: new Date().toISOString(),
             origin: { name: titikA.nama, lat: titikA.lat, lng: titikA.lng },
             destination: { name: titikB.nama, lat: titikB.lat, lng: titikB.lng },
@@ -2001,6 +2551,7 @@
     }
 
     function simpanDanBukaPerbandingan() {
+        simpanDataPerbandinganStorage();
         togglePerbandingan();
     }
 
@@ -2029,12 +2580,15 @@
         // Perbarui state kartu di panel perbandingan langsung
         const cardA = $('cardCmpA');
         const cardB = $('cardCmpB');
+        const cardC = $('cardCmpC');
         if (cardA && cardB) {
             cardA.classList.toggle('aktif', i === 0);
             cardB.classList.toggle('aktif', i === 1);
+            if (cardC) cardC.classList.toggle('aktif', i === 2);
 
             const btnA = $('btnPickA');
             const btnB = $('btnPickB');
+            const btnC = $('btnPickC');
             if (btnA) {
                 btnA.classList.toggle('terpilih', i === 0);
                 btnA.innerHTML = i === 0 ? '<span>✓ Rute Terpilih</span>' : '<span>Pilih Rute A</span>';
@@ -2043,96 +2597,165 @@
                 btnB.classList.toggle('terpilih', i === 1);
                 btnB.innerHTML = i === 1 ? '<span>✓ Rute Terpilih</span>' : '<span>Pilih Rute B</span>';
             }
+            if (btnC) {
+                btnC.classList.toggle('terpilih', i === 2);
+                btnC.innerHTML = i === 2 ? '<span>✓ Rute Terpilih</span>' : '<span>Pilih Rute C</span>';
+            }
         }
 
         if (modeNavigasi && daftarGaris[i]) {
             map.fitBounds(daftarGaris[i].getBounds().pad(0.1));
         }
 
-        // Perbarui data monitoring pengemudi sesuai rute yang dipilih (Rute A / B)
         updateDriverInfo(i);
     }
 
     function renderPerbandingan() {
         if (!ruteOSRMAktif || ruteOSRMAktif.length < 2) return;
 
-        const routeA = ruteOSRMAktif[0];
-        const routeB = ruteOSRMAktif[1];
+        const maxRoutes = currentMode === 'women' ? 3 : 2;
+        const availableRoutes = ruteOSRMAktif.slice(0, maxRoutes);
+
+        const routeA = availableRoutes[0];
+        const routeB = availableRoutes[1];
+        const routeC = availableRoutes[2] || null;
 
         const mA = konversiMetrikRute(routeA);
         const mB = konversiMetrikRute(routeB);
+        const mC = routeC ? konversiMetrikRute(routeC) : null;
 
-        // Metrik Jarak
+        const isWomen = currentMode === 'women';
+
+        // Ambil data evaluasi rute dari API hasilRuteAktif
+        const scoreDataA = hasilRuteAktif.find(r => r.id === 'A') || null;
+        const scoreDataB = hasilRuteAktif.find(r => r.id === 'B') || null;
+        const scoreDataC = hasilRuteAktif.find(r => r.id === 'C') || null;
+
+        const compA = isWomen ? (scoreDataA?.women_comparison) : (scoreDataA?.general_comparison);
+        const compB = isWomen ? (scoreDataB?.women_comparison) : (scoreDataB?.general_comparison);
+        const compC = isWomen ? (scoreDataC?.women_comparison) : (scoreDataC?.general_comparison);
+
+        // Metrik Jarak & Waktu Rute A
         $('valJarakA').textContent = mA.jarakKm.toFixed(1) + ' km';
+        $('valWaktuA').textContent = mA.waktuMenit + ' menit';
+
+        // Metrik Jarak & Waktu Rute B
         $('valJarakB').textContent = mB.jarakKm.toFixed(1) + ' km';
-        const isShorterA = mA.jarakKm <= mB.jarakKm;
-        const isShorterB = mB.jarakKm < mA.jarakKm;
+        $('valWaktuB').textContent = mB.waktuMenit + ' menit';
+
+        const isShorterA = mA.jarakKm <= mB.jarakKm && (!mC || mA.jarakKm <= mC.jarakKm);
+        const isShorterB = mB.jarakKm < mA.jarakKm && (!mC || mB.jarakKm <= mC.jarakKm);
         $('tagJarakA').hidden = !isShorterA;
         $('tagJarakB').hidden = !isShorterB;
 
-        // Metrik Waktu Tempuh
-        $('valWaktuA').textContent = mA.waktuMenit + ' menit';
-        $('valWaktuB').textContent = mB.waktuMenit + ' menit';
-        const isFasterA = mA.waktuMenit <= mB.waktuMenit;
-        const isFasterB = mB.waktuMenit < mA.waktuMenit;
+        const isFasterA = mA.waktuMenit <= mB.waktuMenit && (!mC || mA.waktuMenit <= mC.waktuMenit);
+        const isFasterB = mB.waktuMenit < mA.waktuMenit && (!mC || mB.waktuMenit <= mC.waktuMenit);
         $('tagWaktuA').hidden = !isFasterA;
         $('tagWaktuB').hidden = !isFasterB;
 
-        // Kondisi Lalu Lintas
-        $('valLalinA').textContent = 'Lancar (Jalur Utama)';
-        $('valLalinA').className = 'metric-status-badge status-lancar';
-        $('valLalinB').textContent = isFasterB ? 'Lancar (Alternatif)' : 'Padat Sedang';
-        $('valLalinB').className = isFasterB ? 'metric-status-badge status-lancar' : 'metric-status-badge status-sedang';
-
-        // Informasi Pencahayaan Jalan
-        $('valCahayaA').textContent = 'Terang (Lampu Baik)';
-        $('valCahayaA').className = 'metric-status-badge status-lancar';
-        $('valCahayaB').textContent = 'Cukup (Titik Redup)';
-        $('valCahayaB').className = 'metric-status-badge status-sedang';
-
-        // Ketersediaan atau Jangkauan CCTV
-        $('valCctvA').textContent = 'Tinggi (Area Terpantau)';
-        $('valCctvA').className = 'metric-status-badge status-lancar';
-        $('valCctvB').textContent = 'Sedang (Titik Terbatas)';
-        $('valCctvB').className = 'metric-status-badge status-sedang';
-
-        // Skor Keamanan Rute
-        let scoreA = 92;
-        let scoreB = 78;
-        let levelA = 'Aman';
-        let levelB = 'Sedang';
-
-        if (hasilRuteAktif[0] && typeof hasilRuteAktif[0].score === 'number') {
-            scoreA = Math.round(hasilRuteAktif[0].score);
-            levelA = hasilRuteAktif[0].level_label || (scoreA >= 80 ? 'Aman' : (scoreA >= 60 ? 'Sedang' : 'Rawan'));
-        }
-        if (hasilRuteAktif[1] && typeof hasilRuteAktif[1].score === 'number') {
-            scoreB = Math.round(hasilRuteAktif[1].score);
-            levelB = hasilRuteAktif[1].level_label || (scoreB >= 80 ? 'Aman' : (scoreB >= 60 ? 'Sedang' : 'Rawan'));
-        }
-
-        $('valScoreA').textContent = scoreA;
-        $('valScoreB').textContent = scoreB;
+        // Metrik Indikator Keamanan Rute A
+        let scoreA = isWomen ? (compA?.womens_safety_score ?? 90) : (compA?.safety_score ?? 92);
+        let levelA = isWomen ? (compA?.risk_level ?? 'Aman') : (compA?.risk_level ?? 'Rendah (Aman)');
+        $('valScoreA').textContent = scoreA !== null ? scoreA : '-';
         $('badgeLevelA').textContent = levelA;
+
+        // Metrik Indikator Keamanan Rute B
+        let scoreB = isWomen ? (compB?.womens_safety_score ?? 75) : (compB?.safety_score ?? 78);
+        let levelB = isWomen ? (compB?.risk_level ?? 'Sedang') : (compB?.risk_level ?? 'Sedang');
+        $('valScoreB').textContent = scoreB !== null ? scoreB : '-';
         $('badgeLevelB').textContent = levelB;
 
-        // Penanda Rute Rekomendasi
-        const isRecA = scoreA >= scoreB;
-        $('tagRecommendA').hidden = !isRecA;
-        $('tagRecommendB').hidden = isRecA;
-        $('cardCmpA').classList.toggle('rekomendasi-card', isRecA);
-        $('cardCmpB').classList.toggle('rekomendasi-card', !isRecA);
+        if (isWomen) {
+            // Informasi Khusus Perempuan
+            const incA = compA?.reports?.total_women_incidents ?? 0;
+            const incB = compB?.reports?.total_women_incidents ?? 0;
+            $('valLalinA').textContent = incA > 0 ? `${incA} Laporan Catcalling/Pelecehan` : 'Bebas Catcalling & Pelecehan';
+            $('valLalinA').className = incA > 0 ? 'metric-status-badge status-sedang' : 'metric-status-badge status-lancar';
+            $('valLalinB').textContent = incB > 0 ? `${incB} Laporan Catcalling/Pelecehan` : 'Bebas Catcalling & Pelecehan';
+            $('valLalinB').className = incB > 0 ? 'metric-status-badge status-sedang' : 'metric-status-badge status-lancar';
+
+            $('valCahayaA').textContent = compA?.facilities?.lighting_condition || 'Penerangan Cukup';
+            $('valCahayaB').textContent = compB?.facilities?.lighting_condition || 'Penerangan Cukup';
+
+            $('valCctvA').textContent = `${compA?.facilities?.cctv_count ?? 1} CCTV · ${compA?.facilities?.shelter_post_count ?? 1} Pos Siaga`;
+            $('valCctvB').textContent = `${compB?.facilities?.cctv_count ?? 0} CCTV · ${compB?.facilities?.shelter_post_count ?? 0} Pos Siaga`;
+
+            // Penanda Rute Pink
+            const isPinkA = compA?.is_pink_recommendation ?? (scoreA >= scoreB);
+            const isPinkB = compB?.is_pink_recommendation ?? (scoreB > scoreA);
+            $('tagRecommendA').hidden = !isPinkA;
+            $('tagRecommendA').innerHTML = '🌸 Paling Aman untuk Perempuan';
+            $('tagRecommendB').hidden = !isPinkB;
+            $('tagRecommendB').innerHTML = '🌸 Paling Aman untuk Perempuan';
+
+            $('cardCmpA').classList.toggle('rekomendasi-card', isPinkA);
+            $('cardCmpB').classList.toggle('rekomendasi-card', isPinkB);
+        } else {
+            // Informasi Kriminal Umum
+            const crimesA = compA?.reports?.total_crimes_count ?? 0;
+            const crimesB = compB?.reports?.total_crimes_count ?? 0;
+            $('valLalinA').textContent = crimesA > 0 ? `${crimesA} Laporan Kriminalitas` : 'Nihil Kriminalitas';
+            $('valLalinA').className = crimesA > 0 ? 'metric-status-badge status-sedang' : 'metric-status-badge status-lancar';
+            $('valLalinB').textContent = crimesB > 0 ? `${crimesB} Laporan Kriminalitas` : 'Nihil Kriminalitas';
+            $('valLalinB').className = crimesB > 0 ? 'metric-status-badge status-sedang' : 'metric-status-badge status-lancar';
+
+            $('valCahayaA').textContent = compA?.facilities?.lighting_condition || 'Terang (Lampu Baik)';
+            $('valCahayaB').textContent = compB?.facilities?.lighting_condition || 'Cukup (Titik Redup)';
+
+            $('valCctvA').textContent = `${compA?.facilities?.cctv_count ?? 2} CCTV · ${compA?.facilities?.security_post_count ?? 1} Pos`;
+            $('valCctvB').textContent = `${compB?.facilities?.cctv_count ?? 1} CCTV · ${compB?.facilities?.security_post_count ?? 0} Pos`;
+
+            const isRecA = compA?.is_recommended ?? (scoreA >= scoreB);
+            $('tagRecommendA').hidden = !isRecA;
+            $('tagRecommendA').innerHTML = 'Rute Paling Aman';
+            $('tagRecommendB').hidden = isRecA;
+            $('tagRecommendB').innerHTML = 'Alternatif Cukup Aman';
+
+            $('cardCmpA').classList.toggle('rekomendasi-card', isRecA);
+            $('cardCmpB').classList.toggle('rekomendasi-card', !isRecA);
+        }
+
+        // Tampilkan Kolom C jika Rute Perempuan memiliki 3 alternatif
+        const cardC = $('cardCmpC');
+        if (cardC) {
+            if (isWomen && routeC && mC) {
+                cardC.style.display = 'block';
+                $('valJarakC').textContent = mC.jarakKm.toFixed(1) + ' km';
+                $('valWaktuC').textContent = mC.waktuMenit + ' menit';
+                const scoreC = compC?.womens_safety_score ?? '-';
+                $('valScoreC').textContent = scoreC;
+                $('badgeLevelC').textContent = compC?.risk_level ?? 'Sedang';
+
+                const isPinkC = compC?.is_pink_recommendation ?? false;
+                $('tagRecommendC').hidden = !isPinkC;
+                if (isPinkC) $('tagRecommendC').innerHTML = '🌸 Paling Aman untuk Perempuan';
+                cardC.classList.toggle('rekomendasi-card', isPinkC);
+
+                $('valCahayaC').textContent = compC?.facilities?.lighting_condition || 'Penerangan Sedang';
+                $('valCctvC').textContent = `${compC?.facilities?.cctv_count ?? 0} CCTV · ${compC?.facilities?.shelter_post_count ?? 0} Pos`;
+                $('valLalinC').textContent = `${compC?.reports?.total_women_incidents ?? 0} Laporan Khusus`;
+            } else {
+                cardC.style.display = 'none';
+            }
+        }
 
         // Ringkasan Komparasi
         const selisihWaktu = Math.abs(mA.waktuMenit - mB.waktuMenit);
         if (selisihWaktu > 0) {
             $('textFastestTakeaway').textContent = `${isFasterA ? 'Rute A' : 'Rute B'} lebih cepat ${selisihWaktu} menit`;
         } else {
-            $('textFastestTakeaway').textContent = 'Estimasi waktu tempuh kedua rute setara';
+            $('textFastestTakeaway').textContent = 'Estimasi durasi waktu tempuh antar rute setara';
         }
 
-        const selisihSkor = Math.abs(scoreA - scoreB);
-        $('textSafetyTakeaway').textContent = `${isRecA ? 'Rute A' : 'Rute B'} memiliki skor keamanan lebih tinggi (+${selisihSkor} poin)`;
+        const scoreANum = typeof scoreA === 'number' ? scoreA : 0;
+        const scoreBNum = typeof scoreB === 'number' ? scoreB : 0;
+        const selisihSkor = Math.abs(scoreANum - scoreBNum);
+        if (isWomen) {
+            const isSafestPinkA = compA?.is_pink_recommendation;
+            $('textSafetyTakeaway').textContent = `${isSafestPinkA ? 'Rute A (Pink)' : 'Rute B'} memiliki skor perlindungan perempuan terbaik (+${selisihSkor} poin)`;
+        } else {
+            $('textSafetyTakeaway').textContent = `${scoreANum >= scoreBNum ? 'Rute A' : 'Rute B'} memiliki skor keamanan lebih tinggi (+${selisihSkor} poin)`;
+        }
 
         pilih(terpilihIdx);
     }
@@ -2217,8 +2840,12 @@
         L.marker([titikA.lat, titikA.lng], { icon: icA }).addTo(layerRute).bindPopup(titikA.nama);
         L.marker([titikB.lat, titikB.lng], { icon: icB }).addTo(layerRute).bindPopup(titikB.nama);
 
-        // Siapkan payload rute untuk API kalkulasi skor (hingga 3 rute)
-        const payload = routes.slice(0, 3).map((route, index) => {
+        // Batasi jumlah alternatif rute: Tepat 2 untuk Rute Umum, Maksimal 3 untuk Rute Perempuan
+        const maxRoutes = currentMode === 'women' ? 3 : 2;
+        const displayRoutes = (routes || []).slice(0, maxRoutes);
+
+        // Siapkan payload rute untuk API kalkulasi skor
+        const payload = displayRoutes.map((route, index) => {
             const coordinates = route.geometry.coordinates;
             const langkah = Math.ceil(coordinates.length / 200);
             const dijarangkan = coordinates.filter((titik, idx) =>
@@ -2239,7 +2866,7 @@
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({ routes: payload })
+                body: JSON.stringify({ routes: payload, mode: currentMode })
             });
             if (res.ok) {
                 const json = await res.json();
@@ -2249,34 +2876,37 @@
             console.warn('Gagal memuat skor dari API:', e);
         }
 
+        hasilRuteAktif = apiScores;
         const scoreMap = new Map();
         apiScores.forEach(s => scoreMap.set(s.id, s));
 
-        const isWomenMode = (localStorage.getItem('saferoad_gender') === 'perempuan' && localStorage.getItem('saferoad_verified') === 'true') ||
-            new URLSearchParams(window.location.search).get('mode') === 'womens_zone';
+        const isWomen = currentMode === 'women';
 
-        routes.slice(0, 3).forEach((route, index) => {
+        displayRoutes.forEach((route, index) => {
             const pts = route.geometry.coordinates.map(c => [c[1], c[0]]);
             const routeId = String.fromCharCode(65 + index);
             const scoreData = scoreMap.get(routeId);
-            const wz = scoreData ? scoreData.womens_zone : null;
+            const comp = isWomen ? (scoreData?.women_comparison) : (scoreData?.general_comparison);
 
             let lineColor = '#2563eb';
             let lineDash = index === 0 ? null : '6 8';
             let isPink = false;
 
-            if (isWomenMode && wz) {
-                lineColor = wz.route_color || '#2563eb';
-                isPink = wz.is_pink_recommendation;
+            if (isWomen && comp) {
+                lineColor = comp.route_color || '#2563eb';
+                isPink = comp.is_pink_recommendation;
                 lineDash = isPink ? null : '6 8';
+            } else if (!isWomen && comp) {
+                lineColor = comp.route_color || (index === 0 ? '#16a34a' : '#2563eb');
+                lineDash = comp.is_recommended ? null : '6 8';
             } else {
-                lineColor = index === 0 ? '#2563eb' : (index === 1 ? '#d97706' : '#64748b');
+                lineColor = index === 0 ? '#16a34a' : '#2563eb';
             }
 
             const line = L.polyline(pts, {
                 color: lineColor,
-                weight: (isPink || index === 0) ? 7 : 4,
-                opacity: (isPink || index === 0) ? 0.95 : 0.55,
+                weight: (isPink || (comp && comp.is_recommended) || index === 0) ? 7 : 4,
+                opacity: (isPink || (comp && comp.is_recommended) || index === 0) ? 0.95 : 0.55,
                 dashArray: lineDash
             }).addTo(layerRute);
 
@@ -2286,20 +2916,19 @@
 
             const m = konversiMetrikRute(route);
 
-            // Tentukan indikator kartu
+            // Indikator Kartu Hasil
             let badgeText = '';
             let badgeStyle = '';
-            let scoreTitle = 'Skor Keamanan Rute';
-            let scoreVal = scoreData ? scoreData.score : (index === 0 ? 92 : 78);
-            let scoreSub = scoreData ? scoreData.level : 'Aman';
+            let scoreTitle = isWomen ? "Women's Safety Score" : 'Skor Keamanan Rute';
+            let scoreVal = isWomen ? (comp?.womens_safety_score ?? '-') : (comp?.safety_score ?? (index === 0 ? 92 : 78));
+            let scoreSub = comp ? (comp.risk_level || 'Aman').toUpperCase() : 'AMAN';
             let scoreColor = '#16a34a';
             let scoreBg = '#f0fdf4';
             let scoreBorder = '#bbf7d0';
             let cardExtraStyle = '';
 
-            if (isWomenMode && wz) {
-                scoreTitle = "Women's Safety Score";
-                if (!wz.is_data_sufficient || wz.score === null) {
+            if (isWomen && comp) {
+                if (!comp.is_data_sufficient || comp.womens_safety_score === null) {
                     scoreVal = '-';
                     scoreSub = 'DATA BELUM CUKUP';
                     badgeText = 'Data keamanan belum mencukupi';
@@ -2308,8 +2937,7 @@
                     scoreBg = '#f8fafc';
                     scoreBorder = '#e2e8f0';
                 } else {
-                    scoreVal = wz.score;
-                    scoreSub = wz.level.toUpperCase();
+                    scoreVal = comp.womens_safety_score;
                     if (isPink) {
                         badgeText = '🌸 Paling Aman untuk Perempuan';
                         badgeStyle = 'background:#fdf2f8; color:#be185d; border:1.5px solid #fbcfe8; font-weight:800;';
@@ -2317,7 +2945,7 @@
                         scoreBg = '#fdf2f8';
                         scoreBorder = '#fbcfe8';
                         cardExtraStyle = 'border: 2px solid #f472b6; box-shadow: 0 4px 14px rgba(236,72,153,0.18);';
-                    } else if (wz.route_color_name === 'biru') {
+                    } else if (comp.route_color_name === 'biru') {
                         badgeText = 'Alternatif Cukup Aman';
                         badgeStyle = 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; font-weight:700;';
                         scoreColor = '#2563eb';
@@ -2331,9 +2959,33 @@
                         scoreBorder = '#fed7aa';
                     }
                 }
+            } else if (!isWomen && comp) {
+                if (!comp.is_data_sufficient || comp.safety_score === null) {
+                    scoreVal = '-';
+                    scoreSub = 'DATA BELUM CUKUP';
+                    badgeText = 'Data keamanan belum mencukupi';
+                    badgeStyle = 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;';
+                    scoreColor = '#64748b';
+                    scoreBg = '#f8fafc';
+                    scoreBorder = '#e2e8f0';
+                } else {
+                    scoreVal = comp.safety_score;
+                    if (comp.is_recommended) {
+                        badgeText = 'Rute Rekomendasi (Paling Aman)';
+                        badgeStyle = 'background:#f0fdf4; color:#15803d; border:1.5px solid #bbf7d0; font-weight:800;';
+                        scoreColor = '#16a34a';
+                        scoreBg = '#f0fdf4';
+                        scoreBorder = '#bbf7d0';
+                    } else {
+                        badgeText = 'Alternatif Cukup Aman';
+                        badgeStyle = 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; font-weight:700;';
+                        scoreColor = '#2563eb';
+                        scoreBg = '#eff6ff';
+                        scoreBorder = '#bfdbfe';
+                    }
+                }
             } else {
-                badgeText = (index === 0) ? 'Rute Rekomendasi' : 'Alternatif';
-                badgeStyle = '';
+                badgeText = index === 0 ? 'Rute Rekomendasi' : 'Alternatif';
             }
 
             const kartu = document.createElement('div');
@@ -2341,6 +2993,12 @@
             if (cardExtraStyle) {
                 kartu.setAttribute('style', cardExtraStyle);
             }
+
+            const totalWomen = comp?.reports?.total_women_incidents ?? 0;
+            const totalCrimes = comp?.reports?.total_crimes_count ?? 0;
+            const lights = comp?.facilities?.street_lights_count ?? (index === 0 ? 3 : 1);
+            const cctvs = comp?.facilities?.cctv_count ?? (index === 0 ? 2 : 1);
+            const posts = (isWomen ? comp?.facilities?.shelter_post_count : comp?.facilities?.security_post_count) ?? (index === 0 ? 1 : 0);
 
             kartu.innerHTML = `
                 <div class="kartu-atas">
@@ -2357,11 +3015,11 @@
                 <!-- Skor Keamanan Terpadu SafeRoad -->
                 <div class="kartu-skor-box" style="display:flex; align-items:center; justify-content:space-between; background:${scoreBg}; border:1.5px solid ${scoreBorder}; border-radius:10px; padding:8px 12px; margin:8px 0 10px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:18px;">${isWomenMode ? '♀' : '🛡️'}</span>
+                        <span style="font-size:18px;">${isWomen ? '🌸' : '🛡️'}</span>
                         <div>
                             <strong style="display:block; font-size:12px; color:${scoreColor}; line-height:1.2;">${scoreTitle}</strong>
                             <small style="font-size:11px; color:#475569;">
-                                ${isWomenMode && wz ? wz.status_label : (scoreVal >= 80 ? 'Lampu terang & tercover CCTV' : 'Penerangan cukup & titik pantau sedang')}
+                                ${isWomen ? (isPink ? 'Rekomendasi terbaik berdasarkan data risiko wanita' : 'Alternatif jalur perempuan') : (comp?.facilities?.lighting_condition || 'Penerangan cukup & tercover CCTV')}
                             </small>
                         </div>
                     </div>
@@ -2372,17 +3030,20 @@
                 </div>
 
                 <div class="chips">
-                    ${isWomenMode && wz && wz.risk_breakdown ? `
-                        <span class="chip" style="${wz.risk_breakdown.harassment_incidents > 0 ? 'background:#fef2f2; color:#dc2626; border-color:#fecaca;' : ''}">
-                            ${wz.risk_breakdown.harassment_incidents > 0 ? `⚠️ ${wz.risk_breakdown.harassment_incidents} Laporan Pelecehan/Catcalling` : '✨ Bebas Catcalling'}
+                    ${isWomen ? `
+                        <span class="chip" style="${totalWomen > 0 ? 'background:#fef2f2; color:#dc2626; border-color:#fecaca;' : ''}">
+                            ${totalWomen > 0 ? `⚠️ ${totalWomen} Laporan Pelecehan/Catcalling` : '✨ Bebas Catcalling'}
                         </span>
-                        <span class="chip">💡 ${wz.risk_breakdown.street_lights} Lampu Jalan</span>
-                        <span class="chip">📹 ${wz.risk_breakdown.cctv_active} CCTV</span>
-                        <span class="chip">🛡️ ${wz.risk_breakdown.security_posts} Pos Siaga</span>
+                        <span class="chip">💡 ${lights} Lampu Jalan</span>
+                        <span class="chip">📹 ${cctvs} CCTV</span>
+                        <span class="chip">🛡️ ${posts} Pos Siaga</span>
                     ` : `
-                        <span class="chip">${index === 0 ? '💡 Penerangan Baik' : '💡 Cahaya Sedang'}</span>
-                        <span class="chip">${index === 0 ? '📹 CCTV Terkoneksi' : '📹 CCTV Terbatas'}</span>
-                        <span class="chip">${index === 0 ? '🛡️ Jalur Patroli Polsek' : '🛡️ Jalur Alternatif'}</span>
+                        <span class="chip" style="${totalCrimes > 0 ? 'background:#fff7ed; color:#c2410c;' : ''}">
+                            ${totalCrimes > 0 ? `⚠️ ${totalCrimes} Kriminalitas Umum` : '✨ Nihil Kriminalitas'}
+                        </span>
+                        <span class="chip">💡 ${lights} Lampu (${comp?.facilities?.lighting_condition || 'Baik'})</span>
+                        <span class="chip">📹 ${cctvs} CCTV</span>
+                        <span class="chip">🛡️ ${posts} Pos Keamanan</span>
                     `}
                 </div>
             `;
@@ -2394,13 +3055,16 @@
             map.fitBounds(L.featureGroup(daftarGaris).getBounds().pad(0.12));
         }
 
-        $('btnBandingkan').hidden = routes.length < 2;
-        $('btnBandingkan').style.display = routes.length < 2 ? 'none' : 'inline-flex';
+        $('infoRute').textContent = `${displayRoutes.length} Alternatif Rute`;
+        $('btnBandingkan').hidden = displayRoutes.length < 2;
+        $('btnBandingkan').style.display = displayRoutes.length < 2 ? 'none' : 'inline-flex';
         $('btnNavigasi').disabled = false;
+
+        simpanDataPerbandinganStorage();
 
         // Otomatis buka panel perbandingan jika ada minimal 2 rute
         const panelCmp = $('perbandinganRute');
-        if (panelCmp && routes.length >= 2) {
+        if (panelCmp && displayRoutes.length >= 2) {
             renderPerbandingan();
             panelCmp.removeAttribute('hidden');
             panelCmp.style.display = 'block';
@@ -2431,7 +3095,7 @@
             throw new Error('Tidak ada jalur yang dapat dilewati.');
         }
 
-        // Cari rute alternatif jika kurang dari 3 rute
+        // Cari rute alternatif via titik antara (waypoint) jika hanya 1 rute
         if (routes.length < 3) {
             const midLat = (a.lat + b.lat) / 2;
             const midLng = (a.lng + b.lng) / 2;
@@ -2439,7 +3103,7 @@
             const dLng = b.lng - a.lng;
             const dist = Math.sqrt(dLat * dLat + dLng * dLng) || 0.01;
 
-            // Offset 1: sisi kiri/utara (+0.0035 deg ~ 380m)
+            // Offset 1: sisi utara/kiri (+0.0035 deg ~ 380m)
             if (routes.length < 2) {
                 try {
                     const offset1 = 0.0035;
@@ -2458,7 +3122,7 @@
                 } catch (e) {}
             }
 
-            // Offset 2: sisi kanan/selatan (-0.0035 deg ~ 380m)
+            // Offset 2: sisi selatan/kanan (-0.0035 deg ~ 380m)
             if (routes.length < 3) {
                 try {
                     const offset2 = -0.0035;
@@ -2476,35 +3140,10 @@
                     }
                 } catch (e) {}
             }
-
-            // Fallback sintesis variasi koordinat realistis jika API hanya 1 atau 2 rute
-            const baseRoute = routes[0];
-            if (baseRoute && baseRoute.geometry && baseRoute.geometry.coordinates) {
-                const coords = baseRoute.geometry.coordinates;
-
-                while (routes.length < 3) {
-                    const multiplier = routes.length === 1 ? 1 : -1;
-                    const spreadAmount = routes.length === 1 ? 0.0030 : 0.0038;
-                    const altCoords = coords.map((pt, idx) => {
-                        if (idx === 0 || idx === coords.length - 1) return pt;
-                        const factor = Math.sin((idx / coords.length) * Math.PI);
-                        return [pt[0] + (spreadAmount * factor * multiplier), pt[1] - (spreadAmount * 0.5 * factor * multiplier)];
-                    });
-
-                    routes.push({
-                        distance: baseRoute.distance * (1 + (routes.length * 0.12)),
-                        duration: Math.round(baseRoute.duration * (1 + (routes.length * 0.15))),
-                        geometry: {
-                            type: 'LineString',
-                            coordinates: altCoords
-                        },
-                        legs: baseRoute.legs || []
-                    });
-                }
-            }
         }
 
-        return routes.slice(0, 3);
+        // Tampilkan hanya rute yang benar-benar tersedia (tanpa membuat rute palsu)
+        return routes;
     }
 
     $('btnCari').addEventListener('click', async () => {
@@ -2559,6 +3198,7 @@
 
     $('cardCmpA').addEventListener('click', () => pilih(0));
     $('cardCmpB').addEventListener('click', () => pilih(1));
+    $('cardCmpC')?.addEventListener('click', () => pilih(2));
 
     $('btnPickA').addEventListener('click', e => {
         e.stopPropagation();
@@ -2568,6 +3208,15 @@
     $('btnPickB').addEventListener('click', e => {
         e.stopPropagation();
         pilih(1);
+    });
+
+    $('btnPickC')?.addEventListener('click', e => {
+        e.stopPropagation();
+        pilih(2);
+    });
+
+    $('btnBukaBandingkanDetail')?.addEventListener('click', () => {
+        simpanDataPerbandinganStorage();
     });
 
     $('btnNavigasi').addEventListener('click', () => {

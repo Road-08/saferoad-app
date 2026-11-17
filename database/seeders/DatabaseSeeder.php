@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\DangerZone;
+use App\Models\EnvironmentalCondition;
 use App\Models\SafetyFacility;
 use App\Models\SecurityReport;
 use App\Models\User;
@@ -64,6 +65,59 @@ class DatabaseSeeder extends Seeder
                 'gender_consent' => true,
                 'identity_status' => 'pending',
                 'ktp_path' => 'identitas_ktp/sample_ktp.jpg',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'siti.pending@saferoad.test'],
+            [
+                'name' => 'Siti Aminah (Pending)',
+                'password' => Hash::make('password'),
+                'role' => 'masyarakat',
+                'phone_number' => '081234567894',
+                'gender' => 'perempuan',
+                'gender_consent' => true,
+                'identity_status' => 'pending',
+                'ktp_path' => 'identitas_ktp/sample_ktp.jpg',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'maya.rejected@saferoad.test'],
+            [
+                'name' => 'Maya Anggraeni (Rejected)',
+                'password' => Hash::make('password'),
+                'role' => 'masyarakat',
+                'phone_number' => '081234567895',
+                'gender' => 'perempuan',
+                'gender_consent' => true,
+                'identity_status' => 'rejected',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'ayu.unverified@saferoad.test'],
+            [
+                'name' => 'Ayu Wardani (Belum Verifikasi)',
+                'password' => Hash::make('password'),
+                'role' => 'masyarakat',
+                'phone_number' => '081234567896',
+                'gender' => 'perempuan',
+                'gender_consent' => false,
+                'identity_status' => 'unverified',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'bima.laki@saferoad.test'],
+            [
+                'name' => 'Bima Perkasa (Laki-laki)',
+                'password' => Hash::make('password'),
+                'role' => 'masyarakat',
+                'phone_number' => '081234567897',
+                'gender' => 'laki-laki',
+                'gender_consent' => true,
+                'identity_status' => 'verified',
             ]
         );
 
@@ -168,7 +222,7 @@ class DatabaseSeeder extends Seeder
             DangerZone::firstOrCreate(['name' => $dz['name']], $dz);
         }
 
-        // 4. Laporan Insiden Contoh
+        // 4. Laporan Insiden Contoh & Simulasi Pengujian
         if (SecurityReport::count() === 0) {
             $report = SecurityReport::create([
                 'report_code' => 'SR-' . now()->format('ymd') . '-A1B2',
@@ -179,6 +233,10 @@ class DatabaseSeeder extends Seeder
                 'latitude' => -7.3140000,
                 'longitude' => 112.7270000,
                 'status' => 'officer_check',
+                'validation_status' => 'verified',
+                'severity' => 'sedang',
+                'incident_at' => now()->subDays(2),
+                'is_simulation' => false,
             ]);
 
             $report->histories()->create([
@@ -190,6 +248,212 @@ class DatabaseSeeder extends Seeder
                 'status' => 'officer_check',
                 'note' => "[Petugas: {$keamanan->name}] Petugas sedang melakukan pengecekan fisik lokasi lampu jalan.",
             ]);
+        }
+
+        // 5. DATASET SIMULASI PENGUJIAN (Kategori Umum & Khusus Perempuan, Fasilitas, Kondisi Lingkungan)
+        if (SecurityReport::where('is_simulation', true)->count() === 0) {
+            $simulationReports = [
+                // Koridor Rawan Kriminalitas Umum (Wonokromo / Joyoboyo)
+                [
+                    'report_code' => 'SIM-CRIME-01',
+                    'user_id' => $user->id,
+                    'category' => 'Begal',
+                    'description' => '[DATA SIMULASI PENGUJIAN] Terjadi aksi begal motor oleh dua pelaku bersenjata tajam.',
+                    'severity' => 'tinggi',
+                    'incident_at' => now()->subDays(3),
+                    'address' => 'Jl. Joyoboyo Dekat Jembatan',
+                    'latitude' => -7.3015000,
+                    'longitude' => 112.7360000,
+                    'status' => 'map_updated',
+                    'validation_status' => 'verified',
+                    'is_simulation' => true,
+                ],
+                [
+                    'report_code' => 'SIM-CRIME-02',
+                    'user_id' => $user->id,
+                    'category' => 'Pencurian',
+                    'description' => '[DATA SIMULASI PENGUJIAN] Pencurian helm dan spion motor di pinggir jalan utama.',
+                    'severity' => 'rendah',
+                    'incident_at' => now()->subDays(5),
+                    'address' => 'Jl. Wonokromo No. 45',
+                    'latitude' => -7.3060000,
+                    'longitude' => 112.7375000,
+                    'status' => 'map_updated',
+                    'validation_status' => 'verified',
+                    'is_simulation' => true,
+                ],
+                [
+                    'report_code' => 'SIM-CRIME-03',
+                    'user_id' => $user->id,
+                    'category' => 'Perampokan',
+                    'description' => '[DATA SIMULASI PENGUJIAN] Penjambretan dompet dan ponsel pengendara roda dua.',
+                    'severity' => 'tinggi',
+                    'incident_at' => now()->subDays(12),
+                    'address' => 'Jl. SMEA Wonokromo',
+                    'latitude' => -7.3080000,
+                    'longitude' => 112.7340000,
+                    'status' => 'map_updated',
+                    'validation_status' => 'verified',
+                    'is_simulation' => true,
+                ],
+                [
+                    'report_code' => 'SIM-CRIME-04',
+                    'user_id' => $user->id,
+                    'category' => 'Penipuan',
+                    'description' => '[DATA SIMULASI PENGUJIAN] Modus penipuan pura-pura ban bocor dan minta uang paksa.',
+                    'severity' => 'sedang',
+                    'incident_at' => now()->subDays(20),
+                    'address' => 'Jl. Raya Darmo Selatan',
+                    'latitude' => -7.2980000,
+                    'longitude' => 112.7320000,
+                    'status' => 'submitted',
+                    'validation_status' => 'pending',
+                    'is_simulation' => true,
+                ],
+                // Koridor Insiden Khusus Perempuan (Catcalling, Pelecehan, Intimidasi)
+                [
+                    'report_code' => 'SIM-WOMEN-01',
+                    'user_id' => $user->id,
+                    'category' => 'Catcalling',
+                    'description' => '[DATA SIMULASI PENGUJIAN] Gerombolan pemuda melakukan catcalling dan siulan bernada melecehkan kepada pejalan kaki perempuan.',
+                    'severity' => 'sedang',
+                    'incident_at' => now()->subDays(2),
+                    'address' => 'Jl. Pulo Wonokromo Gang Buntu',
+                    'latitude' => -7.3040000,
+                    'longitude' => 112.7390000,
+                    'status' => 'map_updated',
+                    'validation_status' => 'verified',
+                    'is_simulation' => true,
+                ],
+                [
+                    'report_code' => 'SIM-WOMEN-02',
+                    'user_id' => $user->id,
+                    'category' => 'Pelecehan Seksual',
+                    'description' => '[DATA SIMULASI PENGUJIAN] Pelaku pengendara motor memegang tubuh korban perempuan lalu kabur.',
+                    'severity' => 'tinggi',
+                    'incident_at' => now()->subDays(4),
+                    'address' => 'Gang Jagir Sidoresmo',
+                    'latitude' => -7.3090000,
+                    'longitude' => 112.7410000,
+                    'status' => 'map_updated',
+                    'validation_status' => 'verified',
+                    'is_simulation' => true,
+                ],
+                [
+                    'report_code' => 'SIM-WOMEN-03',
+                    'user_id' => $user->id,
+                    'category' => 'Intimidasi',
+                    'description' => '[DATA SIMULASI PENGUJIAN] Pengendara perempuan dibuntuti dan diancam di lorong sepi.',
+                    'severity' => 'tinggi',
+                    'incident_at' => now()->subDays(6),
+                    'address' => 'Jl. Ketintang Baru Selatan',
+                    'latitude' => -7.3180000,
+                    'longitude' => 112.7310000,
+                    'status' => 'map_updated',
+                    'validation_status' => 'verified',
+                    'is_simulation' => true,
+                ],
+                [
+                    'report_code' => 'SIM-WOMEN-04',
+                    'user_id' => $user->id,
+                    'category' => 'Kekerasan terhadap Perempuan',
+                    'description' => '[DATA SIMULASI PENGUJIAN] Penganiayaan terhadap pejalan kaki wanita oleh orang tak dikenal.',
+                    'severity' => 'tinggi',
+                    'incident_at' => now()->subDays(15),
+                    'address' => 'Jl. Karah Agung',
+                    'latitude' => -7.3120000,
+                    'longitude' => 112.7150000,
+                    'status' => 'rejected',
+                    'validation_status' => 'rejected', // Laporan ditolak tidak dihitung
+                    'is_simulation' => true,
+                ],
+            ];
+
+            foreach ($simulationReports as $simRep) {
+                SecurityReport::create($simRep);
+            }
+        }
+
+        // 6. Fasilitas Tambahan (Termasuk Fasilitas Rusak & Non-Aktif untuk Uji Kondisi)
+        $simFacilities = [
+            [
+                'name' => 'Lampu Jalan Koridor Wonokromo (Rusak)',
+                'type' => 'street_light',
+                'latitude' => -7.3055000,
+                'longitude' => 112.7380000,
+                'address' => 'Jl. Pulo Wonokromo No. 12',
+                'status' => 'inactive',
+                'condition' => 'rusak',
+                'verification_status' => 'verified',
+                'description' => '[DATA SIMULASI PENGUJIAN] Lampu penerangan jalan mati total sejak minggu lalu.',
+                'is_simulation' => true,
+            ],
+            [
+                'name' => 'CCTV Koridor Darmo Terkoneksi',
+                'type' => 'cctv',
+                'latitude' => -7.2960000,
+                'longitude' => 112.7340000,
+                'address' => 'Jl. Raya Darmo Indah',
+                'status' => 'active',
+                'condition' => 'aktif',
+                'verification_status' => 'verified',
+                'description' => '[DATA SIMULASI PENGUJIAN] Kamera HD pantau koridor pejalan kaki wanita.',
+                'is_simulation' => true,
+            ],
+            [
+                'name' => 'Pos Pengamanan Siaga Wanita & Warga',
+                'type' => 'security_post',
+                'latitude' => -7.3100000,
+                'longitude' => 112.7230000,
+                'address' => 'Jl. Ketintang Madya Utama',
+                'status' => 'active',
+                'condition' => 'aktif',
+                'verification_status' => 'verified',
+                'description' => '[DATA SIMULASI PENGUJIAN] Pos siaga keamanan dengan petugas ramah perempuan.',
+                'is_simulation' => true,
+            ],
+        ];
+
+        foreach ($simFacilities as $sf) {
+            SafetyFacility::firstOrCreate(['name' => $sf['name']], $sf);
+        }
+
+        // 7. Data Kondisi Lingkungan (Environmental Conditions)
+        $environmentalConditions = [
+            [
+                'location_name' => 'Koridor Kampus Ketintang',
+                'latitude' => -7.3130000,
+                'longitude' => 112.7265000,
+                'activity_level' => 'ramai',
+                'lighting_condition' => 'terang',
+                'observed_at' => now()->subHours(4),
+                'validation_status' => 'verified',
+                'is_simulation' => true,
+            ],
+            [
+                'location_name' => 'Kawasan Gang Gelap Wonokromo',
+                'latitude' => -7.3045000,
+                'longitude' => 112.7385000,
+                'activity_level' => 'sepi',
+                'lighting_condition' => 'gelap',
+                'observed_at' => now()->subHours(6),
+                'validation_status' => 'verified',
+                'is_simulation' => true,
+            ],
+            [
+                'location_name' => 'Jalur Alternatif Karah',
+                'latitude' => -7.3115000,
+                'longitude' => 112.7160000,
+                'activity_level' => 'sedang',
+                'lighting_condition' => 'cukup',
+                'observed_at' => now()->subHours(8),
+                'validation_status' => 'verified',
+                'is_simulation' => true,
+            ],
+        ];
+
+        foreach ($environmentalConditions as $env) {
+            EnvironmentalCondition::firstOrCreate(['location_name' => $env['location_name']], $env);
         }
     }
 }
