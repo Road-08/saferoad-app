@@ -324,71 +324,32 @@ let adminMap = null;
 let markersGroup = null;
 let incidentMarkersMap = {};
 
-let mapReports = [
-    {
-        id: 1,
-        code: 'SR-2611-B892',
-        category: 'Pelecehan / Gangguan Keamanan',
-        address: 'Jl. Ketintang Barat No. 12',
-        status: 'submitted',
-        lat: -7.3152,
-        lng: 112.7280,
-        description: 'Penerangan redup dan ada oknum mencurigakan berkumpul di dekat lorong perumahan.'
-    },
-    {
-        id: 2,
-        code: 'SR-2611-C419',
-        category: 'Pencurian',
-        address: 'Simpang Lampu Merah Ketintang Timur',
-        status: 'submitted',
-        lat: -7.3138,
-        lng: 112.7268,
-        description: 'Percobaan penarikan tas pengendara motor saat menunggu lampu merah.'
-    },
-    {
-        id: 3,
-        code: 'SR-2611-A104',
-        category: 'Kondisi Jalan',
-        address: 'Depan Gerbang Barat Kampus',
-        status: 'map_updated',
-        lat: -7.3120,
-        lng: 112.7295,
-        description: 'Lampu PJU padam sepanjang 100 meter, jalan berlubang cukup dalam.'
-    },
-    {
-        id: 4,
-        code: 'SR-2611-X009',
-        category: 'Kerusakan Fasilitas Keamanan',
-        address: 'Jl. Ahmad Yani KM 8',
-        status: 'rejected',
-        lat: -7.3160,
-        lng: 112.7265,
-        description: 'Tiang CCTV miring setelah terserempet truk.'
-    }
-];
+let mapReports = [];
 
-// Sinkronkan laporan warga dari localStorage
-(function syncLocalReports() {
+async function loadLiveMapReports() {
     try {
-        const localList = JSON.parse(localStorage.getItem('saferoad_my_reports') || '[]');
-        if (Array.isArray(localList) && localList.length > 0) {
-            localList.forEach((item, index) => {
-                if (!mapReports.some(r => r.code === item.report_code)) {
-                    mapReports.unshift({
-                        id: 100 + index,
-                        code: item.report_code || ('SR-' + Math.floor(1000 + Math.random() * 9000)),
-                        category: item.category || 'Pelecehan',
-                        address: item.address || 'Lokasi Titik Peta',
-                        status: item.status || 'submitted',
-                        lat: item.latitude || (-7.3140 + (Math.random() - 0.5) * 0.006),
-                        lng: item.longitude || (112.7280 + (Math.random() - 0.5) * 0.006),
-                        description: item.description || 'Laporan insiden yang baru dikirimkan oleh warga.'
-                    });
-                }
-            });
+        const resp = await fetch('{{ url("/admin/data/reports") }}?status=all', {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (resp.ok) {
+            const res = await resp.json();
+            if (res.success && Array.isArray(res.data)) {
+                mapReports = res.data.map(r => ({
+                    id: r.id,
+                    code: r.report_code,
+                    category: r.category,
+                    address: r.address || 'Titik Koordinat',
+                    status: r.status,
+                    lat: r.latitude || -7.3152,
+                    lng: r.longitude || 112.7280,
+                    description: r.description || ''
+                }));
+                renderAdminMap();
+                renderSidebarList();
+            }
         }
     } catch (e) {}
-})();
+}
 
 // Data Fasilitas Keamanan
 const cctvStatic = [
@@ -439,11 +400,11 @@ function renderAdminMap() {
     const showPos = document.getElementById('chkPos').checked;
 
     mapReports.forEach(r => {
-        if (r.status === 'submitted' && !showPending) return;
-        if (r.status === 'map_updated' && !showApproved) return;
+        if ((r.status === 'pending_validation' || r.status === 'submitted') && !showPending) return;
+        if ((r.status === 'handled' || r.status === 'map_updated') && !showApproved) return;
         if (r.status === 'rejected') return;
 
-        const isPending = (r.status === 'submitted');
+        const isPending = (r.status === 'pending_validation' || r.status === 'submitted');
         const iconSymbol = isPending ? '⏳' : '⚠️';
         const bg = isPending ? '#fef3c7' : '#fee2e2';
         const border = isPending ? '#d97706' : '#dc2626';
@@ -509,14 +470,14 @@ function renderSidebarList() {
     const validReports = mapReports.filter(r => r.status !== 'rejected');
 
     document.getElementById('statTotalIncidents').textContent = validReports.length + ' Titik';
-    document.getElementById('statPendingIncidents').textContent = mapReports.filter(r => r.status === 'submitted').length + ' Pending';
+    document.getElementById('statPendingIncidents').textContent = mapReports.filter(r => r.status === 'pending_validation' || r.status === 'submitted').length + ' Pending';
 
     listEl.innerHTML = validReports.map(r => `
         <div class="msb-item" onclick="focusOnReport(${r.id})">
             <div class="msb-item-top">
                 <span class="msb-code">${r.code}</span>
-                <span class="msb-tag ${r.status === 'submitted' ? 'tag-pend' : 'tag-appr'}">
-                    ${r.status === 'submitted' ? '⏳ Pending' : '✓ Tayang'}
+                <span class="msb-tag ${(r.status === 'pending_validation' || r.status === 'submitted') ? 'tag-pend' : 'tag-appr'}">
+                    ${(r.status === 'pending_validation' || r.status === 'submitted') ? '⏳ Pending' : '✓ Tayang'}
                 </span>
             </div>
             <span class="msb-cat">${r.category}</span>
@@ -554,6 +515,7 @@ function quickMapAction(id, action) {
 
 document.addEventListener('DOMContentLoaded', () => {
     initFullAdminMap();
+    loadLiveMapReports();
 });
 </script>
 @endpush

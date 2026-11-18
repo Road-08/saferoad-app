@@ -12,12 +12,11 @@
             <span class="female-mode-icon">♀</span>
             <div>
                 <strong>Mode Perempuan Terverifikasi Aktif ✨</strong>
-                <span>Akses Women's Safe Zone dan fitur monitoring driver telah terbuka penuh untuk akun Anda.</span>
+                <span>Fitur navigasi aman khusus perempuan dan monitoring driver aktif otomatis untuk perjalanan Anda.</span>
             </div>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <a href="{{ url('/womens-zone') }}" class="female-mode-cta" style="background:#be185d;">🌸 Women's Zone →</a>
-            <a href="{{ route('rute', ['mode' => 'women']) }}" class="female-mode-cta">Buka Rute Perempuan →</a>
+            <a href="{{ route('rute') }}" class="female-mode-cta">Buka Rute Perempuan →</a>
         </div>
     </div>
     @endif
@@ -69,32 +68,7 @@
             </a>
         </div>
 
-        @if(auth()->user()->canAccessWomenZone())
-        {{-- Card: Women's Safe Zone (Hanya untuk Perempuan Terverifikasi) --}}
-        <div class="action-card" style="border-top: 3px solid #be185d;">
-            <div class="action-card-body">
-                <div class="action-card-header">
-                    <div class="card-icon" style="background: rgba(251, 207, 232, 0.4); color: #be185d;" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="9" r="6"/>
-                            <path d="M12 15v7M9 19h6"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3>Women's Safe Zone</h3>
-                        <p>Peta rute aman khusus perempuan dengan analisis CCTV, penerangan, dan pantauan shelter.</p>
-                    </div>
-                </div>
-            </div>
-            <a href="{{ url('/womens-zone') }}" class="card-footer-link" style="color: #be185d;">
-                Buka Zona Perempuan
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                    <polyline points="12 5 19 12 12 19"/>
-                </svg>
-            </a>
-        </div>
-        @endif
+
 
         {{-- Card 3: Laporan Insiden --}}
         <div class="action-card">

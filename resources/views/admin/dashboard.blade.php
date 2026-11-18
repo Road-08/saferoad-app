@@ -30,19 +30,19 @@
                 <span class="kpi-sub">Kelola di Halaman Validasi →</span>
             </div>
         </a>
-        <a href="{{ route('admin.validasi') }}?status=submitted" class="kpi-card card-pending" title="Lihat laporan butuh validasi">
+        <a href="{{ route('admin.validasi') }}?status=pending_validation" class="kpi-card card-pending" title="Lihat laporan butuh validasi">
             <div class="kpi-icon">⏳</div>
             <div class="kpi-body">
                 <h3>Menunggu Validasi</h3>
-                <strong class="kpi-num" id="dashKpiPending" style="color: #b45309;">2</strong>
+                <strong class="kpi-num" id="dashKpiPending" style="color: #b45309;">0</strong>
                 <span class="kpi-sub">Perlu persetujuan admin →</span>
             </div>
         </a>
-        <a href="{{ route('admin.validasi') }}?status=map_updated" class="kpi-card card-approved" title="Lihat laporan disetujui">
+        <a href="{{ route('admin.validasi') }}?status=handled" class="kpi-card card-approved" title="Lihat laporan ditangani">
             <div class="kpi-icon">✅</div>
             <div class="kpi-body">
-                <h3>Laporan Disetujui</h3>
-                <strong class="kpi-num" id="dashKpiApproved" style="color: #15803d;">1</strong>
+                <h3>Laporan Ditangani</h3>
+                <strong class="kpi-num" id="dashKpiApproved" style="color: #15803d;">0</strong>
                 <span class="kpi-sub">Aktif pada peta masyarakat →</span>
             </div>
         </a>
@@ -50,7 +50,7 @@
             <div class="kpi-icon">❌</div>
             <div class="kpi-body">
                 <h3>Laporan Ditolak</h3>
-                <strong class="kpi-num" id="dashKpiRejected" style="color: #b91c1c;">1</strong>
+                <strong class="kpi-num" id="dashKpiRejected" style="color: #b91c1c;">0</strong>
                 <span class="kpi-sub">Laporan palsu / duplikat →</span>
             </div>
         </a>
@@ -64,7 +64,7 @@
         <div class="module-card">
             <div class="mc-icon-badge icon-red">⚖️</div>
             <div class="mc-content">
-                <div class="mc-tag tag-amber">2 BUTUH VALIDASI SEGERA</div>
+                <div class="mc-tag tag-amber" id="dashModulePendingTag">0 BUTUH VALIDASI SEGERA</div>
                 <h3>Validasi &amp; Moderasi Laporan Warga</h3>
                 <p>Tinjau setiap aduan keamanan masyarakat, verifikasi foto dan koordinat TKP, lalu setujui untuk dipublikasikan ke peta atau tolak laporan yang tidak valid.</p>
                 <div class="mc-features-list">
@@ -400,66 +400,158 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    let reports = [
-        { code: 'SR-2611-B892', cat: 'Pelecehan / Gangguan Keamanan', loc: 'Jl. Ketintang Barat No. 12', status: 'submitted' },
-        { code: 'SR-2611-C419', cat: 'Pencurian', loc: 'Simpang Lampu Merah Ketintang Timur', status: 'submitted' },
-        { code: 'SR-2611-A104', cat: 'Kondisi Jalan', loc: 'Depan Gerbang Barat Kampus', status: 'map_updated' },
-        { code: 'SR-2611-X009', cat: 'Kerusakan Fasilitas Keamanan', loc: 'Jl. Ahmad Yani KM 8', status: 'rejected' }
-    ];
+(function () {
+    const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    let pollingInterval = null;
 
-    try {
-        const localList = JSON.parse(localStorage.getItem('saferoad_my_reports') || '[]');
-        if (Array.isArray(localList) && localList.length > 0) {
-            localList.forEach(item => {
-                if (!reports.some(r => r.code === item.report_code)) {
-                    reports.unshift({
-                        code: item.report_code || 'SR-DEMO-NEW',
-                        cat: item.category || 'Pelecehan',
-                        loc: item.address || 'Lokasi Titik Peta',
-                        status: item.status || 'submitted'
-                    });
-                }
-            });
-        }
-    } catch (e) {}
-
-    const total = reports.length;
-    const submitted = reports.filter(r => r.status === 'submitted').length;
-    const approved = reports.filter(r => r.status === 'map_updated').length;
-    const rejected = reports.filter(r => r.status === 'rejected').length;
-
-    document.getElementById('dashKpiTotal').textContent = total;
-    document.getElementById('dashKpiPending').textContent = submitted;
-    document.getElementById('dashKpiApproved').textContent = approved;
-    document.getElementById('dashKpiRejected').textContent = rejected;
-
-    const listEl = document.getElementById('dashRecentList');
-    const pendingList = reports.filter(r => r.status === 'submitted').slice(0, 3);
-
-    if (pendingList.length === 0) {
-        listEl.innerHTML = `
-            <div style="text-align:center; padding: 18px; color: #16a34a; font-weight: 700;">
-                ✓ Semua laporan telah selesai dimoderasi. Tidak ada aduan yang tertunda.
-            </div>
-        `;
-    } else {
-        listEl.innerHTML = pendingList.map(r => `
-            <div class="recent-item">
-                <div class="recent-left">
-                    <span class="recent-icon">⏳</span>
-                    <div>
-                        <div class="recent-title">${r.code} · ${r.cat}</div>
-                        <div class="recent-sub">📍 ${r.loc}</div>
-                    </div>
-                </div>
-                <a href="{{ route('admin.validasi') }}?code=${r.code}" class="recent-action-btn">
-                    ⚖️ Validasi Sekarang
-                </a>
-            </div>
-        `).join('');
+    function formatFullDateTime(d) {
+        if (!d) return '-';
+        const dateObj = typeof d === 'string' ? new Date(d) : d;
+        if (isNaN(dateObj.getTime())) return '-';
+        return new Intl.DateTimeFormat('id-ID', {
+            timeZone: 'Asia/Jakarta',
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }).format(dateObj) + ' WIB';
     }
-});
+
+    function timeAgo(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '-';
+        const now = new Date();
+        const diffSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+        if (diffSeconds < 60) return 'baru saja';
+        const diffMinutes = Math.floor(diffSeconds / 60);
+        if (diffMinutes < 60) return `${diffMinutes} menit lalu`;
+        const diffHours = Math.floor(diffMinutes / 60);
+        if (diffHours < 24) return `${diffHours} jam lalu`;
+
+        const formatterDateOnly = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' });
+        const formatterTimeOnly = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false });
+
+        const dateStr = formatterDateOnly.format(date);
+        const yesterday = new Date(now.getTime() - 86400000);
+        const yesterdayStr = formatterDateOnly.format(yesterday);
+        const timePart = formatterTimeOnly.format(date).replace('.', ':');
+
+        if (dateStr === yesterdayStr) {
+            return `kemarin ${timePart}`;
+        }
+
+        return formatFullDateTime(date);
+    }
+
+    async function loadDashboardData() {
+        try {
+            // 1. Fetch counts
+            const countResp = await fetch('{{ url("/admin/data/reports/counts") }}', {
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN }
+            });
+            if (countResp.ok) {
+                const countRes = await countResp.json();
+                if (countRes.success && countRes.data) {
+                    const c = countRes.data;
+                    const total = (c.pending_validation || 0) + (c.forwarded_to_security || 0) + (c.needs_revision || 0) + (c.handled || 0) + (c.rejected || 0);
+                    document.getElementById('dashKpiTotal').textContent = total;
+                    document.getElementById('dashKpiPending').textContent = c.pending_validation || 0;
+                    document.getElementById('dashKpiApproved').textContent = c.handled || 0;
+                    document.getElementById('dashKpiRejected').textContent = c.rejected || 0;
+
+                    const tagEl = document.getElementById('dashModulePendingTag');
+                    if (tagEl) {
+                        tagEl.textContent = `${c.pending_validation || 0} BUTUH VALIDASI SEGERA`;
+                    }
+
+                    // Navbar badges
+                    const navPending = document.getElementById('navBadgePendingValidation');
+                    if (navPending) {
+                        if (c.pending_validation > 0) {
+                            navPending.textContent = c.pending_validation;
+                            navPending.style.display = 'inline-block';
+                        } else {
+                            navPending.style.display = 'none';
+                        }
+                    }
+
+                    const navReady = document.getElementById('navBadgeReadyToFinalize');
+                    if (navReady) {
+                        if (c.ready_to_finalize > 0) {
+                            navReady.textContent = c.ready_to_finalize;
+                            navReady.style.display = 'inline-block';
+                        } else {
+                            navReady.style.display = 'none';
+                        }
+                    }
+                }
+            }
+
+            // 2. Fetch pending reports for recent box
+            const reportsResp = await fetch('{{ url("/admin/data/reports") }}?status=pending_validation&per_page=5', {
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN }
+            });
+            if (reportsResp.ok) {
+                const reportsRes = await reportsResp.json();
+                const listEl = document.getElementById('dashRecentList');
+                if (reportsRes.success && Array.isArray(reportsRes.data) && reportsRes.data.length > 0) {
+                    listEl.innerHTML = reportsRes.data.slice(0, 4).map(r => `
+                        <div class="recent-item">
+                            <div class="recent-left">
+                                <span class="recent-icon">⏳</span>
+                                <div>
+                                    <div class="recent-title">${r.report_code} · ${r.category}</div>
+                                    <div class="recent-sub">📍 ${r.address || '-'} · <span title="${formatFullDateTime(r.incident_at)}">${timeAgo(r.incident_at)}</span></div>
+                                </div>
+                            </div>
+                            <a href="{{ route('admin.validasi') }}?code=${r.report_code}" class="recent-action-btn">
+                                ⚖️ Validasi Sekarang
+                            </a>
+                        </div>
+                    `).join('');
+                } else {
+                    listEl.innerHTML = `
+                        <div style="text-align:center; padding: 18px; color: #16a34a; font-weight: 700;">
+                            ✓ Semua laporan telah selesai dimoderasi. Tidak ada aduan yang tertunda.
+                        </div>
+                    `;
+                }
+            }
+        } catch (e) {
+            // Silently retry next interval
+        }
+    }
+
+    function startPolling() {
+        if (pollingInterval) clearInterval(pollingInterval);
+        pollingInterval = setInterval(loadDashboardData, 10000);
+    }
+
+    function stopPolling() {
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+        }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopPolling();
+        } else {
+            loadDashboardData();
+            startPolling();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDashboardData();
+        startPolling();
+    });
+})();
 </script>
 @endpush
 @endsection

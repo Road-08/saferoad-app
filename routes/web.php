@@ -3,9 +3,11 @@
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDangerZoneController;
 use App\Http\Controllers\Admin\AdminFacilityController;
+use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Keamanan\IncidentFollowUpController;
+use App\Http\Controllers\Keamanan\KeamananReportController;
 use App\Http\Controllers\SecurityReportController;
 use App\Http\Controllers\SuspiciousReportFlagController;
 use App\Http\Controllers\UserProfileController;
@@ -30,7 +32,7 @@ Route::get('/', function () {
         return redirect()->route('keamanan.dashboard');
     }
     if ($user->canAccessWomenZone()) {
-        return redirect()->route('rute', ['mode' => 'women']);
+        return redirect()->route('rute');
     }
 
     return redirect()->route('rute');
@@ -62,6 +64,7 @@ Route::middleware('auth')->group(function () {
 
     // Incident Reporting
     Route::get('/laporan', [SecurityReportController::class, 'index'])->name('laporan.index');
+    Route::get('/laporan/data', [SecurityReportController::class, 'userReports'])->name('laporan.data');
     Route::post('/laporan', [SecurityReportController::class, 'store'])->name('laporan.store');
     Route::get('/laporan/terakhir', [SecurityReportController::class, 'latest'])->name('laporan.latest');
     Route::get('/laporan/{report}', [SecurityReportController::class, 'show'])->whereNumber('report')->name('laporan.show');
@@ -70,18 +73,37 @@ Route::middleware('auth')->group(function () {
     Route::post(
         '/laporan/{report}/tandai-mencurigakan',
         [SuspiciousReportFlagController::class, 'store']
-    )->name('laporan.flag');
+    )->whereNumber('report')->name('laporan.flag');
 
     // User Profile
     Route::get('/profil', [UserProfileController::class, 'index'])->name('profile.index');
     Route::put('/profil', [UserProfileController::class, 'update'])->name('profile.update');
+
+    // Backend Keamanan: Workflow Laporan
+    Route::middleware('role:keamanan')->prefix('keamanan/data/reports')->name('keamanan.data.reports.')->group(function () {
+        Route::get('/', [KeamananReportController::class, 'index'])->name('index');
+        Route::get('/counts', [KeamananReportController::class, 'counts'])->name('counts');
+        Route::get('/{report}', [KeamananReportController::class, 'show'])->whereNumber('report')->name('show');
+        Route::post('/{report}/confirm', [KeamananReportController::class, 'confirm'])->whereNumber('report')->name('confirm');
+    });
 
     // Area Khusus Role Keamanan
     Route::middleware('role:keamanan,admin')->prefix('keamanan')->name('keamanan.')->group(function () {
         Route::view('/dashboard', 'keamanan.dashboard')->name('dashboard');
         Route::view('/laporan', 'keamanan.dashboard')->name('laporan');
         Route::get('/data/laporan', [IncidentFollowUpController::class, 'index'])->name('data.laporan');
-        Route::post('/laporan/{report}/tindak-lanjut', [IncidentFollowUpController::class, 'followUp'])->name('laporan.followUp');
+        Route::post('/laporan/{report}/tindak-lanjut', [IncidentFollowUpController::class, 'followUp'])->whereNumber('report')->name('laporan.followUp');
+    });
+
+    // Backend Admin: Workflow Laporan
+    Route::middleware('role:admin')->prefix('admin/data/reports')->name('admin.data.reports.')->group(function () {
+        Route::get('/', [AdminReportController::class, 'index'])->name('index');
+        Route::get('/counts', [AdminReportController::class, 'counts'])->name('counts');
+        Route::get('/{report}', [AdminReportController::class, 'show'])->whereNumber('report')->name('show');
+        Route::post('/{report}/approve', [AdminReportController::class, 'approve'])->whereNumber('report')->name('approve');
+        Route::post('/{report}/revision', [AdminReportController::class, 'revision'])->whereNumber('report')->name('revision');
+        Route::post('/{report}/reject', [AdminReportController::class, 'reject'])->whereNumber('report')->name('reject');
+        Route::post('/{report}/finalize', [AdminReportController::class, 'finalize'])->whereNumber('report')->name('finalize');
     });
 
     // Area Khusus Role Admin
@@ -111,10 +133,12 @@ Route::middleware('auth')->group(function () {
 Route::get('/rute', function () {
     $user = auth()->user() ? auth()->user()->fresh() : null;
     $canAccessWomenZone = $user ? $user->canAccessWomenZone() : false;
+    $routeMode = $canAccessWomenZone ? 'women' : 'general';
 
     return view('rute', [
         'currentUser' => $user,
         'canAccessWomenZone' => $canAccessWomenZone,
+        'routeMode' => $routeMode,
         'userGender' => $user?->gender,
         'userIdentityStatus' => $user?->identity_status ?? 'unverified',
     ]);
@@ -123,12 +147,16 @@ Route::get('/rute', function () {
 Route::get('/rute/bandingkan', function () {
     $user = auth()->user() ? auth()->user()->fresh() : null;
     $canAccessWomenZone = $user ? $user->canAccessWomenZone() : false;
+    $routeMode = $canAccessWomenZone ? 'women' : 'general';
 
     return view('rute.bandingkan', [
         'currentUser' => $user,
         'canAccessWomenZone' => $canAccessWomenZone,
+        'routeMode' => $routeMode,
     ]);
 })->name('rute.bandingkan');
+
+Route::post('/api/routes/score', [\App\Http\Controllers\Api\RouteScoreApiController::class, 'score'])->name('api.routes.score');
 
 Route::view('/laporkan', 'laporkan')->name('laporkan');
 Route::view('/laporan/riwayat', 'laporan.riwayat')->name('laporan.riwayat');

@@ -19,34 +19,10 @@
 
             <!-- Card Input Form Rute -->
             <div class="route-form-card">
-                <!-- PILIHAN JENIS RUTE (HANYA DITAMPILKAN JIKA MEMILIKI AKSES WOMEN ZONE) -->
-                @if($canAccessWomenZone)
-                <div class="route-mode-selector-wrap">
-                    <div class="mode-selector-header">
-                        <span class="mode-selector-heading">PILIHAN JENIS RUTE</span>
-                        <span class="badge-verified-indicator" title="Akun perempuan telah terverifikasi identitas">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                            <span>Terverifikasi</span>
-                        </span>
-                    </div>
-                    <div class="route-mode-toggle-group" role="tablist">
-                        <button type="button" class="btn-mode-tab mode-general-tab active" id="tabModeGeneral" role="tab" aria-selected="true">
-                            <span class="tab-indicator-bar"></span>
-                            <span class="tab-icon">🛡️</span>
-                            <div class="tab-label-wrap">
-                                <strong class="tab-title">Rute Umum</strong>
-                                <small class="tab-subtitle">2 Alternatif Rute · Seluruh Pengguna</small>
-                            </div>
-                        </button>
-                        <button type="button" class="btn-mode-tab mode-women-tab" id="tabModeWomen" role="tab" aria-selected="false">
-                            <span class="tab-indicator-bar"></span>
-                            <span class="tab-icon">🌸</span>
-                            <div class="tab-label-wrap">
-                                <strong class="tab-title">Rute Perempuan <span class="badge-tab-pink">Women Zone</span></strong>
-                                <small class="tab-subtitle">Maksimal 3 Alternatif · Khusus Terverifikasi</small>
-                            </div>
-                        </button>
-                    </div>
+                @if($routeMode === 'women')
+                <div class="route-mode-active-indicator">
+                    <span aria-hidden="true">🌸</span>
+                    <span>Mode Perempuan aktif — rute dihitung dengan prioritas keamanan perjalanan</span>
                 </div>
                 @endif
 
@@ -133,12 +109,14 @@
                 <div id="perbandinganRute" class="inline-compare-section" hidden>
                     <div class="compare-card-container">
                         <div class="compare-card-header">
-                            <div>
-                                <span class="badge-compare-sub" id="badgeCmpMode">EVALUASI MULTI-RUTE</span>
-                                <h3 id="titleCmpMode">Perbandingan Rute Langsung</h3>
-                                <p class="compare-subtext" id="subtextCmpMode">Bandingkan metrik efisiensi dan indikator keamanan secara berdampingan.</p>
+                            <div style="min-width: 0; flex: 1;">
+                                <span class="badge-compare-sub" id="badgeCmpMode">{{ $routeMode === 'women' ? 'MODE PEREMPUAN · MULTI-RUTE' : 'EVALUASI MULTI-RUTE' }}</span>
+                                <h3 id="titleCmpMode" style="margin: 4px 0 2px; font-size: 15px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Perbandingan Rute Langsung</h3>
+                                <p class="compare-subtext" id="subtextCmpMode" style="margin: 0; font-size: 11.5px; color: var(--text-muted);">
+                                    {{ $routeMode === 'women' ? "Bandingkan Women's Safety Score, risiko catcalling, pelecehan, dan penerangan rute." : "Bandingkan metrik efisiensi, Safety Score umum, kriminalitas, dan fasilitas keamanan." }}
+                                </p>
                             </div>
-                            <div style="display:flex; align-items:center; gap:8px;">
+                            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                                 <a href="{{ route('rute.bandingkan') }}" class="btn-open-full-compare" id="btnBukaBandingkanDetail" title="Buka tabel perbandingan lengkap">
                                     <span>Tabel Lengkap ↗</span>
                                 </a>
@@ -151,232 +129,9 @@
                             </div>
                         </div>
 
-                        <!-- Grid Dua Kolom Perbandingan -->
-                        <div class="compare-columns-grid">
-                            <!-- Kolom Rute A -->
-                            <div class="compare-route-card rekomendasi-card" id="cardCmpA" data-index="0">
-                                <div class="crc-top">
-                                    <div class="crc-badge-row">
-                                        <span class="route-pill pill-a">Rute A</span>
-                                        <span class="tag-recommend" id="tagRecommendA">
-                                            <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                                            Direkomendasikan
-                                        </span>
-                                    </div>
-                                    <div class="crc-score-row">
-                                        <div class="score-display">
-                                            <span class="score-num" id="valScoreA">92</span>
-                                            <span class="score-den">/100</span>
-                                        </div>
-                                        <span class="level-badge level-aman" id="badgeLevelA">Aman</span>
-                                    </div>
-                                </div>
-
-                                <div class="crc-metrics">
-                                    <!-- Jarak -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                                            Jarak Perjalanan
-                                        </span>
-                                        <div class="metric-val-wrap">
-                                            <strong class="metric-val" id="valJarakA">0.0 km</strong>
-                                            <span class="tag-metric" id="tagJarakA" hidden>Terpendek</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Waktu Tempuh -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                            Estimasi Waktu
-                                        </span>
-                                        <div class="metric-val-wrap">
-                                            <strong class="metric-val highlight" id="valWaktuA">0 menit</strong>
-                                            <span class="tag-metric" id="tagWaktuA" hidden>Tercepat</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Lalu Lintas -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>
-                                            Kondisi Lalu Lintas
-                                        </span>
-                                        <span class="metric-status-badge status-lancar" id="valLalinA">Lancar (Jalur Utama)</span>
-                                    </div>
-
-                                    <!-- Pencahayaan Jalan -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                                            Pencahayaan Jalan
-                                        </span>
-                                        <span class="metric-status-badge status-lancar" id="valCahayaA">Terang (Lampu Baik)</span>
-                                    </div>
-
-                                    <!-- Jangkauan CCTV -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                                            Jangkauan CCTV
-                                        </span>
-                                        <span class="metric-status-badge status-lancar" id="valCctvA">Tinggi (Area Terpantau)</span>
-                                    </div>
-                                </div>
-
-                                <button type="button" class="btn-pick-route" id="btnPickA" data-index="0">
-                                    <span>Pilih Rute A</span>
-                                </button>
-                            </div>
-
-                            <!-- Kolom Rute B -->
-                            <div class="compare-route-card" id="cardCmpB" data-index="1">
-                                <div class="crc-top">
-                                    <div class="crc-badge-row">
-                                        <span class="route-pill pill-b">Rute B</span>
-                                        <span class="tag-recommend alt" id="tagRecommendB">Alternatif</span>
-                                    </div>
-                                    <div class="crc-score-row">
-                                        <div class="score-display">
-                                            <span class="score-num" id="valScoreB">78</span>
-                                            <span class="score-den">/100</span>
-                                        </div>
-                                        <span class="level-badge level-sedang" id="badgeLevelB">Sedang</span>
-                                    </div>
-                                </div>
-
-                                <div class="crc-metrics">
-                                    <!-- Jarak -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                                            Jarak Perjalanan
-                                        </span>
-                                        <div class="metric-val-wrap">
-                                            <strong class="metric-val" id="valJarakB">0.0 km</strong>
-                                            <span class="tag-metric" id="tagJarakB" hidden>Terpendek</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Waktu Tempuh -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                            Estimasi Waktu
-                                        </span>
-                                        <div class="metric-val-wrap">
-                                            <strong class="metric-val highlight" id="valWaktuB">0 menit</strong>
-                                            <span class="tag-metric" id="tagWaktuB" hidden>Tercepat</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Lalu Lintas -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>
-                                            Kondisi Lalu Lintas
-                                        </span>
-                                        <span class="metric-status-badge status-sedang" id="valLalinB">Padat Sedang</span>
-                                    </div>
-
-                                    <!-- Pencahayaan Jalan -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                                            Pencahayaan Jalan
-                                        </span>
-                                        <span class="metric-status-badge status-sedang" id="valCahayaB">Cukup (Titik Redup)</span>
-                                    </div>
-
-                                    <!-- Jangkauan CCTV -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                                            Jangkauan CCTV
-                                        </span>
-                                        <span class="metric-status-badge status-sedang" id="valCctvB">Sedang (Terbatas)</span>
-                                    </div>
-                                </div>
-
-                                <button type="button" class="btn-pick-route" id="btnPickB" data-index="1">
-                                    <span>Pilih Rute B</span>
-                                </button>
-                            </div>
-
-                            <!-- Kolom Rute C (Khusus Mode Perempuan Maks 3 Alternatif) -->
-                            <div class="compare-route-card" id="cardCmpC" data-index="2" style="display:none;">
-                                <div class="crc-top">
-                                    <div class="crc-badge-row">
-                                        <span class="route-pill pill-c" style="background:#f97316; color:#fff;">Rute C</span>
-                                        <span class="tag-recommend alt" id="tagRecommendC">Alternatif</span>
-                                    </div>
-                                    <div class="crc-score-row">
-                                        <div class="score-display">
-                                            <span class="score-num" id="valScoreC">-</span>
-                                            <span class="score-den">/100</span>
-                                        </div>
-                                        <span class="level-badge level-sedang" id="badgeLevelC">Sedang</span>
-                                    </div>
-                                </div>
-
-                                <div class="crc-metrics">
-                                    <!-- Jarak -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                                            Jarak Perjalanan
-                                        </span>
-                                        <div class="metric-val-wrap">
-                                            <strong class="metric-val" id="valJarakC">0.0 km</strong>
-                                            <span class="tag-metric" id="tagJarakC" hidden>Terpendek</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Waktu Tempuh -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                            Estimasi Waktu
-                                        </span>
-                                        <div class="metric-val-wrap">
-                                            <strong class="metric-val highlight" id="valWaktuC">0 menit</strong>
-                                            <span class="tag-metric" id="tagWaktuC" hidden>Tercepat</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Lalu Lintas -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>
-                                            Kondisi Lalu Lintas
-                                        </span>
-                                        <span class="metric-status-badge status-sedang" id="valLalinC">Padat Sedang</span>
-                                    </div>
-
-                                    <!-- Pencahayaan Jalan -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                                            Pencahayaan Jalan
-                                        </span>
-                                        <span class="metric-status-badge status-sedang" id="valCahayaC">Penerangan Cukup</span>
-                                    </div>
-
-                                    <!-- Jangkauan CCTV -->
-                                    <div class="metric-row">
-                                        <span class="metric-lbl">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                                            Jangkauan CCTV
-                                        </span>
-                                        <span class="metric-status-badge status-sedang" id="valCctvC">Sedang (Terbatas)</span>
-                                    </div>
-                                </div>
-
-                                <button type="button" class="btn-pick-route" id="btnPickC" data-index="2">
-                                    <span>Pilih Rute C</span>
-                                </button>
-                            </div>
+                        <!-- Daftar Kartu Perbandingan Rute (Vertikal 1 Kolom) -->
+                        <div class="compare-columns-grid" id="compareColumnsGrid">
+                            <!-- Diisi secara dinamis oleh renderPerbandingan() -->
                         </div>
 
                         <!-- Baris Ringkasan Komparasi Cepat -->
@@ -408,8 +163,8 @@
                 </p>
             </section>
 
-            @if($canAccessWomenZone)
-            <!-- Driver Monitoring Card (Khusus Mode Perempuan Terverifikasi) -->
+            @if($routeMode === 'women')
+            <!-- Driver Monitoring Card -->
             <div id="driverMonitor" class="driver-monitoring-card" style="display:none;">
                 <div class="dm-header">
                     <div class="dm-title-box">
@@ -542,7 +297,8 @@
         width: 100%;
         max-width: 1560px;
         margin: 0 auto;
-        padding: 20px clamp(16px, 2.5vw, 36px) 36px;
+        padding: 20px clamp(16px, 2.5vw, 36px) 120px;
+        box-sizing: border-box;
     }
 
     .route-split-layout {
@@ -550,9 +306,77 @@
         grid-template-columns: 420px 1fr;
         gap: 24px;
         align-items: start;
+        min-width: 0;
     }
 
-    /* Pilihan Jenis Rute (Rute Umum vs Rute Perempuan) */
+    /* Wrap & Overflow Fixes */
+    .route-split-layout > *,
+    .route-form-card,
+    .compare-card-container,
+    .kartu,
+    .kartu-atas,
+    .inputs-stack,
+    .input-line-group,
+    .input-inner-wrap,
+    .driver-monitoring-card {
+        min-width: 0;
+        box-sizing: border-box;
+        max-width: 100%;
+    }
+
+    .kartu, .kartu * {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .kartu-atas {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .nama-lokasi-line {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    #inputDari, #inputKe {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    /* Indicator Mode Rute Aktif */
+    .route-mode-active-indicator {
+        margin-bottom: 16px;
+        padding: 10px 14px;
+        background: #fdf2f8;
+        border: 1px solid #fbcfe8;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #be185d;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    /* Pilihan Jenis Rute */
     .route-mode-selector-wrap {
         margin-bottom: 16px;
     }
@@ -648,7 +472,7 @@
         text-overflow: ellipsis;
     }
 
-    /* Rute Umum - Active State (Biru) */
+    /* Tab Active State General */
     .btn-mode-tab.mode-general-tab.active {
         background: #eff6ff;
         border-color: #2563eb;
@@ -664,7 +488,7 @@
         color: #3b82f6;
     }
 
-    /* Rute Perempuan - Active State (Pink) */
+    /* Tab Active State Women */
     .btn-mode-tab.mode-women-tab.active {
         background: #fdf2f8;
         border-color: #ec4899;
@@ -1352,36 +1176,46 @@
         height: 14px;
     }
 
-    /* Grid Kolom Komparasi */
+    /* Grid Kolom Komparasi (Vertikal 1 Kolom Full-Width) */
     .compare-columns-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
         margin-bottom: 12px;
     }
 
     .compare-route-card {
-        background-color: var(--bg-canvas);
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        background-color: #ffffff;
         border: 1.5px solid var(--border-soft);
-        border-radius: 13px;
-        padding: 12px;
+        border-radius: 14px;
+        padding: 12px 14px;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        gap: 10px;
         cursor: pointer;
         transition: all 0.15s ease;
     }
 
     .compare-route-card:hover {
-        border-color: var(--primary-500);
-        background-color: #ffffff;
-        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+        border-color: var(--primary-400);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .compare-route-card.is-safest {
+        border: 2px solid #f472b6 !important;
+        background: #fffafc;
     }
 
     .compare-route-card.aktif {
-        border-color: var(--primary-600);
-        background-color: #ffffff;
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        outline: 2.5px solid #2563eb;
+        outline-offset: 2px;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.18);
     }
 
     .compare-route-card.rekomendasi-card {
@@ -1389,39 +1223,80 @@
         background: linear-gradient(180deg, #eff6ff 0%, #ffffff 50%);
     }
 
-    .compare-route-card.rekomendasi-card.aktif {
-        border-color: var(--primary-600);
-        box-shadow: 0 0 0 2.5px rgba(37, 99, 235, 0.25);
-    }
-
-    .crc-top {
-        margin-bottom: 10px;
-        padding-bottom: 8px;
-        border-bottom: 1px dashed var(--border-soft);
-    }
-
-    .crc-badge-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 4px;
-        margin-bottom: 6px;
-    }
-
     .route-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 58px;
         font-size: 11.5px;
         font-weight: 800;
-        padding: 2px 8px;
+        padding: 3px 8px;
         border-radius: 6px;
         color: #ffffff;
+        white-space: nowrap;
+        text-align: center;
     }
 
     .route-pill.pill-a {
-        background-color: var(--primary-800);
+        background-color: #2563eb;
     }
 
     .route-pill.pill-b {
         background-color: #d97706;
+    }
+
+    .route-pill.pill-c {
+        background-color: #f97316;
+    }
+
+    .badge-pink-safest {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background-color: #ec4899;
+        color: #ffffff;
+        font-size: 10px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 999px;
+        white-space: nowrap;
+        box-shadow: 0 1px 4px rgba(236, 72, 153, 0.25);
+    }
+
+    .cmp-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10.5px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+        line-height: 1.3;
+        white-space: nowrap;
+    }
+
+    .cmp-chip.chip-green {
+        background-color: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+
+    .cmp-chip.chip-yellow {
+        background-color: #fefce8;
+        color: #a16207;
+        border: 1px solid #fef08a;
+    }
+
+    .cmp-chip.chip-orange {
+        background-color: #fff7ed;
+        color: #c2410c;
+        border: 1px solid #fed7aa;
+    }
+
+    .cmp-chip.chip-red {
+        background-color: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
     }
 
     .tag-recommend {
@@ -1594,12 +1469,6 @@
         flex-shrink: 0;
     }
 
-    @media (max-width: 480px) {
-        .compare-columns-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
     .btn-compare-routes svg {
         width: 16px;
         height: 16px;
@@ -1675,7 +1544,8 @@
     .map-floating-legend {
         position: absolute;
         bottom: 16px;
-        left: 16px;
+        right: 16px;
+        left: auto;
         background-color: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(8px);
         padding: 6px 14px;
@@ -1686,8 +1556,10 @@
         font-size: 11.5px;
         font-weight: 700;
         color: var(--text-heading);
-        z-index: 1000;
+        z-index: 999;
         box-shadow: var(--shadow-sm);
+        max-width: calc(100% - 32px);
+        flex-wrap: wrap;
     }
 
     .legend-chip {
@@ -1720,7 +1592,7 @@
         }
     }
 
-/* ===== Driver Monitoring Card Styles (Mode Perempuan) ===== */
+/* ===== Driver Monitoring Card Styles ===== */
 .driver-monitoring-card {
     background: #ffffff;
     border: 1.5px solid #fbcfe8;
@@ -2063,24 +1935,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     // =====================================================
-    // PROTEKSI HAK AKSES ROLE
-    // Fitur Navigasi Rute Komuter dan Mode Perempuan murni untuk Masyarakat
-    // =====================================================
-    (function checkRoleAccess() {
-        const activeRole = localStorage.getItem('saferoad_active_role') || 'masyarakat';
-        const urlParams = new URLSearchParams(window.location.search);
-        if (!urlParams.has('stay')) {
-            if (activeRole === 'admin') {
-                window.location.replace("{{ route('admin.dashboard') }}");
-                return;
-            } else if (activeRole === 'keamanan') {
-                window.location.replace("{{ route('keamanan.dashboard') }}");
-                return;
-            }
-        }
-    })();
-
-    // =====================================================
     // PENGATURAN AWAL
     // =====================================================
     const PUSAT = { lat: -7.2575, lng: 112.7521 };
@@ -2092,16 +1946,10 @@
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     // =====================================================
-    // OTORISASI GENDER & VERIFIKASI WOMEN ZONE (DATABASE BACKEND)
+    // MODE RUTE OTOMATIS (SERVER DETERMINED)
     // =====================================================
     const serverCanAccess = @json($canAccessWomenZone ?? false);
-
-    // Mode pencarian aktif: 'general' (Rute Umum) | 'women' (Rute Perempuan)
-    let currentMode = 'general';
-    const urlParams = new URLSearchParams(window.location.search);
-    if ((urlParams.get('mode') === 'womens_zone' || urlParams.get('mode') === 'women') && serverCanAccess) {
-        currentMode = 'women';
-    }
+    const currentMode = @json($routeMode);
 
     // Variabel state rute
     let daftarGaris = [];
@@ -2115,60 +1963,9 @@
     let statusSkor = 'pending';
     let disclaimerAktif = DISCLAIMER_FALLBACK;
 
-    function updateModeTabsUI() {
-        const tabGen = $('tabModeGeneral');
-        const tabWom = $('tabModeWomen');
-        if (tabGen && tabWom) {
-            tabGen.classList.toggle('active', currentMode === 'general');
-            tabGen.setAttribute('aria-selected', currentMode === 'general');
-            tabWom.classList.toggle('active', currentMode === 'women');
-            tabWom.setAttribute('aria-selected', currentMode === 'women');
-        }
-        const badgeMode = $('badgeCmpMode');
-        const titleMode = $('titleCmpMode');
-        const subtextMode = $('subtextCmpMode');
-        if (badgeMode) badgeMode.textContent = currentMode === 'women' ? 'WOMEN ZONE · MULTI-RUTE' : 'EVALUASI MULTI-RUTE';
-        if (titleMode) titleMode.textContent = currentMode === 'women' ? 'Perbandingan Rute Perempuan' : 'Perbandingan Rute Umum';
-        if (subtextMode) subtextMode.textContent = currentMode === 'women'
-            ? 'Bandingkan Women\'s Safety Score, risiko catcalling, pelecehan, dan penerangan rute.'
-            : 'Bandingkan metrik efisiensi, Safety Score umum, kriminalitas, dan fasilitas keamanan.';
-    }
-
-    function switchMode(targetMode) {
-        if (targetMode === 'women') {
-            if (!serverCanAccess) {
-                currentMode = 'general';
-                updateModeTabsUI();
-                return false;
-            }
-
-            currentMode = 'women';
-            updateModeTabsUI();
-            updateDriverInfo(terpilihIdx);
-
-            if (ruteOSRMAktif && ruteOSRMAktif.length) {
-                renderRute(ruteOSRMAktif);
-            }
-            return true;
-        } else {
-            currentMode = 'general';
-            updateModeTabsUI();
-            updateDriverInfo(terpilihIdx);
-
-            if (ruteOSRMAktif && ruteOSRMAktif.length) {
-                renderRute(ruteOSRMAktif);
-            }
-            return true;
-        }
-    }
-        }
-    }
-
-    $('tabModeGeneral')?.addEventListener('click', () => switchMode('general'));
-    $('tabModeWomen')?.addEventListener('click', () => switchMode('women'));
-
+    @if($routeMode === 'women')
     // =====================================================
-    // FITUR MONITORING PENGEMUDI (KHUSUS MODE PEREMPUAN MASYARAKAT)
+    // FITUR MONITORING PENGEMUDI
     // =====================================================
     const mockDriverData = {
         0: { male: 14, female: 4, total: 18, label: 'Rute A' },
@@ -2178,13 +1975,7 @@
 
     function updateDriverInfo(idx = 0) {
         const card = $('driverMonitor');
-        const promo = $('driverMonitorPromo');
-
-        if (currentMode !== 'women' || !serverCanAccess) {
-            if (card) card.style.display = 'none';
-            if (promo) promo.style.display = 'none';
-            return;
-        }
+        if (!card) return;
 
         const data = mockDriverData[idx] || { male: 12, female: 3, total: 15, label: `Rute ${String.fromCharCode(65 + idx)}` };
         const maleEl = $('maleCount');
@@ -2199,16 +1990,17 @@
         if (labelEl) labelEl.textContent = `${data.label} (Terpilih)`;
         if (timeEl) timeEl.textContent = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
 
-        if (card) card.style.display = 'block';
-        if (promo) promo.style.display = 'none';
+        card.style.display = 'block';
     }
 
     // Interval refresh pembaruan pengemudi setiap 30 detik
     setInterval(() => updateDriverInfo(terpilihIdx), 30000);
     setTimeout(() => {
-        updateModeTabsUI();
         updateDriverInfo(0);
     }, 100);
+    @else
+    function updateDriverInfo(idx = 0) {}
+    @endif
 
     // =====================================================
     // MEMBUAT PETA
@@ -2420,6 +2212,102 @@
         } catch (error) {}
     }
 
+    function hitungLevelKeamanan(score) {
+        if (score === null || score === undefined || score === '' || score === '-') {
+            return { label: 'Data Belum Cukup', className: 'level-data-belum-cukup', color: '#64748b' };
+        }
+        const num = Number(score);
+        if (!Number.isFinite(num)) {
+            return { label: 'Data Belum Cukup', className: 'level-data-belum-cukup', color: '#64748b' };
+        }
+        if (num >= 80) {
+            return { label: 'Aman', className: 'level-aman', color: '#16a34a' };
+        }
+        if (num >= 60) {
+            return { label: 'Sedang', className: 'level-sedang', color: '#ca8a04' };
+        }
+        return { label: 'Rawan', className: 'level-rawan', color: '#dc2626' };
+    }
+
+    function hitungChipPenerangan(kondisi) {
+        const k = (kondisi || '').toLowerCase();
+        if (k.includes('terang') || k.includes('optimal') || k.includes('lampu baik') || (k.includes('baik') && !k.includes('kurang'))) {
+            return { text: 'Lampu Baik / Terang', className: 'chip-green' };
+        }
+        if (k.includes('minim') || k.includes('gelap') || k.includes('kurang')) {
+            return { text: 'Minim Penerangan / Gelap', className: 'chip-orange' };
+        }
+        return { text: 'Penerangan Cukup', className: 'chip-yellow' };
+    }
+
+    function hitungChipFasilitas(cctvCount, postCount) {
+        const cctv = Number(cctvCount) || 0;
+        const pos = Number(postCount) || 0;
+        const total = cctv + pos;
+        if (total >= 2) {
+            return { text: `${cctv} CCTV · ${pos} Pos`, className: 'chip-green' };
+        }
+        if (total === 1) {
+            return { text: `${cctv} CCTV · ${pos} Pos`, className: 'chip-yellow' };
+        }
+        return { text: '0 CCTV · 0 Pos Siaga', className: 'chip-orange' };
+    }
+
+    function hitungChipLaporan(incidents, isWomen) {
+        const count = Number(incidents) || 0;
+        if (isWomen) {
+            if (count === 0) {
+                return { text: '✓ Bebas Laporan', className: 'chip-green' };
+            }
+            return { text: `⚠️ ${count} Laporan Pelecehan`, className: 'chip-red' };
+        } else {
+            if (count === 0) {
+                return { text: '✓ Bebas Kriminalitas', className: 'chip-green' };
+            }
+            return { text: `⚠️ ${count} Laporan Kriminalitas`, className: 'chip-orange' };
+        }
+    }
+
+    let womenRouteLegendControl = null;
+
+    function setLegendaRutePerempuan(show) {
+        if (womenRouteLegendControl) {
+            map.removeControl(womenRouteLegendControl);
+            womenRouteLegendControl = null;
+        }
+        if (!show) return;
+
+        womenRouteLegendControl = L.control({ position: 'bottomleft' });
+        womenRouteLegendControl.onAdd = function() {
+            const div = L.DomUtil.create('div', 'women-route-legend-ctrl');
+            div.style.backgroundColor = '#ffffff';
+            div.style.padding = '8px 12px';
+            div.style.borderRadius = '10px';
+            div.style.boxShadow = '0 2px 10px rgba(0,0,0,0.12)';
+            div.style.border = '1.5px solid #fbcfe8';
+            div.style.fontSize = '11.5px';
+            div.style.fontWeight = '700';
+            div.style.color = '#334155';
+            div.style.display = 'flex';
+            div.style.flexDirection = 'column';
+            div.style.gap = '6px';
+            div.style.pointerEvents = 'none';
+
+            div.innerHTML = `
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="display:inline-block; width:20px; height:4px; background:#ec4899; border-radius:2px; box-shadow:0 0 0 1px #ffffff;"></span>
+                    <span>Rute paling aman (Zona Perempuan)</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="display:inline-block; width:20px; height:0px; border-top:3px dashed #94a3b8;"></span>
+                    <span style="color:#64748b; font-weight:600;">Alternatif</span>
+                </div>
+            `;
+            return div;
+        };
+        womenRouteLegendControl.addTo(map);
+    }
+
     function simpanDanBukaPerbandingan() {
         simpanDataPerbandinganStorage();
         togglePerbandingan();
@@ -2427,51 +2315,57 @@
 
     function pilih(i) {
         terpilihIdx = i;
+        const isWomen = currentMode === 'women';
+
         daftarGaris.forEach((garis, index) => {
             const aktif = index === i;
-            const baseColor = garis.defaultColor || (index === 0 ? '#2563eb' : '#d97706');
-            garis.setStyle({
-                color: baseColor,
-                weight: aktif ? 8 : 4,
-                opacity: aktif ? 0.95 : 0.45,
-                dashArray: aktif ? null : '6 8'
-            });
-            if (aktif) garis.bringToFront();
+            if (isWomen) {
+                if (garis.isSafestPink) {
+                    garis.setStyle({
+                        color: '#ec4899',
+                        weight: 8,
+                        opacity: 1,
+                        dashArray: null
+                    });
+                    if (garis.outlineLayer) garis.outlineLayer.bringToFront();
+                    garis.bringToFront();
+                } else {
+                    garis.setStyle({
+                        color: aktif ? '#64748b' : '#94a3b8',
+                        weight: aktif ? 8 : 5,
+                        opacity: aktif ? 0.95 : 0.7,
+                        dashArray: aktif ? null : '6 8'
+                    });
+                    if (aktif) garis.bringToFront();
+                }
+            } else {
+                const baseColor = garis.defaultColor || (index === 0 ? '#16a34a' : '#2563eb');
+                garis.setStyle({
+                    color: baseColor,
+                    weight: aktif ? 8 : 4,
+                    opacity: aktif ? 0.95 : 0.45,
+                    dashArray: aktif ? null : '6 8'
+                });
+                if (aktif) garis.bringToFront();
+            }
         });
 
         document.querySelectorAll('.kartu').forEach((kartu, index) => {
             kartu.classList.toggle('aktif', index === i);
         });
 
-        document.querySelectorAll('[data-indeks-rute]').forEach(kolom => {
-            kolom.classList.toggle('terpilih', Number(kolom.dataset.indeksRute) === i);
+        // Perbarui highlight di panel perbandingan langsung
+        document.querySelectorAll('.compare-route-card').forEach(card => {
+            const cardIdx = Number(card.dataset.index);
+            const aktif = cardIdx === i;
+            card.classList.toggle('aktif', aktif);
+            const btn = card.querySelector('.btn-pick-route');
+            if (btn) {
+                btn.classList.toggle('terpilih', aktif);
+                const letter = card.dataset.letter || '';
+                btn.innerHTML = aktif ? '<span>✓ Dipilih</span>' : `<span>Pilih Rute ${letter}</span>`;
+            }
         });
-
-        // Perbarui state kartu di panel perbandingan langsung
-        const cardA = $('cardCmpA');
-        const cardB = $('cardCmpB');
-        const cardC = $('cardCmpC');
-        if (cardA && cardB) {
-            cardA.classList.toggle('aktif', i === 0);
-            cardB.classList.toggle('aktif', i === 1);
-            if (cardC) cardC.classList.toggle('aktif', i === 2);
-
-            const btnA = $('btnPickA');
-            const btnB = $('btnPickB');
-            const btnC = $('btnPickC');
-            if (btnA) {
-                btnA.classList.toggle('terpilih', i === 0);
-                btnA.innerHTML = i === 0 ? '<span>✓ Rute Terpilih</span>' : '<span>Pilih Rute A</span>';
-            }
-            if (btnB) {
-                btnB.classList.toggle('terpilih', i === 1);
-                btnB.innerHTML = i === 1 ? '<span>✓ Rute Terpilih</span>' : '<span>Pilih Rute B</span>';
-            }
-            if (btnC) {
-                btnC.classList.toggle('terpilih', i === 2);
-                btnC.innerHTML = i === 2 ? '<span>✓ Rute Terpilih</span>' : '<span>Pilih Rute C</span>';
-            }
-        }
 
         if (modeNavigasi && daftarGaris[i]) {
             map.fitBounds(daftarGaris[i].getBounds().pad(0.1));
@@ -2485,146 +2379,175 @@
 
         const maxRoutes = currentMode === 'women' ? 3 : 2;
         const availableRoutes = ruteOSRMAktif.slice(0, maxRoutes);
-
-        const routeA = availableRoutes[0];
-        const routeB = availableRoutes[1];
-        const routeC = availableRoutes[2] || null;
-
-        const mA = konversiMetrikRute(routeA);
-        const mB = konversiMetrikRute(routeB);
-        const mC = routeC ? konversiMetrikRute(routeC) : null;
-
         const isWomen = currentMode === 'women';
 
-        // Ambil data evaluasi rute dari API hasilRuteAktif
-        const scoreDataA = hasilRuteAktif.find(r => r.id === 'A') || null;
-        const scoreDataB = hasilRuteAktif.find(r => r.id === 'B') || null;
-        const scoreDataC = hasilRuteAktif.find(r => r.id === 'C') || null;
-
-        const compA = isWomen ? (scoreDataA?.women_comparison) : (scoreDataA?.general_comparison);
-        const compB = isWomen ? (scoreDataB?.women_comparison) : (scoreDataB?.general_comparison);
-        const compC = isWomen ? (scoreDataC?.women_comparison) : (scoreDataC?.general_comparison);
-
-        // Metrik Jarak & Waktu Rute A
-        $('valJarakA').textContent = mA.jarakKm.toFixed(1) + ' km';
-        $('valWaktuA').textContent = mA.waktuMenit + ' menit';
-
-        // Metrik Jarak & Waktu Rute B
-        $('valJarakB').textContent = mB.jarakKm.toFixed(1) + ' km';
-        $('valWaktuB').textContent = mB.waktuMenit + ' menit';
-
-        const isShorterA = mA.jarakKm <= mB.jarakKm && (!mC || mA.jarakKm <= mC.jarakKm);
-        const isShorterB = mB.jarakKm < mA.jarakKm && (!mC || mB.jarakKm <= mC.jarakKm);
-        $('tagJarakA').hidden = !isShorterA;
-        $('tagJarakB').hidden = !isShorterB;
-
-        const isFasterA = mA.waktuMenit <= mB.waktuMenit && (!mC || mA.waktuMenit <= mC.waktuMenit);
-        const isFasterB = mB.waktuMenit < mA.waktuMenit && (!mC || mB.waktuMenit <= mC.waktuMenit);
-        $('tagWaktuA').hidden = !isFasterA;
-        $('tagWaktuB').hidden = !isFasterB;
-
-        // Metrik Indikator Keamanan Rute A
-        let scoreA = isWomen ? (compA?.womens_safety_score ?? 90) : (compA?.safety_score ?? 92);
-        let levelA = isWomen ? (compA?.risk_level ?? 'Aman') : (compA?.risk_level ?? 'Rendah (Aman)');
-        $('valScoreA').textContent = scoreA !== null ? scoreA : '-';
-        $('badgeLevelA').textContent = levelA;
-
-        // Metrik Indikator Keamanan Rute B
-        let scoreB = isWomen ? (compB?.womens_safety_score ?? 75) : (compB?.safety_score ?? 78);
-        let levelB = isWomen ? (compB?.risk_level ?? 'Sedang') : (compB?.risk_level ?? 'Sedang');
-        $('valScoreB').textContent = scoreB !== null ? scoreB : '-';
-        $('badgeLevelB').textContent = levelB;
-
+        // Cari rute teraman (safestIndex)
+        let safestIndex = -1;
         if (isWomen) {
-            // Informasi Khusus Perempuan
-            const incA = compA?.reports?.total_women_incidents ?? 0;
-            const incB = compB?.reports?.total_women_incidents ?? 0;
-            $('valLalinA').textContent = incA > 0 ? `${incA} Laporan Catcalling/Pelecehan` : 'Bebas Catcalling & Pelecehan';
-            $('valLalinA').className = incA > 0 ? 'metric-status-badge status-sedang' : 'metric-status-badge status-lancar';
-            $('valLalinB').textContent = incB > 0 ? `${incB} Laporan Catcalling/Pelecehan` : 'Bebas Catcalling & Pelecehan';
-            $('valLalinB').className = incB > 0 ? 'metric-status-badge status-sedang' : 'metric-status-badge status-lancar';
-
-            $('valCahayaA').textContent = compA?.facilities?.lighting_condition || 'Penerangan Cukup';
-            $('valCahayaB').textContent = compB?.facilities?.lighting_condition || 'Penerangan Cukup';
-
-            $('valCctvA').textContent = `${compA?.facilities?.cctv_count ?? 1} CCTV · ${compA?.facilities?.shelter_post_count ?? 1} Pos Siaga`;
-            $('valCctvB').textContent = `${compB?.facilities?.cctv_count ?? 0} CCTV · ${compB?.facilities?.shelter_post_count ?? 0} Pos Siaga`;
-
-            // Penanda Rute Pink
-            const isPinkA = compA?.is_pink_recommendation ?? (scoreA >= scoreB);
-            const isPinkB = compB?.is_pink_recommendation ?? (scoreB > scoreA);
-            $('tagRecommendA').hidden = !isPinkA;
-            $('tagRecommendA').innerHTML = '🌸 Paling Aman untuk Perempuan';
-            $('tagRecommendB').hidden = !isPinkB;
-            $('tagRecommendB').innerHTML = '🌸 Paling Aman untuk Perempuan';
-
-            $('cardCmpA').classList.toggle('rekomendasi-card', isPinkA);
-            $('cardCmpB').classList.toggle('rekomendasi-card', isPinkB);
+            safestIndex = availableRoutes.findIndex((r, idx) => {
+                const rId = String.fromCharCode(65 + idx);
+                const s = hasilRuteAktif.find(item => item.id === rId);
+                return s?.women_comparison?.is_pink_recommendation === true;
+            });
+            if (safestIndex === -1) {
+                let bestScore = -1;
+                let bestDur = Infinity;
+                availableRoutes.forEach((r, idx) => {
+                    const rId = String.fromCharCode(65 + idx);
+                    const s = hasilRuteAktif.find(item => item.id === rId);
+                    const sc = s?.women_comparison?.womens_safety_score ?? -1;
+                    const dur = r.duration || 0;
+                    if (sc > bestScore || (sc === bestScore && dur < bestDur)) {
+                        bestScore = sc;
+                        bestDur = dur;
+                        safestIndex = idx;
+                    }
+                });
+            }
         } else {
-            // Informasi Kriminal Umum
-            const crimesA = compA?.reports?.total_crimes_count ?? 0;
-            const crimesB = compB?.reports?.total_crimes_count ?? 0;
-            $('valLalinA').textContent = crimesA > 0 ? `${crimesA} Laporan Kriminalitas` : 'Nihil Kriminalitas';
-            $('valLalinA').className = crimesA > 0 ? 'metric-status-badge status-sedang' : 'metric-status-badge status-lancar';
-            $('valLalinB').textContent = crimesB > 0 ? `${crimesB} Laporan Kriminalitas` : 'Nihil Kriminalitas';
-            $('valLalinB').className = crimesB > 0 ? 'metric-status-badge status-sedang' : 'metric-status-badge status-lancar';
-
-            $('valCahayaA').textContent = compA?.facilities?.lighting_condition || 'Terang (Lampu Baik)';
-            $('valCahayaB').textContent = compB?.facilities?.lighting_condition || 'Cukup (Titik Redup)';
-
-            $('valCctvA').textContent = `${compA?.facilities?.cctv_count ?? 2} CCTV · ${compA?.facilities?.security_post_count ?? 1} Pos`;
-            $('valCctvB').textContent = `${compB?.facilities?.cctv_count ?? 1} CCTV · ${compB?.facilities?.security_post_count ?? 0} Pos`;
-
-            const isRecA = compA?.is_recommended ?? (scoreA >= scoreB);
-            $('tagRecommendA').hidden = !isRecA;
-            $('tagRecommendA').innerHTML = 'Rute Paling Aman';
-            $('tagRecommendB').hidden = isRecA;
-            $('tagRecommendB').innerHTML = 'Alternatif Cukup Aman';
-
-            $('cardCmpA').classList.toggle('rekomendasi-card', isRecA);
-            $('cardCmpB').classList.toggle('rekomendasi-card', !isRecA);
+            safestIndex = 0;
         }
 
-        // Tampilkan Kolom C jika Rute Perempuan memiliki 3 alternatif
-        const cardC = $('cardCmpC');
-        if (cardC) {
-            if (isWomen && routeC && mC) {
-                cardC.style.display = 'block';
-                $('valJarakC').textContent = mC.jarakKm.toFixed(1) + ' km';
-                $('valWaktuC').textContent = mC.waktuMenit + ' menit';
-                const scoreC = compC?.womens_safety_score ?? '-';
-                $('valScoreC').textContent = scoreC;
-                $('badgeLevelC').textContent = compC?.risk_level ?? 'Sedang';
+        // Kumpulkan data semua rute
+        const routesData = availableRoutes.map((route, idx) => {
+            const letter = String.fromCharCode(65 + idx);
+            const m = konversiMetrikRute(route);
+            const scoreData = hasilRuteAktif.find(r => r.id === letter) || null;
+            const comp = isWomen ? scoreData?.women_comparison : scoreData?.general_comparison;
+            const rawScore = isWomen
+                ? (comp?.womens_safety_score ?? (idx === 0 ? 90 : 75))
+                : (comp?.safety_score ?? (idx === 0 ? 92 : 78));
+            const score = (rawScore !== null && rawScore !== undefined) ? Number(rawScore) : null;
+            const lvl = hitungLevelKeamanan(score);
 
-                const isPinkC = compC?.is_pink_recommendation ?? false;
-                $('tagRecommendC').hidden = !isPinkC;
-                if (isPinkC) $('tagRecommendC').innerHTML = '🌸 Paling Aman untuk Perempuan';
-                cardC.classList.toggle('rekomendasi-card', isPinkC);
+            const isSafest = isWomen ? (idx === safestIndex) : (comp?.is_recommended ?? idx === 0);
 
-                $('valCahayaC').textContent = compC?.facilities?.lighting_condition || 'Penerangan Sedang';
-                $('valCctvC').textContent = `${compC?.facilities?.cctv_count ?? 0} CCTV · ${compC?.facilities?.shelter_post_count ?? 0} Pos`;
-                $('valLalinC').textContent = `${compC?.reports?.total_women_incidents ?? 0} Laporan Khusus`;
+            // Chips
+            const incCount = isWomen
+                ? (comp?.reports?.total_women_incidents ?? 0)
+                : (comp?.reports?.total_crimes_count ?? 0);
+            const chipInc = hitungChipLaporan(incCount, isWomen);
+
+            const chipLight = hitungChipPenerangan(comp?.facilities?.lighting_condition);
+
+            const cctv = comp?.facilities?.cctv_count ?? (idx === 0 ? 2 : 0);
+            const pos = (isWomen ? comp?.facilities?.shelter_post_count : comp?.facilities?.security_post_count) ?? (idx === 0 ? 1 : 0);
+            const chipFac = hitungChipFasilitas(cctv, pos);
+
+            return {
+                originalIndex: idx,
+                letter,
+                m,
+                score,
+                lvl,
+                isSafest,
+                chipInc,
+                chipLight,
+                chipFac
+            };
+        });
+
+        // Tentukan Terpendek & Tercepat (mendukung nilai seri)
+        const minDist = Math.min(...routesData.map(r => r.m.jarakKm));
+        const minDur = Math.min(...routesData.map(r => r.m.waktuMenit));
+        routesData.forEach(r => {
+            r.isShortest = Math.abs(r.m.jarakKm - minDist) < 0.05;
+            r.isFastest = r.m.waktuMenit === minDur;
+        });
+
+        // Urutkan rute: skor tertinggi PALING ATAS! Jika seri, durasi terpendek
+        const sortedRoutes = [...routesData].sort((a, b) => {
+            const scA = a.score ?? -1;
+            const scB = b.score ?? -1;
+            if (scB !== scA) return scB - scA;
+            return a.m.waktuMenit - b.m.waktuMenit;
+        });
+
+        // Render ke container #compareColumnsGrid
+        const container = $('compareColumnsGrid');
+        if (container) {
+            container.innerHTML = '';
+            sortedRoutes.forEach(r => {
+                const card = document.createElement('div');
+                const isAktif = (r.originalIndex === terpilihIdx);
+                card.className = `compare-route-card ${r.isSafest ? 'is-safest' : ''} ${isAktif ? 'aktif' : ''}`;
+                card.dataset.index = r.originalIndex;
+                card.dataset.letter = r.letter;
+
+                card.innerHTML = `
+                    <!-- Baris 1: Header (Rute + Badge Pink Tepat Satu | Skor + Level) -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-width:0;">
+                            <span class="route-pill pill-${r.letter.toLowerCase()}">Rute ${r.letter}</span>
+                            ${(isWomen && r.isSafest) ? '<span class="badge-pink-safest">🌸 Paling Aman untuk Perempuan</span>' : ''}
+                        </div>
+                        <div style="display:flex; align-items:baseline; gap:6px; text-align:right; flex-shrink:0;">
+                            <div class="score-display" style="font-size:16px; font-weight:800; color:${r.lvl.color};">
+                                ${r.score !== null ? r.score : '-'}<span class="score-den">/100</span>
+                            </div>
+                            <span class="level-badge ${r.lvl.className}" style="font-size:10.5px;">${r.lvl.label}</span>
+                        </div>
+                    </div>
+
+                    <!-- Baris 2: Sub-header (Jarak & Estimasi Durasi + Tag Terpendek/Tercepat) -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap;">
+                        <span style="font-size:12px; font-weight:700; color:var(--text-heading);">
+                            ${r.m.jarakKm.toFixed(1)} km · ${r.m.waktuMenit} menit
+                        </span>
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            ${r.isShortest ? '<span class="tag-metric" style="background:#e0f2fe; color:#0369a1;">Terpendek</span>' : ''}
+                            ${r.isFastest ? '<span class="tag-metric" style="background:#fef3c7; color:#b45309;">Tercepat</span>' : ''}
+                        </div>
+                    </div>
+
+                    <!-- Baris 3: Tiga Chip Kondisi -->
+                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                        <span class="cmp-chip ${r.chipInc.className}">${r.chipInc.text}</span>
+                        <span class="cmp-chip ${r.chipLight.className}">💡 ${r.chipLight.text}</span>
+                        <span class="cmp-chip ${r.chipFac.className}">🛡️ ${r.chipFac.text}</span>
+                    </div>
+
+                    <!-- Baris 4: Tombol Aksi -->
+                    <button type="button" class="btn-pick-route ${isAktif ? 'terpilih' : ''}" style="margin-top:2px;">
+                        <span>${isAktif ? '✓ Dipilih' : 'Pilih Rute ' + r.letter}</span>
+                    </button>
+                `;
+
+                card.addEventListener('click', () => pilih(r.originalIndex));
+                const btn = card.querySelector('.btn-pick-route');
+                if (btn) {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        pilih(r.originalIndex);
+                    });
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        // Ringkasan Takeaway
+        if ($('textFastestTakeaway')) {
+            const fastestRoutes = routesData.filter(c => c.isFastest);
+            if (fastestRoutes.length === routesData.length) {
+                $('textFastestTakeaway').textContent = 'Estimasi durasi waktu tempuh antar rute setara';
             } else {
-                cardC.style.display = 'none';
+                const letters = fastestRoutes.map(c => 'Rute ' + c.letter).join(' & ');
+                $('textFastestTakeaway').textContent = `${letters} memiliki waktu tempuh tercepat (${fastestRoutes[0].m.waktuMenit} menit)`;
             }
         }
-
-        // Ringkasan Komparasi
-        const selisihWaktu = Math.abs(mA.waktuMenit - mB.waktuMenit);
-        if (selisihWaktu > 0) {
-            $('textFastestTakeaway').textContent = `${isFasterA ? 'Rute A' : 'Rute B'} lebih cepat ${selisihWaktu} menit`;
-        } else {
-            $('textFastestTakeaway').textContent = 'Estimasi durasi waktu tempuh antar rute setara';
-        }
-
-        const scoreANum = typeof scoreA === 'number' ? scoreA : 0;
-        const scoreBNum = typeof scoreB === 'number' ? scoreB : 0;
-        const selisihSkor = Math.abs(scoreANum - scoreBNum);
-        if (isWomen) {
-            const isSafestPinkA = compA?.is_pink_recommendation;
-            $('textSafetyTakeaway').textContent = `${isSafestPinkA ? 'Rute A (Pink)' : 'Rute B'} memiliki skor perlindungan perempuan terbaik (+${selisihSkor} poin)`;
-        } else {
-            $('textSafetyTakeaway').textContent = `${scoreANum >= scoreBNum ? 'Rute A' : 'Rute B'} memiliki skor keamanan lebih tinggi (+${selisihSkor} poin)`;
+        if ($('textSafetyTakeaway')) {
+            if (isWomen && safestIndex >= 0) {
+                const safest = routesData.find(c => c.originalIndex === safestIndex);
+                if (safest) {
+                    $('textSafetyTakeaway').textContent = `Rute ${safest.letter} (Pink) memiliki skor perlindungan perempuan terbaik (${safest.score}/100)`;
+                }
+            } else {
+                const highest = sortedRoutes[0];
+                if (highest) {
+                    $('textSafetyTakeaway').textContent = `Rute ${highest.letter} memiliki skor keamanan tertinggi (${highest.score}/100)`;
+                }
+            }
         }
 
         pilih(terpilihIdx);
@@ -2697,6 +2620,7 @@
         daftarGaris = [];
 
         layerRute.clearLayers();
+        setLegendaRutePerempuan(false);
 
         const icA = L.divIcon({
             html: '<div style="background:#1e3a8a;color:#fff;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,0.3)">A</div>',
@@ -2710,7 +2634,7 @@
         L.marker([titikA.lat, titikA.lng], { icon: icA }).addTo(layerRute).bindPopup(titikA.nama);
         L.marker([titikB.lat, titikB.lng], { icon: icB }).addTo(layerRute).bindPopup(titikB.nama);
 
-        // Batasi jumlah alternatif rute: Tepat 2 untuk Rute Umum, Maksimal 3 untuk Rute Perempuan
+        // Batasi jumlah alternatif rute: 2 untuk general, Maksimal 3 untuk women
         const maxRoutes = currentMode === 'women' ? 3 : 2;
         const displayRoutes = (routes || []).slice(0, maxRoutes);
 
@@ -2752,37 +2676,84 @@
 
         const isWomen = currentMode === 'women';
 
+        // Tentukan tepat satu rute teraman
+        let safestIndex = -1;
+        if (isWomen) {
+            safestIndex = displayRoutes.findIndex((r, idx) => {
+                const rId = String.fromCharCode(65 + idx);
+                const s = scoreMap.get(rId);
+                return s?.women_comparison?.is_pink_recommendation === true;
+            });
+            if (safestIndex === -1 && displayRoutes.length > 0) {
+                let bestScore = -1;
+                let bestDur = Infinity;
+                displayRoutes.forEach((r, idx) => {
+                    const rId = String.fromCharCode(65 + idx);
+                    const s = scoreMap.get(rId);
+                    const sc = s?.women_comparison?.womens_safety_score ?? -1;
+                    const dur = r.duration || 0;
+                    if (sc > bestScore || (sc === bestScore && dur < bestDur)) {
+                        bestScore = sc;
+                        bestDur = dur;
+                        safestIndex = idx;
+                    }
+                });
+            }
+        } else {
+            safestIndex = 0;
+        }
+
         displayRoutes.forEach((route, index) => {
             const pts = route.geometry.coordinates.map(c => [c[1], c[0]]);
             const routeId = String.fromCharCode(65 + index);
             const scoreData = scoreMap.get(routeId);
             const comp = isWomen ? (scoreData?.women_comparison) : (scoreData?.general_comparison);
+            const isSafest = isWomen ? (index === safestIndex) : (comp?.is_recommended ?? index === 0);
 
-            let lineColor = '#2563eb';
-            let lineDash = index === 0 ? null : '6 8';
-            let isPink = false;
-
-            if (isWomen && comp) {
-                lineColor = comp.route_color || '#2563eb';
-                isPink = comp.is_pink_recommendation;
-                lineDash = isPink ? null : '6 8';
-            } else if (!isWomen && comp) {
-                lineColor = comp.route_color || (index === 0 ? '#16a34a' : '#2563eb');
-                lineDash = comp.is_recommended ? null : '6 8';
+            if (isWomen) {
+                if (isSafest) {
+                    // Teraman: outline putih weight 12 lalu garis pink #ec4899 weight 8 solid bringToFront
+                    const outline = L.polyline(pts, {
+                        color: '#ffffff',
+                        weight: 12,
+                        opacity: 1
+                    }).addTo(layerRute);
+                    const line = L.polyline(pts, {
+                        color: '#ec4899',
+                        weight: 8,
+                        opacity: 1,
+                        dashArray: null
+                    }).addTo(layerRute);
+                    line.isSafestPink = true;
+                    line.outlineLayer = outline;
+                    line.bringToFront();
+                    line.on('click', () => pilih(index));
+                    daftarGaris.push(line);
+                } else {
+                    // Alternatif lainnya: #94a3b8 weight 5 opacity 0.7 dashArray '6 8'
+                    const line = L.polyline(pts, {
+                        color: '#94a3b8',
+                        weight: 5,
+                        opacity: 0.7,
+                        dashArray: '6 8'
+                    }).addTo(layerRute);
+                    line.isSafestPink = false;
+                    line.on('click', () => pilih(index));
+                    daftarGaris.push(line);
+                }
             } else {
-                lineColor = index === 0 ? '#16a34a' : '#2563eb';
+                const lineColor = isSafest ? '#16a34a' : '#2563eb';
+                const line = L.polyline(pts, {
+                    color: lineColor,
+                    weight: isSafest ? 7 : 4,
+                    opacity: isSafest ? 0.95 : 0.55,
+                    dashArray: isSafest ? null : '6 8'
+                }).addTo(layerRute);
+                line.isSafestPink = false;
+                line.defaultColor = lineColor;
+                line.on('click', () => pilih(index));
+                daftarGaris.push(line);
             }
-
-            const line = L.polyline(pts, {
-                color: lineColor,
-                weight: (isPink || (comp && comp.is_recommended) || index === 0) ? 7 : 4,
-                opacity: (isPink || (comp && comp.is_recommended) || index === 0) ? 0.95 : 0.55,
-                dashArray: lineDash
-            }).addTo(layerRute);
-
-            line.defaultColor = lineColor;
-            line.on('click', () => pilih(index));
-            daftarGaris.push(line);
 
             const m = konversiMetrikRute(route);
 
@@ -2790,72 +2761,34 @@
             let badgeText = '';
             let badgeStyle = '';
             let scoreTitle = isWomen ? "Women's Safety Score" : 'Skor Keamanan Rute';
-            let scoreVal = isWomen ? (comp?.womens_safety_score ?? '-') : (comp?.safety_score ?? (index === 0 ? 92 : 78));
-            let scoreSub = comp ? (comp.risk_level || 'Aman').toUpperCase() : 'AMAN';
-            let scoreColor = '#16a34a';
-            let scoreBg = '#f0fdf4';
-            let scoreBorder = '#bbf7d0';
+            let scoreVal = isWomen ? (comp?.womens_safety_score ?? (index === 0 ? 90 : 75)) : (comp?.safety_score ?? (index === 0 ? 92 : 78));
+            const lvl = hitungLevelKeamanan(scoreVal);
+            let scoreSub = lvl.label.toUpperCase();
+            let scoreColor = lvl.color;
+            let scoreBg = lvl.className === 'level-aman' ? '#f0fdf4' : (lvl.className === 'level-sedang' ? '#fefce8' : '#fef2f2');
+            let scoreBorder = lvl.className === 'level-aman' ? '#bbf7d0' : (lvl.className === 'level-sedang' ? '#fef08a' : '#fecaca');
             let cardExtraStyle = '';
 
-            if (isWomen && comp) {
-                if (!comp.is_data_sufficient || comp.womens_safety_score === null) {
-                    scoreVal = '-';
-                    scoreSub = 'DATA BELUM CUKUP';
-                    badgeText = 'Data keamanan belum mencukupi';
-                    badgeStyle = 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;';
-                    scoreColor = '#64748b';
-                    scoreBg = '#f8fafc';
-                    scoreBorder = '#e2e8f0';
+            if (isWomen) {
+                if (isSafest) {
+                    badgeText = '🌸 Paling Aman untuk Perempuan';
+                    badgeStyle = 'background:#fdf2f8; color:#be185d; border:1.5px solid #fbcfe8; font-weight:800;';
+                    scoreColor = '#db2777';
+                    scoreBg = '#fdf2f8';
+                    scoreBorder = '#fbcfe8';
+                    cardExtraStyle = 'border: 2px solid #f472b6; box-shadow: 0 4px 14px rgba(236,72,153,0.18);';
                 } else {
-                    scoreVal = comp.womens_safety_score;
-                    if (isPink) {
-                        badgeText = '🌸 Paling Aman untuk Perempuan';
-                        badgeStyle = 'background:#fdf2f8; color:#be185d; border:1.5px solid #fbcfe8; font-weight:800;';
-                        scoreColor = '#db2777';
-                        scoreBg = '#fdf2f8';
-                        scoreBorder = '#fbcfe8';
-                        cardExtraStyle = 'border: 2px solid #f472b6; box-shadow: 0 4px 14px rgba(236,72,153,0.18);';
-                    } else if (comp.route_color_name === 'biru') {
-                        badgeText = 'Alternatif Cukup Aman';
-                        badgeStyle = 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; font-weight:700;';
-                        scoreColor = '#2563eb';
-                        scoreBg = '#eff6ff';
-                        scoreBorder = '#bfdbfe';
-                    } else {
-                        badgeText = 'Jalur Berisiko / Kurang Penerangan';
-                        badgeStyle = 'background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; font-weight:700;';
-                        scoreColor = '#ea580c';
-                        scoreBg = '#fff7ed';
-                        scoreBorder = '#fed7aa';
-                    }
-                }
-            } else if (!isWomen && comp) {
-                if (!comp.is_data_sufficient || comp.safety_score === null) {
-                    scoreVal = '-';
-                    scoreSub = 'DATA BELUM CUKUP';
-                    badgeText = 'Data keamanan belum mencukupi';
-                    badgeStyle = 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;';
-                    scoreColor = '#64748b';
-                    scoreBg = '#f8fafc';
-                    scoreBorder = '#e2e8f0';
-                } else {
-                    scoreVal = comp.safety_score;
-                    if (comp.is_recommended) {
-                        badgeText = 'Rute Rekomendasi (Paling Aman)';
-                        badgeStyle = 'background:#f0fdf4; color:#15803d; border:1.5px solid #bbf7d0; font-weight:800;';
-                        scoreColor = '#16a34a';
-                        scoreBg = '#f0fdf4';
-                        scoreBorder = '#bbf7d0';
-                    } else {
-                        badgeText = 'Alternatif Cukup Aman';
-                        badgeStyle = 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; font-weight:700;';
-                        scoreColor = '#2563eb';
-                        scoreBg = '#eff6ff';
-                        scoreBorder = '#bfdbfe';
-                    }
+                    badgeText = 'Alternatif';
+                    badgeStyle = 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; font-weight:700;';
                 }
             } else {
-                badgeText = index === 0 ? 'Rute Rekomendasi' : 'Alternatif';
+                if (isSafest) {
+                    badgeText = 'Rute Rekomendasi (Paling Aman)';
+                    badgeStyle = 'background:#f0fdf4; color:#15803d; border:1.5px solid #bbf7d0; font-weight:800;';
+                } else {
+                    badgeText = 'Alternatif';
+                    badgeStyle = 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; font-weight:700;';
+                }
             }
 
             const kartu = document.createElement('div');
@@ -2869,6 +2802,10 @@
             const lights = comp?.facilities?.street_lights_count ?? (index === 0 ? 3 : 1);
             const cctvs = comp?.facilities?.cctv_count ?? (index === 0 ? 2 : 1);
             const posts = (isWomen ? comp?.facilities?.shelter_post_count : comp?.facilities?.security_post_count) ?? (index === 0 ? 1 : 0);
+
+            const chipInc = hitungChipLaporan(isWomen ? totalWomen : totalCrimes, isWomen);
+            const chipLight = hitungChipPenerangan(comp?.facilities?.lighting_condition);
+            const chipFac = hitungChipFasilitas(cctvs, posts);
 
             kartu.innerHTML = `
                 <div class="kartu-atas">
@@ -2889,7 +2826,7 @@
                         <div>
                             <strong style="display:block; font-size:12px; color:${scoreColor}; line-height:1.2;">${scoreTitle}</strong>
                             <small style="font-size:11px; color:#475569;">
-                                ${isWomen ? (isPink ? 'Rekomendasi terbaik berdasarkan data risiko wanita' : 'Alternatif jalur perempuan') : (comp?.facilities?.lighting_condition || 'Penerangan cukup & tercover CCTV')}
+                                ${isWomen ? (isSafest ? 'Rekomendasi terbaik berdasarkan data risiko wanita' : 'Alternatif jalur perjalanan') : (comp?.facilities?.lighting_condition || 'Penerangan cukup & tercover CCTV')}
                             </small>
                         </div>
                     </div>
@@ -2899,29 +2836,23 @@
                     </div>
                 </div>
 
-                <div class="chips">
-                    ${isWomen ? `
-                        <span class="chip" style="${totalWomen > 0 ? 'background:#fef2f2; color:#dc2626; border-color:#fecaca;' : ''}">
-                            ${totalWomen > 0 ? `⚠️ ${totalWomen} Laporan Pelecehan/Catcalling` : '✨ Bebas Catcalling'}
-                        </span>
-                        <span class="chip">💡 ${lights} Lampu Jalan</span>
-                        <span class="chip">📹 ${cctvs} CCTV</span>
-                        <span class="chip">🛡️ ${posts} Pos Siaga</span>
-                    ` : `
-                        <span class="chip" style="${totalCrimes > 0 ? 'background:#fff7ed; color:#c2410c;' : ''}">
-                            ${totalCrimes > 0 ? `⚠️ ${totalCrimes} Kriminalitas Umum` : '✨ Nihil Kriminalitas'}
-                        </span>
-                        <span class="chip">💡 ${lights} Lampu (${comp?.facilities?.lighting_condition || 'Baik'})</span>
-                        <span class="chip">📹 ${cctvs} CCTV</span>
-                        <span class="chip">🛡️ ${posts} Pos Keamanan</span>
-                    `}
+                <div class="chips" style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <span class="cmp-chip ${chipInc.className}">${chipInc.text}</span>
+                    <span class="cmp-chip ${chipLight.className}">💡 ${chipLight.text}</span>
+                    <span class="cmp-chip ${chipFac.className}">🛡️ ${chipFac.text}</span>
                 </div>
             `;
             kartu.addEventListener('click', () => pilih(index));
             box.appendChild(kartu);
         });
 
-        if (daftarGaris.length) {
+        // Tampilkan/sembunyikan legenda khusus rute perempuan di sudut kiri bawah peta
+        setLegendaRutePerempuan(isWomen && displayRoutes.length > 1);
+
+        // Fokus ke rute teraman jika dalam mode aman wanita
+        if (isWomen && safestIndex >= 0 && daftarGaris[safestIndex]) {
+            map.fitBounds(daftarGaris[safestIndex].getBounds().pad(0.15));
+        } else if (daftarGaris.length) {
             map.fitBounds(L.featureGroup(daftarGaris).getBounds().pad(0.12));
         }
 
@@ -3064,25 +2995,6 @@
         panel.style.display = 'none';
         $('btnBandingkanText').textContent = 'Bandingkan Rute A & B';
         $('btnBandingkan').classList.remove('aktif');
-    });
-
-    $('cardCmpA').addEventListener('click', () => pilih(0));
-    $('cardCmpB').addEventListener('click', () => pilih(1));
-    $('cardCmpC')?.addEventListener('click', () => pilih(2));
-
-    $('btnPickA').addEventListener('click', e => {
-        e.stopPropagation();
-        pilih(0);
-    });
-
-    $('btnPickB').addEventListener('click', e => {
-        e.stopPropagation();
-        pilih(1);
-    });
-
-    $('btnPickC')?.addEventListener('click', e => {
-        e.stopPropagation();
-        pilih(2);
     });
 
     $('btnBukaBandingkanDetail')?.addEventListener('click', () => {

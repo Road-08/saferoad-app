@@ -15,7 +15,8 @@ class RouteComparisonController extends Controller
             'mode'  => 'nullable|string|in:general,women',
         ]);
 
-        $mode = $validated['mode'] ?? 'general';
+        $user = $request->user();
+        $mode = ($user && $user->canAccessWomenZone()) ? 'women' : 'general';
         $routes = Rute::whereIn('route_id', $validated['ids'])->get();
 
         $tercepat  = $routes->sortBy('duration')->first();

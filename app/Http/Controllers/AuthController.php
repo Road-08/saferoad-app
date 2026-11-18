@@ -28,7 +28,7 @@ class AuthController extends Controller
                 return redirect()->route('keamanan.dashboard');
             }
             if ($user->canAccessWomenZone()) {
-                return redirect()->route('rute', ['mode' => 'women']);
+                return redirect()->route('rute');
             }
             return redirect()->route('rute');
         }
@@ -149,7 +149,7 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         if ($user->canAccessWomenZone()) {
-            return redirect()->route('rute', ['mode' => 'women']);
+            return redirect()->route('rute');
         }
 
         return redirect()->route('rute');
@@ -181,7 +181,7 @@ class AuthController extends Controller
         }
 
         if ($user->canAccessWomenZone()) {
-            return redirect()->intended(route('rute', ['mode' => 'women']));
+            return redirect()->intended(route('rute'));
         }
 
         return redirect()->intended(route('rute'));

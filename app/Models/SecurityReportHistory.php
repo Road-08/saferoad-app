@@ -11,6 +11,8 @@ class SecurityReportHistory extends Model
         'security_report_id',
         'status',
         'note',
+        'actor_id',
+        'actor_role',
     ];
 
     public function report(): BelongsTo
@@ -19,5 +21,10 @@ class SecurityReportHistory extends Model
             SecurityReport::class,
             'security_report_id'
         );
+    }
+
+    public function actor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'actor_id');
     }
 }

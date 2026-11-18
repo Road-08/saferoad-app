@@ -129,7 +129,7 @@
                         <small>Penerangan optimal · Terpantau CCTV · Bebas catcalling</small>
                     </div>
                 </div>
-                <a href="{{ url('/rute?mode=womens_zone') }}" class="btn-open-route" style="background:#fdf2f8; color:#be185d; border:1px solid #fbcfe8; font-weight:800;">
+                <a href="{{ route('rute') }}" class="btn-open-route" style="background:#fdf2f8; color:#be185d; border:1px solid #fbcfe8; font-weight:800;">
                     🌸 Cari & Bandingkan Rute Perempuan →
                 </a>
             </div>

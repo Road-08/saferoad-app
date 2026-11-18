@@ -88,7 +88,10 @@
                         </div>
                         <span>Waktu Kejadian</span>
                     </div>
-                    <input type="datetime-local" id="incidentTime" name="incident_time" class="form-input-text" required>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="datetime-local" id="incidentTime" name="incident_time" class="form-input-text" required style="flex: 1;">
+                        <button type="button" id="btnNow" class="btn-time-now" style="padding: 10px 14px; background: var(--primary-50); color: var(--primary-700); border: 1px solid var(--primary-200); border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap;">Sekarang</button>
+                    </div>
                 </div>
 
                 {{-- Alamat / Patokan Lokasi --}}
@@ -916,7 +919,50 @@
         toast.style.background = type === 'success' ? '#16a34a' : type === 'error' ? '#dc2626' : '#d97706';
         toast.hidden = false;
         clearTimeout(toast._t);
-        toast._t = setTimeout(() => { toast.hidden = true; }, 3500);
+        toast._t = setTimeout(() => { toast.hidden = true; }, 4000);
+    }
+
+    /* ---- Waktu Kejadian Otomatis ---- */
+    let userModifiedTime = false;
+    function formatDateTimeLocal(d) {
+        const pad = n => String(n).padStart(2, '0');
+        const year = d.getFullYear();
+        const month = pad(d.getMonth() + 1);
+        const day = pad(d.getDate());
+        const hours = pad(d.getHours());
+        const minutes = pad(d.getMinutes());
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    function updateTimeLimitsAndDefault() {
+        const now = new Date();
+        const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+        const incidentTimeInput = $('incidentTime');
+        if (incidentTimeInput) {
+            incidentTimeInput.max = formatDateTimeLocal(now);
+            incidentTimeInput.min = formatDateTimeLocal(sevenDaysAgo);
+            if (!userModifiedTime) {
+                incidentTimeInput.value = formatDateTimeLocal(now);
+            }
+        }
+    }
+    updateTimeLimitsAndDefault();
+    const timeInterval = setInterval(updateTimeLimitsAndDefault, 60000);
+
+    const incidentTimeEl = $('incidentTime');
+    if (incidentTimeEl) {
+        incidentTimeEl.addEventListener('input', () => {
+            userModifiedTime = true;
+        });
+    }
+
+    const btnNow = $('btnNow');
+    if (btnNow) {
+        btnNow.addEventListener('click', () => {
+            userModifiedTime = false;
+            updateTimeLimitsAndDefault();
+            showToast('Waktu kejadian disetel ke waktu sekarang', 'success');
+        });
     }
 
     /* ---- Char Counter ---- */
@@ -1029,28 +1075,16 @@
             const data = await resp.json();
             if (resp.ok && data.success) {
                 reportResult = data.data;
-                showToast(`✅ Laporan terkirim ke server! Kode: ${reportResult.report_code}`, 'success');
+                showToast(data.message || `Laporan ${reportResult.report_code} terkirim.`, 'success');
             } else {
-                throw new Error(data.message || 'Gagal mengirim');
+                const errMsg = data.message || (data.errors ? Object.values(data.errors).flat().join(', ') : 'Gagal mengirim');
+                throw new Error(errMsg);
             }
         } catch (err) {
-            // Fallback simpan ke local storage dengan format lengkap
-            const fakeCode = 'SR-' + Math.floor(1000 + Math.random() * 9000);
-            reportResult = {
-                report_code: fakeCode,
-                category: payload.category,
-                description: payload.description,
-                address: payload.address,
-                latitude: payload.latitude,
-                longitude: payload.longitude,
-                status: 'submitted',
-                created_at: new Date().toISOString(),
-                is_demo: true
-            };
-            showToast(`✅ Laporan dicatat (Simulasi Front-End): ${fakeCode}`, 'success');
+            showToast(err.message || 'Gagal mengirim laporan.', 'error');
         }
 
-        // Simpan ke riwayat lokal
+        // Simpan ke riwayat lokal jika sukses
         if (reportResult) {
             try {
                 const list = JSON.parse(localStorage.getItem('saferoad_my_reports') || '[]');
@@ -1060,6 +1094,8 @@
         }
 
         $('incidentForm').reset();
+        userModifiedTime = false;
+        updateTimeLimitsAndDefault();
         $('photoPreview').src = '';
         $('photoPreviewWrap').style.display = 'none';
         $('photoDropzone').style.display = '';
@@ -1070,6 +1106,7 @@
         $('charCount').textContent = '0';
 
         btn.disabled = false;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Kirim Laporan`;
         btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Kirim Laporan`;
     });
 })();

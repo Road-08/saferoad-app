@@ -36,7 +36,7 @@ class AuthenticationTest extends TestCase
             'nik' => $nikPerempuan,
         ]);
 
-        $response->assertRedirect(route('rute', ['mode' => 'women']));
+        $response->assertRedirect(route('rute'));
         $this->assertAuthenticated();
         $this->assertDatabaseHas('users', [
             'name' => 'Rina Aman',
@@ -196,7 +196,7 @@ class AuthenticationTest extends TestCase
         $this->post('/login', [
             'email' => 'wanita@saferoad.test',
             'password' => 'Password123',
-        ])->assertRedirect(route('rute', ['mode' => 'women']));
+        ])->assertRedirect(route('rute'));
 
         $this->post('/logout');
 

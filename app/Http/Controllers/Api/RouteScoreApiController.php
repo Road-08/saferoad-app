@@ -20,23 +20,17 @@ class RouteScoreApiController extends Controller
             'routes.*.id' => ['required'],
             'routes.*.coordinates' => ['required', 'array', 'min:2'],
             'routes.*.coordinates.*' => ['required', 'array', 'min:2'],
+            'routes.*.duration' => ['nullable', 'numeric'],
+            'routes.*.distance' => ['nullable', 'numeric'],
             'mode' => ['nullable', 'string', 'in:general,women,all'],
         ], [
             'routes.required' => 'Data rute harus disertakan.',
             'routes.*.coordinates.required' => 'Koordinat rute tidak boleh kosong.',
         ]);
 
-        $mode = $validated['mode'] ?? 'all';
-
-        // Validasi Otorisasi Backend untuk Women Zone
-        if ($mode === 'women' && $request->user()) {
-            if ($request->user()->isMale()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Akses ditolak. Fitur Women Zone khusus diperuntukkan bagi pengguna perempuan.',
-                ], 403);
-            }
-        }
+        // Mode sepenuhnya ditentukan oleh server berdasarkan akses Women Zone user
+        $user = $request->user();
+        $mode = ($user && $user->canAccessWomenZone()) ? 'women' : 'general';
 
         $calculated = $this->routeSafetyService->calculateScores($validated['routes'], $mode);
 

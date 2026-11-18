@@ -1163,7 +1163,7 @@
                 <!-- Field Email / ID Petugas / Email Admin -->
                 <div class="form-field">
                     <label for="email" id="labelEmail">
-                        {{ $isRegister ? 'Alamat Email' : 'Alamat Email Warga' }}
+                        {{ $isRegister ? 'Alamat Email' : 'Alamat Email ' }}
                     </label>
                     <div class="input-group">
                         <span class="input-icon-left" aria-hidden="true">

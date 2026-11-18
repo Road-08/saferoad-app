@@ -455,5 +455,7 @@ class DatabaseSeeder extends Seeder
         foreach ($environmentalConditions as $env) {
             EnvironmentalCondition::firstOrCreate(['location_name' => $env['location_name']], $env);
         }
+
+        $this->call(ReportWorkflowSeeder::class);
     }
 }

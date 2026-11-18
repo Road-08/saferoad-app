@@ -36,35 +36,13 @@ class IncidentFollowUpController extends Controller
     }
 
     /**
-     * Petugas keamanan melakukan tindak lanjut terhadap laporan.
+     * Petugas keamanan melakukan tindak lanjut terhadap laporan (dinonaktifkan).
      */
     public function followUp(Request $request, SecurityReport $report): JsonResponse
     {
-        $validated = $request->validate([
-            'status' => ['required', Rule::in(['officer_check', 'map_updated', 'rejected'])],
-            'note' => ['required', 'string', 'max:500'],
-        ], [
-            'status.required' => 'Status tindak lanjut wajib dipilih.',
-            'note.required' => 'Catatan investigasi atau tindak lanjut petugas wajib diisi.',
-        ]);
-
-        $officer = $request->user();
-
-        DB::transaction(function () use ($report, $validated, $officer) {
-            $report->update([
-                'status' => $validated['status'],
-            ]);
-
-            $report->histories()->create([
-                'status' => $validated['status'],
-                'note' => "[Petugas: {$officer->name}] {$validated['note']}",
-            ]);
-        });
-
         return response()->json([
-            'success' => true,
-            'message' => 'Status laporan berhasil diperbarui dan catatan tindak lanjut tersimpan.',
-            'data' => $report->fresh(['histories', 'user:id,name,email']),
-        ]);
+            'success' => false,
+            'message' => 'Tindak lanjut langsung dinonaktifkan. Silakan gunakan konfirmasi pemeriksaan petugas pada alur validasi.',
+        ], 403);
     }
 }

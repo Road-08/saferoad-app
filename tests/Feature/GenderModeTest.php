@@ -78,23 +78,22 @@ class GenderModeTest extends TestCase
             'nik' => '3201015505950002',
         ]);
 
-        $response->assertRedirect(route('rute', ['mode' => 'women']));
+        $response->assertRedirect(route('rute'));
 
         $user = User::where('email', 'siti@example.com')->firstOrFail();
         $this->assertEquals('perempuan', $user->gender);
         $this->assertEquals('verified', $user->identity_status);
         $this->assertTrue($user->canAccessWomenZone());
 
-        // Halaman rute menampilkan akses mode perempuan
+        // Halaman rute otomatis mengaktifkan mode perempuan tanpa opsi rute umum
         $this->actingAs($user)->get('/rute')
             ->assertOk()
-            ->assertSee('PILIHAN JENIS RUTE')
-            ->assertSee('Rute Perempuan');
+            ->assertSee('Mode Perempuan aktif')
+            ->assertDontSee('Rute Umum');
 
-        // Akses langsung ke Women's Zone diizinkan
+        // Akses langsung ke Women's Zone diizinkan untuk perempuan terverifikasi
         $this->actingAs($user)->get('/womens-zone')
-            ->assertOk()
-            ->assertSee('Mode Perempuan Terverifikasi Aktif ✨');
+            ->assertOk();
     }
 
     public function test_registration_with_male_nik_restricts_womens_zone(): void
@@ -113,19 +112,27 @@ class GenderModeTest extends TestCase
         $this->assertEquals('laki-laki', $user->gender);
         $this->assertFalse($user->canAccessWomenZone());
 
-        // Halaman rute untuk laki-laki tidak menampilkan toggle Rute Perempuan
+        // Halaman rute untuk laki-laki tidak menampilkan mode perempuan maupun driver monitor
         $ruteRes = $this->actingAs($user)->get('/rute')->assertOk();
-        $ruteRes->assertDontSee('id="tabModeWomen"', false);
+        $ruteRes->assertDontSee('Rute Perempuan')
+            ->assertDontSee('Mode Perempuan')
+            ->assertDontSee('driverMonitor');
 
-        // Akses ke Women's Zone diblokir dan dialihkan ke /rute
+        // Tamu (guest) juga tidak melihat elemen perempuan
+        $this->post('/logout');
+        $guestRes = $this->get('/rute')->assertOk();
+        $guestRes->assertDontSee('Rute Perempuan')
+            ->assertDontSee('Mode Perempuan')
+            ->assertDontSee('driverMonitor');
+
+        // Akses ke Women's Zone dialihkan ke /rute
         $wzRes = $this->actingAs($user)->get('/womens-zone');
         $wzRes->assertRedirect(route('rute'));
-        $wzRes->assertSessionHas('error', 'Zona Perempuan khusus pengguna perempuan terverifikasi.');
     }
 
     public function test_login_flow_redirects_based_on_gender(): void
     {
-        // 1. Login user perempuan -> /rute?mode=women
+        // 1. Login user perempuan -> /rute
         $female = User::factory()->create([
             'role' => 'masyarakat',
             'gender' => 'perempuan',
@@ -137,7 +144,7 @@ class GenderModeTest extends TestCase
         $this->post('/login', [
             'email' => 'female.user@test.com',
             'password' => 'Secret123',
-        ])->assertRedirect(route('rute', ['mode' => 'women']));
+        ])->assertRedirect(route('rute'));
 
         $this->post('/logout');
 
@@ -173,5 +180,49 @@ class GenderModeTest extends TestCase
                 'password' => 'Secret123',
             ])
             ->assertRedirect(route('rute'));
+    }
+
+    public function test_route_score_endpoint_enforces_server_gender_mode(): void
+    {
+        $male = User::factory()->create([
+            'role' => 'masyarakat',
+            'gender' => 'laki-laki',
+            'identity_status' => 'verified',
+        ]);
+
+        // Laki-laki memanggil skor dengan mode=women -> server tetap menghitung general
+        $resMale = $this->actingAs($male)->postJson('/api/routes/score', [
+            'routes' => [
+                [
+                    'id' => 'rute_1',
+                    'coordinates' => [[112.7290, -7.3160], [112.7280, -7.3150]],
+                ],
+            ],
+            'mode' => 'women',
+        ]);
+
+        $resMale->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('mode', 'general');
+
+        $female = User::factory()->create([
+            'role' => 'masyarakat',
+            'gender' => 'perempuan',
+            'identity_status' => 'verified',
+        ]);
+
+        // Perempuan terverifikasi -> server otomatis menghitung mode women
+        $resFemale = $this->actingAs($female)->postJson('/api/routes/score', [
+            'routes' => [
+                [
+                    'id' => 'rute_1',
+                    'coordinates' => [[112.7290, -7.3160], [112.7280, -7.3150]],
+                ],
+            ],
+        ]);
+
+        $resFemale->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('mode', 'women');
     }
 }

@@ -381,6 +381,7 @@ class RouteSafetyService
 
             $results[] = [
                 'id' => $routeId,
+                'duration' => (float) ($route['duration'] ?? ($route['duration_s'] ?? 0)),
                 'score' => $generalScore,
                 'level' => ($generalScore >= 80) ? 'aman' : (($generalScore >= 60) ? 'sedang' : (($generalScore === null) ? 'data_belum_cukup' : 'rawan')),
                 'factors' => $generalFactors,
@@ -537,11 +538,21 @@ class RouteSafetyService
                 $validRanks[] = [
                     'index' => $idx,
                     'score' => $r['women_comparison']['womens_safety_score'],
+                    'duration' => (float) ($r['duration'] ?? 0),
                 ];
             }
         }
 
-        usort($validRanks, fn ($a, $b) => $b['score'] <=> $a['score']);
+        // Tepat satu rute teraman: skor perempuan tertinggi, jika seri durasi terpendek
+        usort($validRanks, function ($a, $b) {
+            if ($b['score'] !== $a['score']) {
+                return $b['score'] <=> $a['score'];
+            }
+            if ($a['duration'] > 0 && $b['duration'] > 0) {
+                return $a['duration'] <=> $b['duration'];
+            }
+            return 0;
+        });
 
         foreach ($results as $idx => &$r) {
             if (! $r['women_comparison']['is_data_sufficient'] || $r['women_comparison']['womens_safety_score'] === null) {
@@ -565,7 +576,7 @@ class RouteSafetyService
                 }
             }
 
-            if ($pos === 0 && $r['women_comparison']['womens_safety_score'] >= 50) {
+            if ($pos === 0) {
                 $r['women_comparison']['is_pink_recommendation'] = true;
                 $r['women_comparison']['route_color'] = '#ec4899'; // PINK
                 $r['women_comparison']['route_color_name'] = 'pink';
@@ -575,7 +586,7 @@ class RouteSafetyService
                 $r['womens_zone']['route_color'] = '#ec4899';
                 $r['womens_zone']['route_color_name'] = 'pink';
                 $r['womens_zone']['badge_label'] = 'Paling Aman untuk Perempuan';
-            } elseif ($pos === 1 || ($pos === 0 && $r['women_comparison']['womens_safety_score'] < 50)) {
+            } elseif ($pos === 1) {
                 $r['women_comparison']['is_pink_recommendation'] = false;
                 $r['women_comparison']['route_color'] = '#2563eb'; // BIRU
                 $r['women_comparison']['route_color_name'] = 'biru';

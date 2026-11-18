@@ -55,6 +55,11 @@
             padding: 0;
         }
 
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
         body {
             min-height: 100vh;
             background-color: var(--bg-canvas);
@@ -122,12 +127,21 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            overflow-x: auto;
+            max-width: 100%;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .nav-center-menu::-webkit-scrollbar {
+            display: none;
         }
 
         .nav-role-group {
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            flex-wrap: nowrap;
         }
 
         .nav-link-pill {
@@ -137,6 +151,8 @@
             font-weight: 600;
             color: var(--text-body);
             transition: all 0.15s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .nav-link-pill:hover {
@@ -335,7 +351,16 @@
 <body>
 
     <header class="topbar">
-        <a class="brand-link" href="{{ auth()->check() ? route('dashboard') : route('home') }}" aria-label="SafeRoad Beranda">
+        @php
+            $currentRole = auth()->user()?->role ?? 'masyarakat';
+            $homeRoute = match ($currentRole) {
+                'admin' => route('admin.dashboard'),
+                'keamanan' => route('keamanan.dashboard'),
+                default => route('home'),
+            };
+        @endphp
+
+        <a class="brand-link" href="{{ $homeRoute }}" aria-label="SafeRoad Beranda">
             <span class="brand-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -347,77 +372,93 @@
         </a>
 
         <nav class="nav-center-menu" aria-label="Menu Utama">
-            {{-- Navigasi Role: Masyarakat --}}
-            <div id="navGroupMasyarakat" class="nav-role-group">
-                @auth
-                    <a href="{{ route('dashboard') }}" class="nav-link-pill {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                        Dashboard
-    
-                @endauth
-                <a href="{{ url('/rute') }}" class="nav-link-pill {{ request()->is('rute*') ? 'active' : '' }}">
-                    Cari Rute
-                </a>
+            @if($currentRole === 'admin')
+                {{-- Navigasi Role: Administrator --}}
+                <div id="navGroupAdmin" class="nav-role-group">
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link-pill {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" style="{{ request()->routeIs('admin.dashboard') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
+                        ⚡ Dashboard
+                    </a>
+                    <a href="{{ route('admin.validasi') }}" class="nav-link-pill {{ request()->routeIs('admin.validasi') ? 'active' : '' }}" style="{{ request()->routeIs('admin.validasi') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
+                        ⚖️ Validasi Laporan
+                        <span id="navBadgePendingValidation" style="display:none; background:#f59e0b; color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:999px; margin-left:4px;" title="Menunggu Validasi">0</span>
+                        <span id="navBadgeReadyToFinalize" style="display:none; background:#10b981; color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:999px; margin-left:4px;" title="Siap Difinalisasi">0</span>
+                    </a>
+                    <a href="{{ route('admin.peta') }}" class="nav-link-pill {{ request()->routeIs('admin.peta') ? 'active' : '' }}" style="{{ request()->routeIs('admin.peta') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
+                        🗺️ Pantau Peta
+                    </a>
+                    <a href="{{ route('admin.statistik') }}" class="nav-link-pill {{ request()->routeIs('admin.statistik') ? 'active' : '' }}" style="{{ request()->routeIs('admin.statistik') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
+                        📊 Statistik &amp; Rekap
+                    </a>
+                    <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
+                        🚨 Pengaturan Darurat
+                    </a>
+                </div>
+            @elseif($currentRole === 'keamanan')
+                {{-- Navigasi Role: Petugas Keamanan --}}
+                <div id="navGroupKeamanan" class="nav-role-group">
+                    <a href="{{ route('keamanan.dashboard') }}" class="nav-link-pill {{ request()->is('keamanan*') ? 'active' : '' }}" style="background-color: #0f2d59; color: #fff; font-weight: 700;">
+                        🛡️ Dashboard Keamanan
+                    </a>
+                    <a href="{{ route('keamanan.dashboard') }}#tabelAduan" class="nav-link-pill">
+                        📋 Laporan Masuk &amp; TKP
+                        <span id="navBadgeKeamananUnconfirmed" style="display:none; background:#f59e0b; color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:999px; margin-left:4px;" title="Belum Diperiksa">0</span>
+                    </a>
+                    <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
+                        🚨 Hotline Siaga
+                    </a>
+                </div>
+            @else
+                {{-- Navigasi Role: Masyarakat --}}
+                <div id="navGroupMasyarakat" class="nav-role-group">
+                    @auth
+                        <a href="{{ route('dashboard') }}" class="nav-link-pill {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                            Dashboard
+                        </a>
+                    @endauth
+                    <a href="{{ url('/rute') }}" class="nav-link-pill {{ request()->is('rute*') ? 'active' : '' }}">
+                        Cari Rute
+                    </a>
 
-                @if(auth()->user()?->canAccessWomenZone())
-                <a href="{{ url('/womens-zone') }}" id="navLinkWomensZone" class="nav-link-pill {{ request()->is('womens-zone*') ? 'active' : '' }}" style="color: {{ request()->is('womens-zone*') ? '#fff' : '#be185d' }}; background-color: {{ request()->is('womens-zone*') ? '#be185d' : 'rgba(251, 207, 232, 0.4)' }}; font-weight: 700;">
-                    ♀ Women's Zone
-                </a>
-                @endif
+                    <a href="{{ url('/laporkan') }}" class="nav-link-pill {{ request()->is('laporkan*') ? 'active' : '' }}">
+                        Laporkan
+                    </a>
 
-                <a href="{{ url('/laporkan') }}" class="nav-link-pill {{ request()->is('laporkan*') ? 'active' : '' }}">
-                    Laporkan
+                    <a href="{{ url('/laporan/riwayat') }}" class="nav-link-pill {{ request()->is('laporan/riwayat*') ? 'active' : '' }}">
+                        Riwayat
+                    </a>
 
-                <a href="{{ url('/laporan/riwayat') }}" class="nav-link-pill {{ request()->is('laporan/riwayat*') ? 'active' : '' }}">
-                    Riwayat
+                    <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
+                        🚨 Darurat
+                    </a>
 
-                <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
-                    🚨 Darurat
-
-                <a href="{{ url('/profil') }}" class="nav-link-pill {{ request()->is('profil*') || request()->is('verifikasi*') ? 'active' : '' }}">
-                    Profil
-
-            </div>
-
-            {{-- Navigasi Role: Petugas Keamanan --}}
-            <div id="navGroupKeamanan" class="nav-role-group" style="display: none;">
-                <a href="{{ route('keamanan.dashboard') }}" class="nav-link-pill {{ request()->is('keamanan*') ? 'active' : '' }}" style="background-color: #0f2d59; color: #fff; font-weight: 700;">
-                    🛡️ Dashboard Keamanan
-
-                <a href="{{ route('keamanan.dashboard') }}#tabelAduan" class="nav-link-pill">
-                    📋 Laporan Masuk &amp; TKP
-
-                <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
-                    🚨 Hotline Siaga
-
-            </div>
-
-            {{-- Navigasi Role: Administrator (Halaman Terpisah) --}}
-            <div id="navGroupAdmin" class="nav-role-group" style="display: none;">
-                <a href="{{ route('admin.dashboard') }}" class="nav-link-pill {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" style="{{ request()->routeIs('admin.dashboard') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
-                    ⚡ Dashboard
-                </a>
-
-
-
-
-                <a href="{{ route('admin.peta') }}" class="nav-link-pill {{ request()->routeIs('admin.peta') ? 'active' : '' }}" style="{{ request()->routeIs('admin.peta') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
-                    🗺️ Pantau Peta
-
-                <a href="{{ route('admin.statistik') }}" class="nav-link-pill {{ request()->routeIs('admin.statistik') ? 'active' : '' }}" style="{{ request()->routeIs('admin.statistik') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
-                    📊 Statistik &amp; Rekap
-
-                <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
-                    🚨 Pengaturan Darurat
-
-            </div>
+                    @auth
+                        <a href="{{ url('/profil') }}" class="nav-link-pill {{ request()->is('profil*') ? 'active' : '' }}">
+                            Profil
+                        </a>
+                    @endauth
+                </div>
+            @endif
         </nav>
 
         <div class="top-user-actions">
-            <!-- Badge Role Aktif Pengguna (Ditentukan saat login di awal) -->
-            <div class="active-role-badge role-badge-masyarakat" id="topActiveRoleBadge" title="Role Anda yang aktif dari login">
-                <span class="role-badge-dot"></span>
-                <span id="topActiveRoleText">👤 Masyarakat</span>
-            </div>
+            <!-- Badge Role Aktif Pengguna (Ditentukan 100% dari Server) -->
+            @if($currentRole === 'admin')
+                <div class="active-role-badge role-badge-admin" id="topActiveRoleBadge" title="Role Anda: Administrator">
+                    <span class="role-badge-dot"></span>
+                    <span id="topActiveRoleText">⚡ Administrator</span>
+                </div>
+            @elseif($currentRole === 'keamanan')
+                <div class="active-role-badge role-badge-keamanan" id="topActiveRoleBadge" title="Role Anda: Petugas Keamanan">
+                    <span class="role-badge-dot"></span>
+                    <span id="topActiveRoleText">🛡️ Petugas Keamanan</span>
+                </div>
+            @else
+                <div class="active-role-badge role-badge-masyarakat" id="topActiveRoleBadge" title="Role Anda: Masyarakat">
+                    <span class="role-badge-dot"></span>
+                    <span id="topActiveRoleText">👤 Masyarakat</span>
+                </div>
+            @endif
+
             @auth
                 <div class="user-pill" title="{{ auth()->user()->email }}">
                     <div class="avatar-circle">
@@ -440,7 +481,7 @@
             @else
                 <a href="{{ route('login') }}" class="nav-link-pill active" style="background-color: var(--primary-600); color: #fff;">
                     Masuk
-
+                </a>
             @endauth
         </div>
     </header>
@@ -467,56 +508,12 @@
     </a>
 
     <script>
-        // Menampilkan badge role pengguna sesuai role yang dipilih saat login di awal
-        (function() {
-            const path = window.location.pathname;
-            let role = localStorage.getItem('saferoad_active_role');
-
-            if (path.startsWith('/keamanan')) {
-                role = 'keamanan';
-                localStorage.setItem('saferoad_active_role', 'keamanan');
-            } else if (path.startsWith('/admin')) {
-                role = 'admin';
-                localStorage.setItem('saferoad_active_role', 'admin');
-            } else if (!role) {
-                role = 'masyarakat';
-                localStorage.setItem('saferoad_active_role', 'masyarakat');
-            }
-
-            const badge = document.getElementById('topActiveRoleBadge');
-            const badgeText = document.getElementById('topActiveRoleText');
-            const brandLink = document.querySelector('.brand-link');
-
-            // Sinkronkan grup menu navigasi sesuai role aktif
-            const navMasyarakat = document.getElementById('navGroupMasyarakat');
-            const navKeamanan = document.getElementById('navGroupKeamanan');
-            const navAdmin = document.getElementById('navGroupAdmin');
-
-            if (navMasyarakat) navMasyarakat.style.display = (role === 'masyarakat') ? 'inline-flex' : 'none';
-            if (navKeamanan) navKeamanan.style.display = (role === 'keamanan') ? 'inline-flex' : 'none';
-            if (navAdmin) navAdmin.style.display = (role === 'admin') ? 'inline-flex' : 'none';
-
-            // Bersihkan status verifikasi lama dari client-side localStorage
-            localStorage.removeItem('saferoad_verified');
+        // Bersihkan data localStorage lama yang tidak lagi digunakan
+        try {
+            localStorage.removeItem('saferoad_active_role');
             localStorage.removeItem('saferoad_gender');
-
-            if (badge && badgeText) {
-                badge.classList.remove('role-badge-masyarakat', 'role-badge-keamanan', 'role-badge-admin');
-                if (role === 'keamanan') {
-                    badge.classList.add('role-badge-keamanan');
-                    badgeText.textContent = '🛡️ Petugas Keamanan';
-                    if (brandLink) brandLink.href = "{{ route('keamanan.dashboard') }}";
-                } else if (role === 'admin') {
-                    badge.classList.add('role-badge-admin');
-                    badgeText.textContent = '⚡ Administrator';
-                    if (brandLink) brandLink.href = "{{ route('admin.dashboard') }}";
-                } else {
-                    badge.classList.add('role-badge-masyarakat');
-                    badgeText.textContent = '👤 Masyarakat';
-                    if (brandLink) brandLink.href = "{{ route('dashboard') }}";
-                }
-            }
-        })();
+            localStorage.removeItem('saferoad_verified');
+        } catch (e) {}
     </script>
 
     @stack('scripts')
