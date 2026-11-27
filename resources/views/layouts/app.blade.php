@@ -55,6 +55,11 @@
             padding: 0;
         }
 
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
         body {
             min-height: 100vh;
             background-color: var(--bg-canvas);
@@ -122,6 +127,21 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            overflow-x: auto;
+            max-width: 100%;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .nav-center-menu::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-role-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: nowrap;
         }
 
         .nav-link-pill {
@@ -131,6 +151,8 @@
             font-weight: 600;
             color: var(--text-body);
             transition: all 0.15s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .nav-link-pill:hover {
@@ -242,6 +264,86 @@
                 padding-bottom: 90px; /* Ruang untuk bottom nav */
             }
         }
+
+        /* Badge Role Pengguna Aktif (Berdasarkan Login di Awal) */
+        .active-role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+            letter-spacing: 0.02em;
+            user-select: none;
+        }
+        .active-role-badge.role-badge-keamanan {
+            background: #f0fdf4;
+            color: #166534;
+            border-color: #bbf7d0;
+        }
+        .active-role-badge.role-badge-admin {
+            background: #f5f3ff;
+            color: #4338ca;
+            border-color: #ddd6fe;
+        }
+        .role-badge-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: currentColor;
+        }
+
+        /* Floating SOS Button */
+        .floating-sos-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 24px;
+            z-index: 1050;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 9999px;
+            font-size: 13.5px;
+            font-weight: 800;
+            border: 2px solid #ffffff;
+            box-shadow: 0 8px 24px -4px rgba(220, 38, 38, 0.45);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .floating-sos-btn:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 12px 28px -4px rgba(220, 38, 38, 0.6);
+            color: #fff;
+        }
+        .sos-pulse-ring {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            box-shadow: 0 0 8px #ffffff;
+            animation: pulseSos 1.5s infinite;
+        }
+        @keyframes pulseSos {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+        @media (max-width: 768px) {
+            .floating-sos-btn {
+                bottom: 80px;
+                right: 16px;
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+        }
     </style>
 
     @stack('styles')
@@ -249,7 +351,16 @@
 <body>
 
     <header class="topbar">
-        <a class="brand-link" href="{{ auth()->check() ? route('dashboard') : route('home') }}" aria-label="SafeRoad Beranda">
+        @php
+            $currentRole = auth()->user()?->role ?? 'masyarakat';
+            $homeRoute = match ($currentRole) {
+                'admin' => route('admin.dashboard'),
+                'keamanan' => route('keamanan.dashboard'),
+                default => route('home'),
+            };
+        @endphp
+
+        <a class="brand-link" href="{{ $homeRoute }}" aria-label="SafeRoad Beranda">
             <span class="brand-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -261,23 +372,93 @@
         </a>
 
         <nav class="nav-center-menu" aria-label="Menu Utama">
-            @auth
-                <a href="{{ route('dashboard') }}" class="nav-link-pill {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                    Dashboard
-                </a>
-            @endauth
-            <a href="{{ url('/rute') }}" class="nav-link-pill {{ request()->is('rute') ? 'active' : '' }}">
-                Cari Rute
-            </a>
-            <a href="{{ url('/rute/bandingkan') }}" class="nav-link-pill {{ request()->is('rute/bandingkan') ? 'active' : '' }}">
-                Bandingkan Rute
-            </a>
-            <a href="{{ url('/profil') }}" class="nav-link-pill {{ request()->is('profil*') || request()->is('verifikasi*') ? 'active' : '' }}">
-                Profil Saya
-            </a>
+            @if($currentRole === 'admin')
+                {{-- Navigasi Role: Administrator --}}
+                <div id="navGroupAdmin" class="nav-role-group">
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link-pill {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" style="{{ request()->routeIs('admin.dashboard') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
+                        ⚡ Dashboard
+                    </a>
+                    <a href="{{ route('admin.validasi') }}" class="nav-link-pill {{ request()->routeIs('admin.validasi') ? 'active' : '' }}" style="{{ request()->routeIs('admin.validasi') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
+                        ⚖️ Validasi Laporan
+                        <span id="navBadgePendingValidation" style="display:none; background:#f59e0b; color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:999px; margin-left:4px;" title="Menunggu Validasi">0</span>
+                        <span id="navBadgeReadyToFinalize" style="display:none; background:#10b981; color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:999px; margin-left:4px;" title="Siap Difinalisasi">0</span>
+                    </a>
+                    <a href="{{ route('admin.peta') }}" class="nav-link-pill {{ request()->routeIs('admin.peta') ? 'active' : '' }}" style="{{ request()->routeIs('admin.peta') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
+                        🗺️ Pantau Peta
+                    </a>
+                    <a href="{{ route('admin.statistik') }}" class="nav-link-pill {{ request()->routeIs('admin.statistik') ? 'active' : '' }}" style="{{ request()->routeIs('admin.statistik') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
+                        📊 Statistik &amp; Rekap
+                    </a>
+                    <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
+                        🚨 Pengaturan Darurat
+                    </a>
+                </div>
+            @elseif($currentRole === 'keamanan')
+                {{-- Navigasi Role: Petugas Keamanan --}}
+                <div id="navGroupKeamanan" class="nav-role-group">
+                    <a href="{{ route('keamanan.dashboard') }}" class="nav-link-pill {{ request()->is('keamanan*') ? 'active' : '' }}" style="background-color: #0f2d59; color: #fff; font-weight: 700;">
+                        🛡️ Dashboard Keamanan
+                    </a>
+                    <a href="{{ route('keamanan.dashboard') }}#tabelAduan" class="nav-link-pill">
+                        📋 Laporan Masuk &amp; TKP
+                        <span id="navBadgeKeamananUnconfirmed" style="display:none; background:#f59e0b; color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:999px; margin-left:4px;" title="Belum Diperiksa">0</span>
+                    </a>
+                    <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
+                        🚨 Hotline Siaga
+                    </a>
+                </div>
+            @else
+                {{-- Navigasi Role: Masyarakat --}}
+                <div id="navGroupMasyarakat" class="nav-role-group">
+                    @auth
+                        <a href="{{ route('dashboard') }}" class="nav-link-pill {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                            Dashboard
+                        </a>
+                    @endauth
+                    <a href="{{ url('/rute') }}" class="nav-link-pill {{ request()->is('rute*') ? 'active' : '' }}">
+                        Cari Rute
+                    </a>
+
+                    <a href="{{ url('/laporkan') }}" class="nav-link-pill {{ request()->is('laporkan*') ? 'active' : '' }}">
+                        Laporkan
+                    </a>
+
+                    <a href="{{ url('/laporan/riwayat') }}" class="nav-link-pill {{ request()->is('laporan/riwayat*') ? 'active' : '' }}">
+                        Riwayat
+                    </a>
+
+                    <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
+                        🚨 Darurat
+                    </a>
+
+                    @auth
+                        <a href="{{ url('/profil') }}" class="nav-link-pill {{ request()->is('profil*') ? 'active' : '' }}">
+                            Profil
+                        </a>
+                    @endauth
+                </div>
+            @endif
         </nav>
 
         <div class="top-user-actions">
+            <!-- Badge Role Aktif Pengguna (Ditentukan 100% dari Server) -->
+            @if($currentRole === 'admin')
+                <div class="active-role-badge role-badge-admin" id="topActiveRoleBadge" title="Role Anda: Administrator">
+                    <span class="role-badge-dot"></span>
+                    <span id="topActiveRoleText">⚡ Administrator</span>
+                </div>
+            @elseif($currentRole === 'keamanan')
+                <div class="active-role-badge role-badge-keamanan" id="topActiveRoleBadge" title="Role Anda: Petugas Keamanan">
+                    <span class="role-badge-dot"></span>
+                    <span id="topActiveRoleText">🛡️ Petugas Keamanan</span>
+                </div>
+            @else
+                <div class="active-role-badge role-badge-masyarakat" id="topActiveRoleBadge" title="Role Anda: Masyarakat">
+                    <span class="role-badge-dot"></span>
+                    <span id="topActiveRoleText">👤 Masyarakat</span>
+                </div>
+            @endif
+
             @auth
                 <div class="user-pill" title="{{ auth()->user()->email }}">
                     <div class="avatar-circle">
@@ -319,6 +500,21 @@
             Pusat Bantuan & Respon Darurat: <strong>112</strong>
         </div>
     </footer>
+
+    <!-- Floating Quick SOS Button (Global) -->
+    <a href="{{ url('/darurat') }}" class="floating-sos-btn" id="btnFloatingSos" title="Panggilan Darurat Cepat SafeRoad">
+        <span class="sos-pulse-ring"></span>
+        <span>🚨 SOS DARURAT</span>
+    </a>
+
+    <script>
+        // Bersihkan data localStorage lama yang tidak lagi digunakan
+        try {
+            localStorage.removeItem('saferoad_active_role');
+            localStorage.removeItem('saferoad_gender');
+            localStorage.removeItem('saferoad_verified');
+        } catch (e) {}
+    </script>
 
     @stack('scripts')
 </body>

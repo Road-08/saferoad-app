@@ -42,9 +42,9 @@
     <section id="konten-rute" hidden>
         <header class="compare-header">
             <div>
-                <span class="compare-tag">ANALISIS MULTI-RUTE</span>
-                <h1>Perbandingan Alternatif Rute</h1>
-                <p>Bandingkan metrik efisiensi jarak, estimasi durasi, dan indikator keamanan sebelum memulai perjalanan.</p>
+                <span class="compare-tag" id="tag-header-mode">ANALISIS MULTI-RUTE</span>
+                <h1 id="title-header-mode">Perbandingan Alternatif Rute</h1>
+                <p id="desc-header-mode">Bandingkan metrik efisiensi jarak, estimasi durasi, dan indikator keamanan sebelum memulai perjalanan.</p>
             </div>
         </header>
 
@@ -59,10 +59,10 @@
             <div class="map-comparison-card">
                 <div class="card-header-bar">
                     <h3>Visualisasi Peta Rute</h3>
-                    <div class="map-legend-pills">
-                        <span class="pill-legenda rute-1">Rute 1</span>
-                        <span class="pill-legenda rute-2">Rute 2</span>
-                        <span class="pill-legenda rute-3">Rute 3</span>
+                    <div class="map-legend-pills" id="map-legend-container">
+                        <span class="pill-legenda rute-1" id="pill-rute-1">Rute 1</span>
+                        <span class="pill-legenda rute-2" id="pill-rute-2">Rute 2</span>
+                        <span class="pill-legenda rute-3" id="pill-rute-3">Rute 3</span>
                     </div>
                 </div>
                 <div class="map-viewport-wrapper">
@@ -106,8 +106,9 @@
 
 <style>
     .compare-page-container {
-        width: min(100% - 32px, 1140px);
-        margin: 32px auto 60px;
+        width: min(100% - 32px, 1200px);
+        margin: 24px auto 120px;
+        box-sizing: border-box;
     }
 
     .compare-nav-bar {
@@ -495,6 +496,20 @@
         background-color: var(--primary-600);
     }
 
+    .badge-pink-safest {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background-color: #ec4899;
+        color: #ffffff;
+        font-size: 10px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 999px;
+        white-space: nowrap;
+        box-shadow: 0 1px 4px rgba(236, 72, 153, 0.25);
+    }
+
     .level-badge {
         display: inline-block;
         padding: 3px 9px;
@@ -532,6 +547,8 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     const URL_SKOR = "{{ url('/api/routes/score') }}";
+    const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    const serverRouteMode = @json($routeMode ?? 'general');
     const KUNCI_DATA = 'saferoad.perbandingan';
     const KUNCI_PILIHAN = 'saferoad.rutePilihan';
     const DISCLAIMER_FALLBACK = 'Skor adalah indikator, bukan jaminan mutlak keamanan.';
@@ -558,7 +575,13 @@
                 return { id: route.id, distance_m: route.distance_m, duration_s: route.duration_s, coordinates: route.coordinates };
             });
             if (routes.some(route => route === null) || !Number.isInteger(parsed.selectedIndex) || parsed.selectedIndex < 0 || parsed.selectedIndex >= routes.length) return null;
-            return { origin: parsed.origin, destination: parsed.destination, selectedIndex: parsed.selectedIndex, routes };
+            return {
+                mode: serverRouteMode,
+                origin: parsed.origin,
+                destination: parsed.destination,
+                selectedIndex: parsed.selectedIndex,
+                routes
+            };
         } catch (error) {
             return null;
         }
@@ -580,8 +603,9 @@
         try {
             response = await fetch(URL_SKOR, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ routes: payload })
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+                body: JSON.stringify({ routes: payload, mode: serverRouteMode })
             });
         } catch (error) {
             throw new Error('Koneksi layanan skor gagal.');
@@ -608,6 +632,23 @@
         return element;
     }
 
+    function hitungLevelKeamanan(score) {
+        if (score === null || score === undefined || score === '' || score === '-') {
+            return { label: 'Data Belum Cukup', className: 'level-data-belum-cukup', color: '#64748b' };
+        }
+        const num = Number(score);
+        if (!Number.isFinite(num)) {
+            return { label: 'Data Belum Cukup', className: 'level-data-belum-cukup', color: '#64748b' };
+        }
+        if (num >= 80) {
+            return { label: 'Aman', className: 'level-aman', color: '#16a34a' };
+        }
+        if (num >= 60) {
+            return { label: 'Sedang', className: 'level-sedang', color: '#ca8a04' };
+        }
+        return { label: 'Rawan', className: 'level-rawan', color: '#dc2626' };
+    }
+
     function formatLevel(level) {
         const levels = {
             aman: { label: 'Aman', className: 'level-aman' },
@@ -627,29 +668,190 @@
     function hitungPenanda() {
         const fastest = indeksRuteTerbaik((a, b) => a.duration_s - b.duration_s);
         const shortest = indeksRuteTerbaik((a, b) => a.distance_m - b.distance_m);
-        const scored = dataRute.routes.map((route, index) => ({ index, score: hasilSkor.get(route.id)?.score }))
-            .filter(item => typeof item.score === 'number' && Number.isFinite(item.score));
+        const isWomen = dataRute.mode === 'women';
+
+        const scored = dataRute.routes.map((route, index) => {
+            const res = hasilSkor.get(route.id);
+            const scoreVal = isWomen ? res?.women_comparison?.womens_safety_score : res?.general_comparison?.safety_score;
+            return { index, score: typeof scoreVal === 'number' ? scoreVal : res?.score };
+        }).filter(item => typeof item.score === 'number' && Number.isFinite(item.score));
+
         scored.sort((a, b) => b.score - a.score || dataRute.routes[a.index].duration_s - dataRute.routes[b.index].duration_s);
         return { fastest, shortest, safest: scored.length ? scored[0].index : null };
     }
 
+    let womenCompareLegendControl = null;
+
     function initPeta() {
+        if (map) {
+            map.remove();
+            map = null;
+        }
+        garisRute = [];
         map = L.map('map', { zoomControl: false });
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
+        // Fallback view segera setelah tileLayer agar peta tidak abu-abu
+        map.setView([dataRute.origin.lat, dataRute.origin.lng], 14);
         const originName = typeof dataRute.origin.name === 'string' ? dataRute.origin.name : 'Asal';
         const destinationName = typeof dataRute.destination.name === 'string' ? dataRute.destination.name : 'Tujuan';
         L.circleMarker([dataRute.origin.lat, dataRute.origin.lng], { radius: 8, color: '#fff', weight: 3, fillColor: '#1e3a8a', fillOpacity: 1 }).addTo(map).bindPopup(originName);
         L.marker([dataRute.destination.lat, dataRute.destination.lng]).addTo(map).bindPopup(destinationName);
+
+        const isWomen = dataRute.mode === 'women';
+
+        // Tentukan tepat satu rute teraman
+        let safestIndex = 0;
+        if (isWomen) {
+            const foundIdx = dataRute.routes.findIndex(r => hasilSkor.get(r.id)?.women_comparison?.is_pink_recommendation === true);
+            if (foundIdx >= 0) {
+                safestIndex = foundIdx;
+            } else {
+                let bestScore = -1;
+                let bestDur = Infinity;
+                dataRute.routes.forEach((r, idx) => {
+                    const sc = hasilSkor.get(r.id)?.women_comparison?.womens_safety_score ?? -1;
+                    const dur = r.duration_s || 0;
+                    if (sc > bestScore || (sc === bestScore && dur < bestDur)) {
+                        bestScore = sc;
+                        bestDur = dur;
+                        safestIndex = idx;
+                    }
+                });
+            }
+        }
+
         dataRute.routes.forEach((route, index) => {
-            const line = L.polyline(route.coordinates.map(point => [point[1], point[0]]), { color: WARNA_RUTE[index], weight: 5, opacity: .45, dashArray: '8 7' }).addTo(map);
-            garisRute.push(line);
+            const pts = route.coordinates.map(point => [point[1], point[0]]);
+            if (isWomen) {
+                const isSafest = (index === safestIndex);
+                if (isSafest) {
+                    // Teraman: outline putih weight 12 lalu garis pink #ec4899 weight 8 solid bringToFront()
+                    const outline = L.polyline(pts, {
+                        color: '#ffffff',
+                        weight: 12,
+                        opacity: 1
+                    }).addTo(map);
+                    const line = L.polyline(pts, {
+                        color: '#ec4899',
+                        weight: 8,
+                        opacity: 1,
+                        dashArray: null
+                    }).addTo(map);
+                    line.isSafestPink = true;
+                    line.outlineLayer = outline;
+                    line.bringToFront();
+                    line.on('click', () => pilihRute(index));
+                    garisRute.push(line);
+                } else {
+                    // Lainnya: #94a3b8 weight 5 opacity 0.7 dashArray '6 8'
+                    const line = L.polyline(pts, {
+                        color: '#94a3b8',
+                        weight: 5,
+                        opacity: 0.7,
+                        dashArray: '6 8'
+                    }).addTo(map);
+                    line.isSafestPink = false;
+                    line.on('click', () => pilihRute(index));
+                    garisRute.push(line);
+                }
+            } else {
+                const isRec = (index === 0);
+                const lineColor = isRec ? '#16a34a' : '#2563eb';
+                const line = L.polyline(pts, {
+                    color: lineColor,
+                    weight: isRec ? 7 : 4,
+                    opacity: isRec ? 0.95 : 0.55,
+                    dashArray: isRec ? null : '6 8'
+                }).addTo(map);
+                line.isSafestPink = false;
+                line.defaultColor = lineColor;
+                line.on('click', () => pilihRute(index));
+                garisRute.push(line);
+            }
         });
-        map.fitBounds(L.featureGroup(garisRute).getBounds().pad(.15));
+
+        // Legenda di sudut kiri bawah peta (bottomleft) khusus Mode Perempuan jika rute > 1
+        womenCompareLegendControl = null; // reset setelah map.remove() — control lama sudah mati bersama peta lama
+        if (isWomen && dataRute.routes.length > 1) {
+            womenCompareLegendControl = L.control({ position: 'bottomleft' });
+            womenCompareLegendControl.onAdd = function() {
+                const div = L.DomUtil.create('div', 'women-route-legend-ctrl');
+                div.style.backgroundColor = '#ffffff';
+                div.style.padding = '8px 12px';
+                div.style.borderRadius = '10px';
+                div.style.boxShadow = '0 2px 10px rgba(0,0,0,0.12)';
+                div.style.border = '1.5px solid #fbcfe8';
+                div.style.fontSize = '11.5px';
+                div.style.fontWeight = '700';
+                div.style.color = '#334155';
+                div.style.display = 'flex';
+                div.style.flexDirection = 'column';
+                div.style.gap = '6px';
+                div.style.pointerEvents = 'none';
+
+                div.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="display:inline-block; width:20px; height:4px; background:#ec4899; border-radius:2px; box-shadow:0 0 0 1px #ffffff;"></span>
+                        <span>Rute paling aman (Zona Perempuan)</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="display:inline-block; width:20px; height:0px; border-top:3px dashed #94a3b8;"></span>
+                        <span style="color:#64748b; font-weight:600;">Alternatif</span>
+                    </div>
+                `;
+                return div;
+            };
+            womenCompareLegendControl.addTo(map);
+        }
+
+        // Sembunyikan legenda lama di header jika mode women, tampilkan dan update jika general
+        const legendPillsContainer = $('map-legend-container');
+        if (legendPillsContainer) {
+            if (isWomen) {
+                legendPillsContainer.style.display = 'none';
+            } else {
+                legendPillsContainer.style.display = 'flex';
+                // Update pills berdasarkan data rute aktual (bukan asumsi Rute 1 = teraman)
+                const pillIds = ['pill-rute-1', 'pill-rute-2', 'pill-rute-3'];
+                dataRute.routes.forEach((route, idx) => {
+                    const pill = $(pillIds[idx]);
+                    if (pill) {
+                        pill.textContent = 'Rute ' + route.id;
+                        pill.style.display = 'inline';
+                    }
+                });
+                // Sembunyikan pill yang tidak terpakai
+                for (let i = dataRute.routes.length; i < pillIds.length; i++) {
+                    const pill = $(pillIds[i]);
+                    if (pill) pill.style.display = 'none';
+                }
+            }
+        }
+
+        if (isWomen && safestIndex >= 0 && garisRute[safestIndex]) {
+            try { map.fitBounds(garisRute[safestIndex].getBounds().pad(0.15)); } catch(e) {}
+        } else if (garisRute.length) {
+            try { map.fitBounds(L.featureGroup(garisRute).getBounds().pad(0.15)); } catch(e) {}
+        }
+        setTimeout(() => { if (map) map.invalidateSize(); }, 200);
     }
 
     function renderTabel() {
         const table = $('tabel-perbandingan');
         table.replaceChildren();
+
+        const isWomen = dataRute.mode === 'women';
+
+        // Update Header Halaman
+        const tagHeader = $('tag-header-mode');
+        const titleHeader = $('title-header-mode');
+        const descHeader = $('desc-header-mode');
+        if (tagHeader) tagHeader.textContent = isWomen ? '🌸 PERBANDINGAN WOMEN ZONE' : '🛡️ PERBANDINGAN RUTE UMUM';
+        if (titleHeader) titleHeader.textContent = isWomen ? 'Perbandingan Rute Khusus Perempuan' : 'Perbandingan Alternatif Rute Umum';
+        if (descHeader) descHeader.textContent = isWomen
+            ? 'Bandingkan Women\'s Safety Score, risiko catcalling, pelecehan seksual, penerangan, dan fasilitas keamanan.'
+            : 'Bandingkan Safety Score umum, estimasi waktu, jarak tempuh, kriminalitas umum, dan fasilitas keamanan.';
+
         const head = document.createElement('thead');
         const headRow = document.createElement('tr');
         headRow.appendChild(buatElemen('th', '', 'Indikator Evaluasi'));
@@ -667,12 +869,121 @@
         table.appendChild(head);
         const body = document.createElement('tbody');
         const markers = hitungPenanda();
-        const rows = [
-            ['Jarak Tempuh (km)', (route, index) => nilaiMetrik(route, 'jarak', index, markers)],
-            ['Estimasi Waktu', (route, index) => nilaiMetrik(route, 'waktu', index, markers)],
-            ['Tingkat Keamanan', (route, index) => nilaiLevel(route, index, markers)],
-            ['Skor Keamanan (0-100)', (route, index) => nilaiSkor(route)]
-        ];
+
+        let rows = [];
+
+        if (isWomen) {
+            rows = [
+                ['Women\'s Safety Score (0-100)', (route) => {
+                    const res = hasilSkor.get(route.id);
+                    const comp = res?.women_comparison;
+                    const score = comp?.womens_safety_score;
+                    const isPink = comp?.is_pink_recommendation;
+                    if (statusSkor === 'pending') return [document.createTextNode('Menghitung...')];
+                    if (score === null || score === undefined) return [document.createTextNode('-')];
+                    const span = buatElemen('strong', '', String(score) + '/100');
+                    if (isPink) span.style.color = '#db2777';
+                    return [span];
+                }],
+                ['Jarak Tempuh (km)', (route, index) => nilaiMetrik(route, 'jarak', index, markers)],
+                ['Estimasi Waktu Tempuh', (route, index) => nilaiMetrik(route, 'waktu', index, markers)],
+                ['Tingkat Risiko Perempuan', (route) => {
+                    const res = hasilSkor.get(route.id);
+                    const comp = res?.women_comparison;
+                    const score = comp?.womens_safety_score;
+                    if (statusSkor === 'pending') return [document.createTextNode('Menghitung...')];
+                    const lvl = hitungLevelKeamanan(score);
+                    const badge = buatElemen('span', 'level-badge ' + lvl.className, lvl.label);
+                    return [badge];
+                }],
+                ['Laporan Catcalling', (route) => {
+                    const count = hasilSkor.get(route.id)?.women_comparison?.reports?.catcalling_count;
+                    return [document.createTextNode(count !== undefined ? `${count} Laporan` : '-')];
+                }],
+                ['Laporan Pelecehan Seksual', (route) => {
+                    const count = hasilSkor.get(route.id)?.women_comparison?.reports?.sexual_harassment_count;
+                    return [document.createTextNode(count !== undefined ? `${count} Laporan` : '-')];
+                }],
+                ['Intimidasi & Kekerasan', (route) => {
+                    const count = hasilSkor.get(route.id)?.women_comparison?.reports?.intimidation_violence_count;
+                    return [document.createTextNode(count !== undefined ? `${count} Laporan` : '-')];
+                }],
+                ['Kondisi Penerangan Jalan', (route) => {
+                    const cond = hasilSkor.get(route.id)?.women_comparison?.facilities?.lighting_condition;
+                    return [document.createTextNode(cond || '-')];
+                }],
+                ['Kamera CCTV Terkoneksi', (route) => {
+                    const count = hasilSkor.get(route.id)?.women_comparison?.facilities?.cctv_count;
+                    return [document.createTextNode(count !== undefined ? `${count} Titik CCTV` : '-')];
+                }],
+                ['Pos Siaga / Shelter Aman', (route) => {
+                    const count = hasilSkor.get(route.id)?.women_comparison?.facilities?.shelter_post_count;
+                    return [document.createTextNode(count !== undefined ? `${count} Pos Siaga` : '-')];
+                }],
+                ['Rekomendasi Women Zone', (route) => {
+                    const isPink = hasilSkor.get(route.id)?.women_comparison?.is_pink_recommendation;
+                    if (isPink) {
+                        const tag = buatElemen('span', 'tag', '🌸 Paling Aman untuk Perempuan');
+                        tag.style.background = '#db2777';
+                        return [tag];
+                    }
+                    return [buatElemen('span', 'tag alt', 'Alternatif')];
+                }]
+            ];
+        } else {
+            rows = [
+                ['Safety Score Umum (0-100)', (route) => {
+                    const res = hasilSkor.get(route.id);
+                    const comp = res?.general_comparison;
+                    const score = comp?.safety_score;
+                    const isRec = comp?.is_recommended;
+                    if (statusSkor === 'pending') return [document.createTextNode('Menghitung...')];
+                    if (score === null || score === undefined) return [document.createTextNode('-')];
+                    const span = buatElemen('strong', '', String(score) + '/100');
+                    if (isRec) span.style.color = '#15803d';
+                    return [span];
+                }],
+                ['Jarak Tempuh (km)', (route, index) => nilaiMetrik(route, 'jarak', index, markers)],
+                ['Estimasi Waktu Tempuh', (route, index) => nilaiMetrik(route, 'waktu', index, markers)],
+                ['Tingkat Risiko Umum', (route) => {
+                    const res = hasilSkor.get(route.id);
+                    const comp = res?.general_comparison;
+                    const score = comp?.safety_score;
+                    if (statusSkor === 'pending') return [document.createTextNode('Menghitung...')];
+                    const lvl = hitungLevelKeamanan(score);
+                    const badge = buatElemen('span', 'level-badge ' + lvl.className, lvl.label);
+                    return [badge];
+                }],
+                ['Laporan Pencurian', (route) => {
+                    const count = hasilSkor.get(route.id)?.general_comparison?.reports?.theft_count;
+                    return [document.createTextNode(count !== undefined ? `${count} Laporan` : '-')];
+                }],
+                ['Laporan Perampokan & Begal', (route) => {
+                    const count = hasilSkor.get(route.id)?.general_comparison?.reports?.robbery_count;
+                    return [document.createTextNode(count !== undefined ? `${count} Laporan` : '-')];
+                }],
+                ['Kondisi Penerangan Jalan', (route) => {
+                    const cond = hasilSkor.get(route.id)?.general_comparison?.facilities?.lighting_condition;
+                    return [document.createTextNode(cond || '-')];
+                }],
+                ['Kamera CCTV Terkoneksi', (route) => {
+                    const count = hasilSkor.get(route.id)?.general_comparison?.facilities?.cctv_count;
+                    return [document.createTextNode(count !== undefined ? `${count} Titik CCTV` : '-')];
+                }],
+                ['Pos Keamanan & Polisi', (route) => {
+                    const count = hasilSkor.get(route.id)?.general_comparison?.facilities?.security_post_count;
+                    return [document.createTextNode(count !== undefined ? `${count} Pos Jaga` : '-')];
+                }],
+                ['Rekomendasi Rute', (route) => {
+                    const isRec = hasilSkor.get(route.id)?.general_comparison?.is_recommended;
+                    if (isRec) {
+                        return [buatElemen('span', 'tag', 'Rute Paling Aman')];
+                    }
+                    return [buatElemen('span', 'tag alt', 'Alternatif Cukup Aman')];
+                }]
+            ];
+        }
+
         rows.forEach(([label, render]) => {
             const tr = document.createElement('tr');
             tr.appendChild(buatElemen('td', '', label));
@@ -756,12 +1067,44 @@
         document.querySelectorAll('#tabel-perbandingan [data-route-id]').forEach(element => {
             const selected = element.dataset.routeId === dataRute.routes[indeksTerpilih].id;
             element.classList.toggle('terpilih', selected);
-            if (element.tagName === 'TH') element.querySelector('button').setAttribute('aria-pressed', String(selected));
+            if (element.tagName === 'TH') {
+                const btn = element.querySelector('button');
+                if (btn) btn.setAttribute('aria-pressed', String(selected));
+            }
         });
+
+        const isWomen = dataRute.mode === 'women';
         garisRute.forEach((line, index) => {
             const selected = index === indeksTerpilih;
-            line.setStyle({ weight: selected ? 8 : 4, opacity: selected ? 1 : .42, dashArray: selected ? null : '8 7' });
-            if (selected) line.bringToFront();
+            if (isWomen) {
+                if (line.isSafestPink) {
+                    line.setStyle({
+                        color: '#ec4899',
+                        weight: 8,
+                        opacity: 1,
+                        dashArray: null
+                    });
+                    if (line.outlineLayer) line.outlineLayer.bringToFront();
+                    line.bringToFront();
+                } else {
+                    line.setStyle({
+                        color: selected ? '#64748b' : '#94a3b8',
+                        weight: selected ? 8 : 5,
+                        opacity: selected ? 0.95 : 0.7,
+                        dashArray: selected ? null : '6 8'
+                    });
+                    if (selected) line.bringToFront();
+                }
+            } else {
+                const baseColor = line.defaultColor || (index === 0 ? '#16a34a' : '#2563eb');
+                line.setStyle({
+                    color: baseColor,
+                    weight: selected ? 8 : 4,
+                    opacity: selected ? 1 : 0.45,
+                    dashArray: selected ? null : '6 8'
+                });
+                if (selected) line.bringToFront();
+            }
         });
         renderKartu();
     }
@@ -794,6 +1137,7 @@
             results.forEach(result => { if (result && typeof result.id === 'string') hasilSkor.set(result.id, result); });
             disclaimerAktif = typeof payload.disclaimer === 'string' ? payload.disclaimer : DISCLAIMER_FALLBACK;
             statusSkor = 'available';
+            initPeta();
         } catch (error) {
             if (request !== nomorPermintaan) return;
             statusSkor = 'unavailable';
