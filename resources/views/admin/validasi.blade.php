@@ -22,7 +22,7 @@
     <header class="val-title-card">
         <div class="vtc-left">
             <span class="vtc-badge">MODERASI RESMI TIK</span>
-            <h1>⚖️ Validasi &amp; Moderasi Laporan Masuk</h1>
+            <h1>Validasi &amp; Moderasi Laporan Masuk</h1>
             <p>Tinjau dan verifikasi setiap laporan kejadian yang diajukan oleh masyarakat. Laporan yang disetujui akan diteruskan ke petugas keamanan untuk pemeriksaan lapangan.</p>
         </div>
         <div class="vtc-right">
@@ -30,7 +30,7 @@
                 <span class="ssp-item ssp-pending">
                     <strong><span id="statPendingNum">0</span> Laporan</strong> Menunggu Validasi
                 </span>
-                <span class="ssp-item ssp-ready" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #dcfce7;">
+                <span class="ssp-item ssp-ready">
                     <strong><span id="statReadyNum">0</span> Laporan</strong> Siap Difinalisasi
                 </span>
             </div>
@@ -43,30 +43,30 @@
         <div class="val-toolbar">
             <div class="val-tabs-wrap">
                 <button type="button" class="val-tab active" id="tabPending" onclick="switchTab('pending_validation')">
-                    ⏳ Menunggu Validasi (<span id="countPending">0</span>)
+                    Menunggu Validasi (<span id="countPending">0</span>)
                 </button>
                 <button type="button" class="val-tab" id="tabForwarded" onclick="switchTab('forwarded_to_security')">
-                    🛡️ Diteruskan ke Keamanan (<span id="countForwarded">0</span>)
+                    Diteruskan ke Keamanan (<span id="countForwarded">0</span>)
                 </button>
                 <button type="button" class="val-tab" id="tabRevision" onclick="switchTab('needs_revision')">
-                    ✏️ Perlu Perbaikan (<span id="countRevision">0</span>)
+                    Perlu Perbaikan (<span id="countRevision">0</span>)
                 </button>
                 <button type="button" class="val-tab" id="tabHandled" onclick="switchTab('handled')">
-                    ✅ Ditangani (<span id="countHandled">0</span>)
+                    Ditangani (<span id="countHandled">0</span>)
                 </button>
                 <button type="button" class="val-tab" id="tabRejected" onclick="switchTab('rejected')">
-                    ❌ Ditolak (<span id="countRejected">0</span>)
+                    Ditolak (<span id="countRejected">0</span>)
                 </button>
             </div>
 
             <div class="val-filter-right">
                 <select id="valCategoryFilter" class="val-select" onchange="filterCategory()">
                     <option value="all">Semua Kategori</option>
-                    <option value="Pelecehan / Gangguan Keamanan">🔴 Pelecehan / Gangguan</option>
-                    <option value="Pencurian">🟠 Tindak Kriminal / Begal</option>
-                    <option value="Kondisi Jalan">🟡 Kondisi Jalan / Lampu</option>
-                    <option value="Fasilitas Keamanan">🔵 Fasilitas Keamanan</option>
-                    <option value="Lainnya">🟣 Lainnya</option>
+                    <option value="Pelecehan / Gangguan Keamanan">Pelecehan / Gangguan</option>
+                    <option value="Pencurian">Tindak Kriminal / Begal</option>
+                    <option value="Kondisi Jalan">Kondisi Jalan / Lampu</option>
+                    <option value="Fasilitas Keamanan">Fasilitas Keamanan</option>
+                    <option value="Lainnya">Lainnya</option>
                 </select>
 
                 <div class="val-search-box">
@@ -155,9 +155,9 @@
             </div>
 
             <!-- Hasil Pemeriksaan Petugas (Jika Ada) -->
-            <div id="modalSecuritySection" style="display: none; background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 12px; padding: 14px;">
-                <span class="vmb-label" style="color: #166534;">🛡️ Hasil Pemeriksaan Petugas Keamanan</span>
-                <div style="font-size: 13px; color: #1e293b; margin-top: 6px; line-height: 1.5;">
+            <div id="modalSecuritySection" style="display: none; background: #eff6ff; border: 1px solid #dbeafe; border-radius: 12px; padding: 14px;">
+                <span class="vmb-label" style="color: #1e40af;">Hasil Pemeriksaan Petugas Keamanan</span>
+                <div style="font-size: 13px; color: #0f172a; margin-top: 6px; line-height: 1.5;">
                     <div><strong>Petugas Pemeriksa:</strong> <span id="modalOfficerName">-</span></div>
                     <div><strong>Waktu Konfirmasi:</strong> <span id="modalOfficerTime">-</span></div>
                     <div><strong>Perlu Tindakan Lapangan:</strong> <span id="modalNeedsAction">-</span></div>
@@ -167,9 +167,9 @@
             </div>
 
             <!-- Catatan Perbaikan / Penolakan Admin (Jika Ada) -->
-            <div id="modalAdminNoteSection" style="display: none; background: #fff7ed; border: 1.5px solid #fed7aa; border-radius: 12px; padding: 14px;">
-                <span class="vmb-label" style="color: #c2410c;">📝 Catatan Admin</span>
-                <p id="modalAdminNote" style="font-size: 13px; color: #7c2d12; margin-top: 4px;">-</p>
+            <div id="modalAdminNoteSection" style="display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px;">
+                <span class="vmb-label" style="color: #0f172a;">Catatan Admin</span>
+                <p id="modalAdminNote" style="font-size: 13px; color: #64748b; margin-top: 4px;">-</p>
             </div>
 
             <!-- Timeline Status -->
@@ -179,12 +179,12 @@
             </div>
 
             <!-- Form Aksi Perbaikan / Penolakan (Hidden by default) -->
-            <div id="boxRevisionInput" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:12px;">
-                <label for="inputAdminNote" style="font-size:12px; font-weight:700; color:#334155;">Catatan Perbaikan untuk Pelapor (Wajib):</label>
-                <textarea id="inputAdminNote" rows="2" style="width:100%; margin-top:6px; padding:8px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:13px;" placeholder="Tuliskan bagian laporan yang perlu diperbaiki..."></textarea>
+            <div id="boxRevisionInput" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px;">
+                <label for="inputAdminNote" style="font-size:12px; font-weight:700; color:#0f172a;">Catatan Perbaikan untuk Pelapor (Wajib):</label>
+                <textarea id="inputAdminNote" rows="2" style="width:100%; margin-top:6px; padding:8px; border:1px solid #e2e8f0; border-radius:8px; font-size:13px;" placeholder="Tuliskan bagian laporan yang perlu diperbaiki..."></textarea>
                 <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;">
-                    <button type="button" onclick="cancelActionBox()" style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; background:#fff; font-size:12px; font-weight:700; cursor:pointer;">Batal</button>
-                    <button type="button" onclick="submitRevision()" style="padding:6px 12px; border-radius:6px; border:none; background:#d97706; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">Kirim Permintaan Perbaikan</button>
+                    <button type="button" onclick="cancelActionBox()" style="padding:6px 12px; border-radius:6px; border:1px solid #e2e8f0; background:#fff; font-size:12px; font-weight:700; cursor:pointer;">Batal</button>
+                    <button type="button" onclick="submitRevision()" style="padding:6px 12px; border-radius:6px; border:none; background:#2563eb; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">Kirim Permintaan Perbaikan</button>
                 </div>
             </div>
 
@@ -228,16 +228,17 @@
 .btn-back-dash svg { width: 16px; height: 16px; }
 
 .val-title-card {
-    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%);
-    border-radius: 20px;
-    padding: 28px clamp(20px, 4vw, 36px);
+    background-color: #1e3a8a;
+    border: 1px solid #1e40af;
+    border-radius: 14px;
+    padding: 28px clamp(20px, 3.5vw, 36px);
     color: #fff;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 20px;
     margin-bottom: 24px;
-    box-shadow: 0 12px 30px -8px rgba(49, 46, 129, 0.35);
+    box-shadow: var(--shadow-card);
     flex-wrap: wrap;
 }
 .vtc-badge {
@@ -264,8 +265,8 @@
     align-items: center;
     gap: 6px;
 }
-.ssp-pending { background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fef3c7; }
-.ssp-ready { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #dcfce7; }
+.ssp-pending { background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff; }
+.ssp-ready { background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25); color: #dbeafe; }
 .ssp-item strong { font-size: 14px; font-weight: 800; }
 
 .val-main-card {
@@ -371,58 +372,53 @@
 .val-table tr:hover td { background-color: #fafbfc; }
 
 .highlight-new-row {
-    background-color: #fef9c3 !important;
+    background-color: #eff6ff !important;
     transition: background-color 1.5s ease;
 }
 
 .badge-new-tag {
     display: inline-block;
-    background: #dc2626;
+    background: #2563eb;
     color: #fff;
     font-size: 9.5px;
     font-weight: 800;
     padding: 2px 5px;
     border-radius: 4px;
     margin-left: 5px;
-    animation: pulseBadge 1.5s infinite;
-}
-@keyframes pulseBadge {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
 }
 
 .btn-val-approve {
     padding: 6px 12px;
     border-radius: 7px;
-    background: #dcfce7;
-    color: #15803d;
-    border: 1px solid #bbf7d0;
+    background: #2563eb;
+    color: #ffffff;
+    border: 1px solid #2563eb;
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     transition: background 0.15s;
 }
-.btn-val-approve:hover { background: #bbf7d0; }
+.btn-val-approve:hover { background: #1e40af; }
 
 .btn-val-revision {
     padding: 6px 12px;
     border-radius: 7px;
-    background: #fef3c7;
-    color: #b45309;
-    border: 1px solid #fde68a;
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #dbeafe;
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     margin-left: 4px;
     transition: background 0.15s;
 }
-.btn-val-revision:hover { background: #fde68a; }
+.btn-val-revision:hover { background: #dbeafe; }
 
 .btn-val-reject {
     padding: 6px 12px;
     border-radius: 7px;
     background: #fee2e2;
-    color: #b91c1c;
+    color: #dc2626;
     border: 1px solid #fecaca;
     font-size: 12px;
     font-weight: 700;
@@ -435,16 +431,15 @@
 .btn-val-finalize {
     padding: 6px 14px;
     border-radius: 7px;
-    background: #16a34a;
+    background: #1e40af;
     color: #ffffff;
     border: none;
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
     transition: background 0.15s;
 }
-.btn-val-finalize:hover { background: #15803d; }
+.btn-val-finalize:hover { background: #1e3a8a; }
 
 .btn-val-detail {
     padding: 6px 10px;
@@ -598,30 +593,30 @@
         const toast = document.getElementById('adminToast');
         if (!toast) return;
         toast.textContent = msg;
-        toast.style.background = type === 'success' ? '#16a34a' : type === 'error' ? '#dc2626' : '#d97706';
+        toast.style.background = type === 'error' ? '#dc2626' : '#2563eb';
         toast.style.display = 'block';
         clearTimeout(toast._t);
         toast._t = setTimeout(() => { toast.style.display = 'none'; }, 4000);
     }
 
-    // Status pill generator
+    // Status pill generator (Monochromatic Blue)
     function renderStatusPill(status, isConfirmed) {
         switch (status) {
             case 'pending_validation':
-                return '<span style="padding:4px 9px;border-radius:999px;background:#fef3c7;color:#b45309;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:#d97706;"></span> Menunggu Validasi</span>';
+                return '<span style="padding:3px 9px;border-radius:6px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:11px;font-weight:700;">Menunggu Validasi</span>';
             case 'forwarded_to_security':
                 if (isConfirmed) {
-                    return '<span style="padding:4px 9px;border-radius:999px;background:#dbeafe;color:#1e40af;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:#2563eb;"></span> Diperiksa Petugas (Siap Finalisasi)</span>';
+                    return '<span style="padding:3px 9px;border-radius:6px;background:#dbeafe;color:#1e40af;font-size:11px;font-weight:700;">Diperiksa Petugas (Siap Finalisasi)</span>';
                 }
-                return '<span style="padding:4px 9px;border-radius:999px;background:#e0e7ff;color:#4338ca;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:#6366f1;"></span> Diteruskan ke Keamanan</span>';
+                return '<span style="padding:3px 9px;border-radius:6px;background:#eff6ff;border:1px solid #dbeafe;color:#2563eb;font-size:11px;font-weight:700;">Diteruskan ke Keamanan</span>';
             case 'needs_revision':
-                return '<span style="padding:4px 9px;border-radius:999px;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:#ea580c;"></span> Perlu Perbaikan</span>';
+                return '<span style="padding:3px 9px;border-radius:6px;background:#f8fafc;border:1px solid #cbd5e1;color:#0f172a;font-size:11px;font-weight:700;">Perlu Perbaikan</span>';
             case 'handled':
-                return '<span style="padding:4px 9px;border-radius:999px;background:#dcfce7;color:#15803d;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:#16a34a;"></span> Ditangani (Tayang)</span>';
+                return '<span style="padding:3px 9px;border-radius:6px;background:#dbeafe;color:#1e40af;font-size:11px;font-weight:700;">Ditangani (Tayang)</span>';
             case 'rejected':
-                return '<span style="padding:4px 9px;border-radius:999px;background:#fee2e2;color:#b91c1c;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:#dc2626;"></span> Ditolak</span>';
+                return '<span style="padding:3px 9px;border-radius:6px;background:#fee2e2;color:#dc2626;font-size:11px;font-weight:700;">Ditolak</span>';
             default:
-                return `<span style="padding:4px 9px;border-radius:999px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;">${status}</span>`;
+                return `<span style="padding:3px 9px;border-radius:6px;background:#f8fafc;color:#64748b;font-size:11px;font-weight:700;">${status}</span>`;
         }
     }
 
@@ -647,9 +642,8 @@
             tbody.innerHTML = `
                 <tr>
                     <td colspan="8" style="text-align: center; padding: 40px 20px; color: #64748b;">
-                        <div style="font-size: 32px; margin-bottom: 8px;">🔍</div>
                         <strong style="display: block; font-size: 15px; color: #0f172a;">Tidak ada laporan pada kategori ini</strong>
-                        <p style="font-size: 12.5px; margin-top: 4px;">Belum ada laporan dengan status ${currentTab} atau sesuaikan pencarian.</p>
+                        <p style="font-size: 12.5px; margin-top: 4px;">Belum ada laporan dengan status yang dipilih atau sesuaikan pencarian.</p>
                     </td>
                 </tr>
             `;
@@ -668,7 +662,7 @@
                         ${newBadge}
                     </td>
                     <td><span style="font-weight: 700; color: #2563eb;">${r.category}</span></td>
-                    <td><span>📍 ${r.address || '-'}</span></td>
+                    <td><span>${r.address || '-'}</span></td>
                     <td><span style="font-size: 12px; color: #475569;" title="${formatFullDateTime(r.incident_at)}">${timeAgo(r.incident_at)}</span></td>
                     <td><span style="font-size: 12px; color: #64748b;" title="${formatFullDateTime(r.reported_at)}">${timeAgo(r.reported_at)}</span></td>
                     <td>
@@ -678,14 +672,14 @@
                     </td>
                     <td>${renderStatusPill(r.status, isConfirmed)}</td>
                     <td style="text-align: right; white-space: nowrap;">
-                        <button type="button" class="btn-val-detail" onclick="window.adminApp.openModal(${r.id})">👁️ Detail</button>
+                        <button type="button" class="btn-val-detail" onclick="window.adminApp.openModal(${r.id})">Detail</button>
                         ${r.status === 'pending_validation' ? `
-                            <button type="button" class="btn-val-approve" onclick="window.adminApp.quickApprove(${r.id})">✓ Setujui</button>
-                            <button type="button" class="btn-val-revision" onclick="window.adminApp.promptRevision(${r.id})">✏️ Perbaikan</button>
-                            <button type="button" class="btn-val-reject" onclick="window.adminApp.promptReject(${r.id})">✕ Tolak</button>
+                            <button type="button" class="btn-val-approve" onclick="window.adminApp.quickApprove(${r.id})">Setujui</button>
+                            <button type="button" class="btn-val-revision" onclick="window.adminApp.promptRevision(${r.id})">Perbaikan</button>
+                            <button type="button" class="btn-val-reject" onclick="window.adminApp.promptReject(${r.id})">Tolak</button>
                         ` : ''}
                         ${r.status === 'forwarded_to_security' && isConfirmed ? `
-                            <button type="button" class="btn-val-finalize" onclick="window.adminApp.quickFinalize(${r.id})">★ Finalisasi</button>
+                            <button type="button" class="btn-val-finalize" onclick="window.adminApp.quickFinalize(${r.id})">Finalisasi</button>
                         ` : ''}
                     </td>
                 </tr>
@@ -798,7 +792,7 @@
                 });
 
                 if (hasNew) {
-                    showToast('🔔 1 laporan baru masuk', 'info');
+                    showToast('1 laporan baru masuk', 'info');
                 }
                 renderTable();
             }
@@ -894,7 +888,7 @@
                     secSection.style.display = 'block';
                     secSection.style.background = '#eff6ff';
                     secSection.style.borderColor = '#bfdbfe';
-                    secSection.innerHTML = '<span class="vmb-label" style="color: #1e40af;">🛡️ Menunggu Pemeriksaan Petugas Keamanan Lapangan</span>';
+                    secSection.innerHTML = '<span class="vmb-label" style="color: #1e40af;">Menunggu Pemeriksaan Petugas Keamanan Lapangan</span>';
                 } else {
                     secSection.style.display = 'none';
                 }
@@ -929,14 +923,14 @@
                 const btnBox = document.getElementById('modalActionButtons');
                 if (r.status === 'pending_validation') {
                     btnBox.innerHTML = `
-                        <button type="button" class="btn-val-reject" onclick="window.adminApp.promptReject(${r.id})" style="padding:9px 16px;">✕ Tolak</button>
-                        <button type="button" class="btn-val-revision" onclick="window.adminApp.promptRevision(${r.id})" style="padding:9px 16px;">✏️ Minta Perbaikan</button>
-                        <button type="button" class="btn-val-approve" onclick="window.adminApp.quickApprove(${r.id})" style="padding:9px 18px;">✓ Setujui &amp; Teruskan ke Keamanan</button>
+                        <button type="button" class="btn-val-reject" onclick="window.adminApp.promptReject(${r.id})" style="padding:9px 16px;">Tolak</button>
+                        <button type="button" class="btn-val-revision" onclick="window.adminApp.promptRevision(${r.id})" style="padding:9px 16px;">Minta Perbaikan</button>
+                        <button type="button" class="btn-val-approve" onclick="window.adminApp.quickApprove(${r.id})" style="padding:9px 18px;">Setujui &amp; Teruskan ke Keamanan</button>
                     `;
                 } else if (r.status === 'forwarded_to_security' && r.security_confirmed_at) {
                     btnBox.innerHTML = `
                         <button type="button" onclick="closeAdminModal()" style="padding:9px 16px; border-radius:8px; border:1px solid #cbd5e1; background:#fff; font-size:13px; font-weight:700; cursor:pointer;">Tutup</button>
-                        <button type="button" class="btn-val-finalize" onclick="window.adminApp.quickFinalize(${r.id})" style="padding:9px 20px; font-size:13px;">★ Finalisasi (Tayangkan ke Peta)</button>
+                        <button type="button" class="btn-val-finalize" onclick="window.adminApp.quickFinalize(${r.id})" style="padding:9px 20px; font-size:13px;">Finalisasi (Tayangkan ke Peta)</button>
                     `;
                 } else {
                     btnBox.innerHTML = `
@@ -958,7 +952,7 @@
                 });
                 const res = await resp.json();
                 if (resp.ok && res.success) {
-                    showToast('✅ Laporan disetujui & diteruskan ke petugas keamanan!', 'success');
+                    showToast('Laporan disetujui dan diteruskan ke petugas keamanan.', 'success');
                     closeAdminModal();
                     await fetchReports(currentTab);
                     await fetchCounts();
@@ -994,7 +988,7 @@
                 });
                 const res = await resp.json();
                 if (resp.ok && res.success) {
-                    showToast('✅ Laporan berhasil difinalisasi dan ditandai Ditangani!', 'success');
+                    showToast('Laporan berhasil difinalisasi dan ditandai Ditangani.', 'success');
                     closeAdminModal();
                     await fetchReports(currentTab);
                     await fetchCounts();
@@ -1038,7 +1032,7 @@
             });
             const res = await resp.json();
             if (resp.ok && res.success) {
-                showToast('📝 Permintaan perbaikan dikirim ke pelapor.', 'success');
+                showToast('Permintaan perbaikan dikirim ke pelapor.', 'success');
                 closeAdminModal();
                 await fetchReports(currentTab);
                 await fetchCounts();
@@ -1065,7 +1059,7 @@
             });
             const res = await resp.json();
             if (resp.ok && res.success) {
-                showToast('❌ Laporan berhasil ditolak.', 'success');
+                showToast('Laporan berhasil ditolak.', 'success');
                 closeAdminModal();
                 await fetchReports(currentTab);
                 await fetchCounts();

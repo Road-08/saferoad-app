@@ -11,7 +11,7 @@
     <!-- Header Banner -->
     <header class="wz-hero-banner">
         <div class="wz-banner-content">
-            <span class="wz-badge-pill">♀ WOMEN'S PROTECTION ZONE</span>
+            <span class="wz-badge-pill">WOMEN'S PROTECTION ZONE</span>
             <h1>Zona Aman &amp; Perlindungan Perjalanan Perempuan</h1>
             <p>
                 Visualisasi titik pencahayaan jalan, pengawasan CCTV aktif, pos aman siaga 24 jam,
@@ -39,7 +39,9 @@
     <!-- Banner Status Terverifikasi (Mode Perempuan Aktif) -->
     <div id="wzVerifiedNotice" class="wz-verified-strip" style="display: flex;">
         <div class="wz-verified-inner">
-            <span class="wz-verified-icon">♀</span>
+            <span class="wz-verified-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </span>
             <div>
                 <strong>Mode Perempuan Terverifikasi Aktif ✨</strong>
                 <span>Identitas Anda terverifikasi sebagai perempuan di database SafeRoad. Peta perlindungan Women's Zone, pos shelter, dan sebaran CCTV aktif telah terbuka penuh.</span>
@@ -57,19 +59,19 @@
                     <span class="wz-filter-label">Filter Layer Peta:</span>
                     <label class="wz-filter-chip">
                         <input type="checkbox" id="layerCctv" checked>
-                        <span>📹 CCTV Aktif</span>
+                        <span>CCTV Aktif</span>
                     </label>
                     <label class="wz-filter-chip">
                         <input type="checkbox" id="layerLampu" checked>
-                        <span>💡 Penerangan Jalan</span>
+                        <span>Penerangan Jalan</span>
                     </label>
                     <label class="wz-filter-chip">
                         <input type="checkbox" id="layerPos" checked>
-                        <span>🛡️ Pos Aman / Shelter</span>
+                        <span>Pos Aman / Shelter</span>
                     </label>
                     <label class="wz-filter-chip">
                         <input type="checkbox" id="layerInsiden" checked>
-                        <span>⚠️ Riwayat Terverifikasi</span>
+                        <span>Riwayat Terverifikasi</span>
                     </label>
                 </div>
 
@@ -77,9 +79,9 @@
                 <div class="wz-map-wrapper">
                     <div id="wzMap" aria-label="Peta Women's Zone SafeRoad"></div>
                     <div class="wz-map-legend">
-                        <span class="wz-legend-item"><i style="background:#16a34a"></i> Pos Aman / Siaga</span>
+                        <span class="wz-legend-item"><i style="background:#1e40af"></i> Pos Aman / Siaga</span>
                         <span class="wz-legend-item"><i style="background:#2563eb"></i> CCTV Terkoneksi</span>
-                        <span class="wz-legend-item"><i style="background:#f59e0b"></i> Lampu Terang</span>
+                        <span class="wz-legend-item"><i style="background:#3b82f6"></i> Lampu Terang</span>
                         <span class="wz-legend-item"><i style="background:#dc2626"></i> Titik Waspada</span>
                     </div>
                 </div>
@@ -114,29 +116,29 @@
 
             <!-- Card Rekomendasi Rute Terang -->
             <div class="wz-card">
-                <div class="wz-card-title text-pink">
+                <div class="wz-card-title">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="7 10 12 15 17 10"/>
                         <line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
                     <span>Alternatif Rute Women's Zone</span>
                 </div>
-                <p class="wz-route-note">Sistem membandingkan hingga 3 alternatif rute dan menandai rute teraman dengan warna <strong>Pink (🌸 Paling Aman untuk Perempuan)</strong> berdasarkan laporan pelecehan/catcalling, penerangan, dan pos shelter:</p>
-                <div class="wz-route-pill" style="border-left: 4px solid #ec4899;">
-                    <span class="wrp-dot" style="background:#ec4899;"></span>
+                <p class="wz-route-note">Sistem membandingkan hingga 3 alternatif rute dan menandai rute teraman untuk perempuan berdasarkan laporan pelecehan/catcalling, penerangan, dan pos shelter:</p>
+                <div class="wz-route-pill" style="border-left: 3px solid #2563eb;">
+                    <span class="wrp-dot" style="background:#2563eb;"></span>
                     <div>
-                        <strong style="color:#be185d;">Jalur Rekomendasi Terverifikasi Pink</strong>
+                        <strong style="color:#1e40af;">Jalur Rekomendasi Terverifikasi</strong>
                         <small>Penerangan optimal · Terpantau CCTV · Bebas catcalling</small>
                     </div>
                 </div>
-                <a href="{{ route('rute') }}" class="btn-open-route" style="background:#fdf2f8; color:#be185d; border:1px solid #fbcfe8; font-weight:800;">
-                    🌸 Cari & Bandingkan Rute Perempuan →
+                <a href="{{ route('rute') }}" class="btn-open-route">
+                    Cari &amp; Bandingkan Rute Perempuan
                 </a>
             </div>
 
             <!-- Card Bantuan Khusus Perempuan -->
             <div class="wz-card wz-help-card">
-                <div class="wz-card-title text-pink">
+                <div class="wz-card-title">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
@@ -166,45 +168,35 @@
 
 /* Hero Banner */
 .wz-hero-banner {
-    background: linear-gradient(135deg, #831843 0%, #be185d 60%, #db2777 100%);
-    border-radius: 20px;
-    padding: 36px clamp(20px, 4vw, 44px);
+    background: #1e3a8a;
+    border-radius: 16px;
+    padding: 32px clamp(20px, 4vw, 40px);
     color: #fff;
-    margin-bottom: 28px;
-    box-shadow: 0 15px 35px -10px rgba(190, 24, 93, 0.35);
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
     position: relative;
     overflow: hidden;
 }
-.wz-hero-banner::after {
-    content: "♀";
-    position: absolute;
-    right: 20px;
-    bottom: -40px;
-    font-size: 200px;
-    color: rgba(255,255,255,0.07);
-    font-weight: 900;
-    pointer-events: none;
-}
 .wz-badge-pill {
     display: inline-block;
-    padding: 4px 14px;
-    border-radius: 9999px;
-    background: rgba(255, 255, 255, 0.18);
+    padding: 4px 12px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.14);
     font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    color: #fdf2f8;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #dbeafe;
     margin-bottom: 12px;
 }
 .wz-hero-banner h1 {
-    font-size: clamp(24px, 3.2vw, 34px);
+    font-size: clamp(22px, 3vw, 30px);
     font-weight: 800;
     letter-spacing: -0.02em;
     margin-bottom: 8px;
 }
 .wz-hero-banner p {
-    font-size: 14.5px;
-    color: #fce7f3;
+    font-size: 14px;
+    color: #cbd5e1;
     max-width: 680px;
     line-height: 1.6;
     margin-bottom: 24px;
@@ -214,7 +206,7 @@
     align-items: center;
     gap: 20px;
     flex-wrap: wrap;
-    border-top: 1px solid rgba(255,255,255,0.2);
+    border-top: 1px solid rgba(255,255,255,0.18);
     padding-top: 18px;
 }
 .wz-stat-item strong {
@@ -225,19 +217,19 @@
 }
 .wz-stat-item span {
     font-size: 12px;
-    color: #fbcfe8;
+    color: #bfdbfe;
 }
 .wz-stat-divider {
     width: 1px;
     height: 30px;
-    background: rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.2);
 }
 
 /* ===== Verified Strip ===== */
 .wz-verified-strip {
-    background: #fdf2f8;
-    border: 1.5px solid #fbcfe8;
-    border-radius: 14px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
     padding: 14px 20px;
     margin-bottom: 24px;
     display: flex;
@@ -252,13 +244,11 @@
     gap: 12px;
 }
 .wz-verified-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: #be185d;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #2563eb;
     color: #fff;
-    font-size: 20px;
-    font-weight: 800;
     display: grid;
     place-items: center;
     flex-shrink: 0;
@@ -266,11 +256,11 @@
 .wz-verified-inner strong {
     display: block;
     font-size: 14px;
-    color: #9d174d;
+    color: #1e3a8a;
 }
 .wz-verified-inner span {
     font-size: 12.5px;
-    color: #831843;
+    color: #334155;
 }
 .btn-demo-toggle-lock {
     padding: 7px 14px;
@@ -502,16 +492,16 @@
     transition: all 0.15s;
 }
 .wz-filter-chip:has(input:checked) {
-    background: #fdf2f8;
-    border-color: #fbcfe8;
-    color: #9d174d;
+    background: #eff6ff;
+    border-color: #dbeafe;
+    color: #1e40af;
 }
 .wz-filter-chip input {
-    accent-color: #be185d;
+    accent-color: #2563eb;
 }
 .wz-map-wrapper {
     position: relative;
-    border-radius: 14px;
+    border-radius: 12px;
     overflow: hidden;
     border: 1px solid var(--border-soft);
 }
@@ -523,8 +513,7 @@
     position: absolute;
     bottom: 14px;
     left: 14px;
-    background: rgba(255,255,255,0.92);
-    backdrop-filter: blur(4px);
+    background: rgba(255,255,255,0.95);
     border: 1px solid var(--border-soft);
     border-radius: 10px;
     padding: 8px 12px;
@@ -563,9 +552,9 @@
 .wz-card {
     background: #fff;
     border: 1px solid var(--border-soft);
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: var(--shadow-sm);
 }
 .wz-card-title {
     display: flex;
@@ -579,9 +568,8 @@
 .wz-card-title svg {
     width: 18px;
     height: 18px;
-    color: var(--primary-600);
+    color: #2563eb;
 }
-.text-pink svg { color: #be185d; }
 
 .wz-score-box {
     display: flex;
@@ -591,10 +579,10 @@
 .wz-score-circle {
     width: 64px;
     height: 64px;
-    border-radius: 16px;
-    background: #fdf2f8;
-    border: 2px solid #fbcfe8;
-    color: #be185d;
+    border-radius: 14px;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    color: #1e40af;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -602,13 +590,13 @@
     flex-shrink: 0;
 }
 .wz-score-circle strong { font-size: 22px; line-height: 1; }
-.wz-score-circle small { font-size: 10px; color: #9d174d; }
+.wz-score-circle small { font-size: 10px; color: #2563eb; }
 .wz-score-badge {
     display: inline-block;
     padding: 2px 8px;
     border-radius: 6px;
-    background: #dcfce7;
-    color: #15803d;
+    background: #dbeafe;
+    color: #1e40af;
     font-size: 11px;
     font-weight: 700;
     margin-bottom: 4px;
@@ -639,7 +627,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #16a34a;
+    background: #2563eb;
     flex-shrink: 0;
 }
 .wz-route-pill strong {
@@ -655,16 +643,16 @@
     display: block;
     text-align: center;
     padding: 10px;
-    background: #eff6ff;
-    color: var(--primary-700);
+    background: #2563eb;
+    color: #ffffff;
     border-radius: 10px;
     font-size: 13px;
     font-weight: 700;
     text-decoration: none;
-    transition: background 0.2s;
+    transition: background 0.15s;
 }
 .btn-open-route:hover {
-    background: #dbeafe;
+    background: #1e40af;
 }
 
 .wz-contact-list {
@@ -678,14 +666,14 @@
     justify-content: space-between;
     padding: 10px 14px;
     border-radius: 10px;
-    background: #fdf2f8;
-    border: 1px solid #fbcfe8;
-    color: #831843;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    color: #1e40af;
     font-size: 12.5px;
     text-decoration: none;
-    transition: background 0.2s;
+    transition: background 0.15s;
 }
-.wz-contact-btn:hover { background: #fce7f3; }
+.wz-contact-btn:hover { background: #dbeafe; }
 .wz-contact-btn strong { font-size: 14px; }
 </style>
 
@@ -715,12 +703,12 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     const posPoints = [
-        { nama: '🛡️ Pos Satpam Terpadu Siaga 24 Jam', lat: -7.3126, lng: 112.7258, kontak: '(031) 829-1234' },
-        { nama: '🛡️ Shelter Aman & Pos Jaga Ketintang Kulon', lat: -7.3147, lng: 112.7291, kontak: 'Petugas Siaga' }
+        { nama: 'Pos Satpam Terpadu Siaga 24 Jam', lat: -7.3126, lng: 112.7258, kontak: '(031) 829-1234' },
+        { nama: 'Shelter Aman & Pos Jaga Ketintang Kulon', lat: -7.3147, lng: 112.7291, kontak: 'Petugas Siaga' }
     ];
 
     const insidenPoints = [
-        { nama: '⚠️ Riwayat: Gang Kurang Penerangan (Perlu Waspada)', lat: -7.3160, lng: 112.7265, ket: 'Telah diajukan perbaikan lampu' }
+        { nama: 'Riwayat: Gang Kurang Penerangan (Perlu Waspada)', lat: -7.3160, lng: 112.7265, ket: 'Telah diajukan perbaikan lampu' }
     ];
 
     // Layers
@@ -732,33 +720,33 @@ document.addEventListener('DOMContentLoaded', () => {
     function createMarkerIcon(icon, bg, border) {
         return L.divIcon({
             className: '',
-            html: `<div style="width:30px;height:30px;border-radius:50%;background:${bg};border:2px solid ${border};display:grid;place-items:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.25);">${icon}</div>`,
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
+            html: `<div style="width:28px;height:28px;border-radius:50%;background:${bg};border:2px solid ${border};color:${border};display:grid;place-items:center;font-size:11px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,0.2);">${icon}</div>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
         });
     }
 
     // Render Markers
     cctvPoints.forEach(p => {
-        L.marker([p.lat, p.lng], { icon: createMarkerIcon('📹', '#eff6ff', '#2563eb') })
+        L.marker([p.lat, p.lng], { icon: createMarkerIcon('C', '#eff6ff', '#2563eb') })
             .bindPopup(`<strong>${p.nama}</strong><br><small style="color:#2563eb">CCTV Terkoneksi Sistem</small>`)
             .addTo(layerGroupCctv);
     });
 
     lampuPoints.forEach(p => {
-        L.marker([p.lat, p.lng], { icon: createMarkerIcon('💡', '#fefce8', '#f59e0b') })
-            .bindPopup(`<strong>${p.nama}</strong><br><small style="color:#ca8a04">Penerangan Terang Terverifikasi</small>`)
+        L.marker([p.lat, p.lng], { icon: createMarkerIcon('L', '#eff6ff', '#3b82f6') })
+            .bindPopup(`<strong>${p.nama}</strong><br><small style="color:#2563eb">Penerangan Terang Terverifikasi</small>`)
             .addTo(layerGroupLampu);
     });
 
     posPoints.forEach(p => {
-        L.marker([p.lat, p.lng], { icon: createMarkerIcon('🛡️', '#f0fdf4', '#16a34a') })
-            .bindPopup(`<strong>${p.nama}</strong><br><small style="color:#16a34a">Kontak: ${p.kontak}</small>`)
+        L.marker([p.lat, p.lng], { icon: createMarkerIcon('P', '#dbeafe', '#1e40af') })
+            .bindPopup(`<strong>${p.nama}</strong><br><small style="color:#1e40af">Kontak: ${p.kontak}</small>`)
             .addTo(layerGroupPos);
     });
 
     insidenPoints.forEach(p => {
-        L.marker([p.lat, p.lng], { icon: createMarkerIcon('⚠️', '#fef2f2', '#dc2626') })
+        L.marker([p.lat, p.lng], { icon: createMarkerIcon('!', '#fef2f2', '#dc2626') })
             .bindPopup(`<strong>${p.nama}</strong><br><small style="color:#dc2626">${p.ket}</small>`)
             .addTo(layerGroupInsiden);
     });

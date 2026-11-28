@@ -13,15 +13,17 @@
 
     {{-- Header --}}
     <div class="laporkan-header">
-        <a href="{{ url('/dashboard') }}" class="back-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-            Kembali ke Dashboard
-        </a>
+        <div class="laporkan-back-row">
+            <a href="{{ url('/dashboard') }}" class="back-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+                <span>Kembali ke Dashboard</span>
+            </a>
+        </div>
         <div class="header-badge">
             <span class="badge-dot"></span>
-            LAPORAN INSIDEN
+            <span>LAPORAN INSIDEN</span>
         </div>
         <h1>Laporkan Kejadian di Rute Anda</h1>
         <p>Bantu komunitas SafeRoad tetap aman. Isi formulir di bawah dan tandai lokasi kejadian pada peta.</p>
@@ -29,7 +31,11 @@
 
     {{-- Restriksi Akses Role (Hanya Masyarakat yang membuat laporan warga!) --}}
     <div id="roleRestrictedNotice" class="role-restricted-card" style="display: none;">
-        <div class="rrc-icon-box" id="rrcIconBox">🛡️</div>
+        <div class="rrc-icon-box" id="rrcIconBox">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+        </div>
         <div class="rrc-content">
             <span class="rrc-badge" id="rrcBadge">HAK AKSES KHUSUS MASYARAKAT</span>
             <h2 id="rrcTitle">Fitur Pelaporan Ini Diperuntukkan Bagi Warga Masyarakat</h2>
@@ -38,10 +44,10 @@
             </p>
             <div class="rrc-btn-wrap">
                 <a href="{{ route('keamanan.dashboard') }}" id="rrcBtnAction" class="rrc-btn">
-                    🛡️ Buka Dashboard Tugas Petugas Keamanan
+                    Buka Dashboard Tugas Petugas Keamanan
                 </a>
                 <a href="{{ url('/rute') }}" class="rrc-btn-secondary">
-                    🗺️ Lihat Peta Rute
+                    Lihat Peta Rute
                 </a>
             </div>
         </div>
@@ -68,11 +74,11 @@
                     </div>
                     <select id="category" name="category" class="form-select" required>
                         <option value="">-- Pilih Jenis Kejadian --</option>
-                        <option value="Pelecehan / Gangguan Keamanan">🔴 Pelecehan / Gangguan Keamanan</option>
-                        <option value="Pencurian">🟠 Tindak Kriminal / Pencurian / Begal</option>
-                        <option value="Kondisi Jalan">🟡 Kondisi Jalan / Lampu Mati / Rawan Kecelakaan</option>
-                        <option value="Fasilitas Keamanan">🔵 Kerusakan Fasilitas Keamanan / CCTV</option>
-                        <option value="Lainnya">🟣 Kondisi Mencurigakan / Lainnya</option>
+                        <option value="Pelecehan / Gangguan Keamanan">Pelecehan / Gangguan Keamanan</option>
+                        <option value="Pencurian">Tindak Kriminal / Pencurian / Begal</option>
+                        <option value="Kondisi Jalan">Kondisi Jalan / Lampu Mati / Rawan Kecelakaan</option>
+                        <option value="Fasilitas Keamanan">Kerusakan Fasilitas Keamanan / CCTV</option>
+                        <option value="Lainnya">Kondisi Mencurigakan / Lainnya</option>
                     </select>
                     <p id="cat-error" class="field-error" hidden>Pilih salah satu kategori kejadian.</p>
                 </div>
@@ -197,7 +203,7 @@
                     </button>
 
                     <div id="mapContainer" class="map-container" hidden>
-                        <div class="map-hint">📍 Geser marker untuk menyesuaikan titik lokasi</div>
+                        <div class="map-hint">Geser penanda pada peta untuk menyesuaikan titik lokasi</div>
                         <div id="map"></div>
                     </div>
                 </div>
@@ -224,7 +230,7 @@
 
                 <div class="after-submit-links" style="display:flex; justify-content:center; gap:16px; margin-top:14px;">
                     <a href="{{ url('/laporan/riwayat') }}" style="font-size:13px; font-weight:700; color:var(--primary-600); text-decoration:none;">
-                        📋 Lihat Riwayat Laporan Saya →
+                        Lihat Riwayat Laporan Saya
                     </a>
                 </div>
 
@@ -260,9 +266,9 @@
                 </div>
                 <p class="info-emergency-text">Jika Anda dalam situasi darurat, segera hubungi:</p>
                 <div class="emergency-numbers">
-                    <a href="tel:110" class="emergency-btn">🚔 Polisi: <strong>110</strong></a>
-                    <a href="tel:119" class="emergency-btn">🚑 Ambulans: <strong>119</strong></a>
-                    <a href="tel:112" class="emergency-btn">🆘 Darurat: <strong>112</strong></a>
+                    <a href="tel:110" class="emergency-btn">Polisi: <strong>110</strong></a>
+                    <a href="tel:119" class="emergency-btn">Ambulans: <strong>119</strong></a>
+                    <a href="tel:112" class="emergency-btn">Darurat Terpadu: <strong>112</strong></a>
                 </div>
             </div>
         </aside>
@@ -369,67 +375,72 @@
 .laporkan-page {
     max-width: 1140px;
     margin: 0 auto;
-    padding: 32px 20px 60px;
+    padding: 28px 20px 64px;
 }
 
 /* ===== Header ===== */
 .laporkan-header {
-    margin-bottom: 32px;
+    margin-bottom: 24px;
+}
+
+.laporkan-back-row {
+    display: block;
+    margin-bottom: 16px;
 }
 
 .back-link {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--primary-600);
     text-decoration: none;
-    margin-bottom: 20px;
-    transition: color .2s;
+    padding: 6px 10px;
+    margin-left: -10px;
+    border-radius: 8px;
+    transition: background-color .15s, color .15s;
 }
-.back-link:hover { color: var(--primary-600); }
-.back-link svg { width: 16px; height: 16px; }
+.back-link:hover {
+    background-color: var(--primary-50);
+    color: var(--primary-700);
+}
+.back-link svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 .header-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    background: rgba(220, 38, 38, 0.08);
-    border: 1px solid rgba(220, 38, 38, 0.2);
-    color: #dc2626;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    color: #1e40af;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: .08em;
+    letter-spacing: .06em;
     text-transform: uppercase;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .badge-dot {
     width: 6px; height: 6px;
     border-radius: 50%;
-    background: #dc2626;
-    animation: pulse-dot 1.5s infinite;
-}
-@keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: .4; transform: scale(.7); }
+    background: #2563eb;
 }
 
 .laporkan-header h1 {
-    font-size: clamp(22px, 3vw, 32px);
+    font-size: clamp(22px, 2.8vw, 28px);
     font-weight: 800;
     color: var(--text-heading);
-    letter-spacing: -.03em;
-    margin-bottom: 8px;
+    letter-spacing: -.025em;
+    margin-bottom: 6px;
 }
 
 .laporkan-header > p {
-    font-size: 15px;
+    font-size: 14px;
     color: var(--text-muted);
-    max-width: 540px;
+    max-width: 580px;
     line-height: 1.6;
 }
 
@@ -448,24 +459,24 @@
 .form-card {
     background: var(--bg-card);
     border: 1px solid var(--border-soft);
-    border-radius: 20px;
-    padding: 32px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
 }
 
 /* ===== Form Sections ===== */
 .form-section {
-    margin-bottom: 28px;
+    margin-bottom: 22px;
 }
 
 .form-section-title {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--text-heading);
-    margin-bottom: 14px;
+    margin-bottom: 10px;
 }
 
 .section-icon {
@@ -712,59 +723,62 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 11px 20px;
-    border-radius: 10px;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 8px;
     background: var(--primary-600);
     color: #fff;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 600;
     font-family: inherit;
     border: none;
     cursor: pointer;
-    transition: background .2s, transform .15s;
+    white-space: nowrap;
+    transition: background .15s;
 }
-.btn-gps:hover { background: var(--primary-700); transform: translateY(-1px); }
-.btn-gps svg { width: 18px; height: 18px; }
+.btn-gps:hover { background: var(--primary-700); }
+.btn-gps svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 .map-container {
     margin-top: 16px;
-    border-radius: 14px;
+    border-radius: 12px;
     overflow: hidden;
-    border: 1.5px solid var(--border-soft);
+    border: 1px solid var(--border-soft);
 }
 .map-hint {
     padding: 8px 14px;
-    background: #fffbeb;
-    border-bottom: 1px solid #fde68a;
+    background: #eff6ff;
+    border-bottom: 1px solid #dbeafe;
     font-size: 12.5px;
-    color: #92400e;
+    color: #1e40af;
     font-weight: 500;
 }
 #map { height: 300px; width: 100%; }
 
 /* ===== Submit ===== */
 .btn-submit {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
-    padding: 15px 24px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    height: 44px;
+    padding: 0 20px;
+    border-radius: 10px;
+    background: #2563eb;
     color: #fff;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     font-family: inherit;
     border: none;
     cursor: pointer;
-    box-shadow: 0 8px 20px -6px rgba(220,38,38,.4);
-    transition: all .2s;
+    white-space: nowrap;
+    transition: background-color .15s;
     margin-top: 8px;
 }
-.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -8px rgba(220,38,38,.5); }
-.btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
-.btn-submit svg { width: 18px; height: 18px; }
+.btn-submit:hover { background: #1e40af; }
+.btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+.btn-submit svg { width: 17px; height: 17px; flex-shrink: 0; }
 
 .demo-notice {
     display: flex;
@@ -784,13 +798,13 @@
 .info-card {
     background: var(--bg-card);
     border: 1px solid var(--border-soft);
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    box-shadow: var(--shadow-sm);
 }
 .info-card--blue {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-    border-color: transparent;
+    background: #1e40af;
+    border-color: #1e40af;
     color: #fff;
 }
 
@@ -891,23 +905,21 @@
         if (notice) notice.style.display = 'flex';
 
         if (activeRole === 'keamanan') {
-            $('rrcIconBox').textContent = '🛡️';
             $('rrcBadge').textContent = 'PERAN: PETUGAS KEAMANAN';
-            $('rrcBadge').style.background = '#dcfce7';
-            $('rrcBadge').style.color = '#15803d';
+            $('rrcBadge').style.background = '#eff6ff';
+            $('rrcBadge').style.color = '#1e40af';
             $('rrcTitle').textContent = 'Petugas Keamanan Tidak Membuat Laporan Warga';
             $('rrcDesc').innerHTML = 'Sebagai <strong>Petugas Keamanan</strong>, fungsi utama Anda adalah meninjau laporan masuk dari masyarakat, melakukan verifikasi TKP, dan menandai status penanganan.<br>Silakan buka Dashboard Keamanan untuk melihat daftar laporan yang perlu diperiksa.';
             $('rrcBtnAction').href = "{{ route('keamanan.dashboard') }}";
-            $('rrcBtnAction').textContent = '🛡️ Buka Dashboard Tugas Keamanan';
+            $('rrcBtnAction').textContent = 'Buka Dashboard Tugas Keamanan';
         } else if (activeRole === 'admin') {
-            $('rrcIconBox').textContent = '⚡';
             $('rrcBadge').textContent = 'PERAN: ADMINISTRATOR';
-            $('rrcBadge').style.background = '#ede9fe';
-            $('rrcBadge').style.color = '#5b21b6';
+            $('rrcBadge').style.background = '#eff6ff';
+            $('rrcBadge').style.color = '#1e40af';
             $('rrcTitle').textContent = 'Administrator Tidak Membuat Laporan Warga';
             $('rrcDesc').innerHTML = 'Sebagai <strong>Administrator</strong>, fungsi utama Anda adalah memvalidasi, menyetujui, atau menolak laporan masyarakat pada modul moderasi sistem.<br>Silakan buka Dashboard Admin untuk mengelola validasi laporan.';
             $('rrcBtnAction').href = "{{ route('admin.dashboard') }}";
-            $('rrcBtnAction').textContent = '⚡ Buka Konsol Moderasi Admin';
+            $('rrcBtnAction').textContent = 'Buka Konsol Moderasi Admin';
         }
         return; // Hentikan inisialisasi peta dan listener form jika bukan masyarakat
     }
@@ -916,7 +928,7 @@
     function showToast(msg, type = 'success') {
         const toast = $('toast');
         toast.textContent = msg;
-        toast.style.background = type === 'success' ? '#16a34a' : type === 'error' ? '#dc2626' : '#d97706';
+        toast.style.background = type === 'error' ? '#dc2626' : '#2563eb';
         toast.hidden = false;
         clearTimeout(toast._t);
         toast._t = setTimeout(() => { toast.hidden = true; }, 4000);
@@ -1019,7 +1031,7 @@
             if (incidentMarker) incidentMap.removeLayer(incidentMarker);
             incidentMarker = L.marker([lat, lng], { draggable: true })
                 .addTo(incidentMap)
-                .bindPopup('📍 Titik kejadian – seret untuk menyesuaikan')
+                .bindPopup('Titik kejadian — seret untuk menyesuaikan')
                 .openPopup();
 
             $('mapContainer').hidden = false;

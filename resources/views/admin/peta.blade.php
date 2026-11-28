@@ -22,7 +22,7 @@
     <header class="map-hero-card">
         <div class="mhc-left">
             <span class="mhc-badge">PENGAWASAN GEOSPASIAL RESMI</span>
-            <h1>🗺️ Peta Pemantauan Sebaran Insiden &amp; Fasilitas</h1>
+            <h1>Peta Pemantauan Sebaran Insiden &amp; Fasilitas</h1>
             <p>Pantau titik laporan warga yang masuk secara real-time, lokasi insiden terverifikasi, serta sebaran infrastruktur CCTV dan penerangan jalan di seluruh wilayah sektor pengawasan.</p>
         </div>
         <div class="mhc-right">
@@ -33,12 +33,12 @@
                 </div>
                 <div class="mhc-divider"></div>
                 <div class="mhc-stat">
-                    <strong style="color: #f59e0b;" id="statPendingIncidents">2 Pending</strong>
+                    <strong style="color: #dbeafe;" id="statPendingIncidents">2 Pending</strong>
                     <span>Perlu Divalidasi</span>
                 </div>
                 <div class="mhc-divider"></div>
                 <div class="mhc-stat">
-                    <strong style="color: #3b82f6;">18 CCTV</strong>
+                    <strong style="color: #dbeafe;">18 CCTV</strong>
                     <span>Kamera Terkoneksi</span>
                 </div>
             </div>
@@ -56,27 +56,27 @@
                     <label class="map-layer-chip">
                         <input type="checkbox" id="chkPending" checked onchange="updateAdminMapLayers()">
                         <span class="chip-dot dot-pending"></span>
-                        <span>⏳ Menunggu Validasi</span>
+                        <span>Menunggu Validasi</span>
                     </label>
                     <label class="map-layer-chip">
                         <input type="checkbox" id="chkApproved" checked onchange="updateAdminMapLayers()">
                         <span class="chip-dot dot-approved"></span>
-                        <span>✅ Laporan Disetujui</span>
+                        <span>Laporan Disetujui</span>
                     </label>
                     <label class="map-layer-chip">
                         <input type="checkbox" id="chkCctv" checked onchange="updateAdminMapLayers()">
                         <span class="chip-dot dot-cctv"></span>
-                        <span>📹 CCTV Dishub</span>
+                        <span>CCTV Dishub</span>
                     </label>
                     <label class="map-layer-chip">
                         <input type="checkbox" id="chkLampu" checked onchange="updateAdminMapLayers()">
                         <span class="chip-dot dot-lampu"></span>
-                        <span>💡 Lampu PJU</span>
+                        <span>Lampu PJU</span>
                     </label>
                     <label class="map-layer-chip">
                         <input type="checkbox" id="chkPos" checked onchange="updateAdminMapLayers()">
                         <span class="chip-dot dot-pos"></span>
-                        <span>🛡️ Pos Keamanan</span>
+                        <span>Pos Keamanan</span>
                     </label>
                 </div>
             </div>
@@ -85,11 +85,11 @@
             <div class="leaflet-map-wrapper">
                 <div id="fullAdminMap" aria-label="Peta Geospasial SafeRoad Administrator"></div>
                 <div class="map-floating-legend">
-                    <span class="mfl-item"><i style="background:#d97706"></i> ⏳ Menunggu Validasi</span>
-                    <span class="mfl-item"><i style="background:#dc2626"></i> ⚠️ Laporan Disetujui</span>
-                    <span class="mfl-item"><i style="background:#2563eb"></i> 📹 CCTV</span>
-                    <span class="mfl-item"><i style="background:#ca8a04"></i> 💡 Lampu PJU</span>
-                    <span class="mfl-item"><i style="background:#16a34a"></i> 🛡️ Pos Siaga</span>
+                    <span class="mfl-item"><i style="background:#64748b"></i> Menunggu Validasi</span>
+                    <span class="mfl-item"><i style="background:#dc2626"></i> Laporan Disetujui</span>
+                    <span class="mfl-item"><i style="background:#2563eb"></i> CCTV</span>
+                    <span class="mfl-item"><i style="background:#3b82f6"></i> Lampu PJU</span>
+                    <span class="mfl-item"><i style="background:#1e40af"></i> Pos Siaga</span>
                 </div>
             </div>
         </div>
@@ -97,7 +97,7 @@
         <!-- Sidebar Kanan: Daftar Titik Pantauan Cepat -->
         <div class="map-sidebar-box">
             <div class="msb-header">
-                <h3>📌 Titik Insiden Terpantau</h3>
+                <h3>Titik Insiden Terpantau</h3>
                 <span class="msb-sub">Klik titik untuk fokuskan peta</span>
             </div>
             <div class="msb-list" id="mapIncidentList">
@@ -105,7 +105,7 @@
             </div>
             <div class="msb-footer">
                 <a href="{{ route('admin.validasi') }}" class="btn-goto-val">
-                    <span>Buka Konsol Validasi Penuh →</span>
+                    <span>Buka Konsol Validasi Penuh</span>
                 </a>
             </div>
         </div>
@@ -136,16 +136,17 @@
 .btn-back-dash svg { width: 16px; height: 16px; }
 
 .map-hero-card {
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #2563eb 100%);
-    border-radius: 20px;
-    padding: 26px clamp(20px, 4vw, 36px);
+    background-color: #1e3a8a;
+    border: 1px solid #1e40af;
+    border-radius: 14px;
+    padding: 26px clamp(20px, 3.5vw, 36px);
     color: #fff;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 20px;
     margin-bottom: 24px;
-    box-shadow: 0 12px 30px -8px rgba(30, 58, 138, 0.35);
+    box-shadow: var(--shadow-card);
     flex-wrap: wrap;
 }
 .mhc-badge {
@@ -220,11 +221,11 @@
 }
 .map-layer-chip:hover { background: #f1f5f9; }
 .chip-dot { width: 8px; height: 8px; border-radius: 50%; }
-.dot-pending  { background: #d97706; }
+.dot-pending  { background: #64748b; }
 .dot-approved { background: #dc2626; }
 .dot-cctv     { background: #2563eb; }
-.dot-lampu    { background: #f59e0b; }
-.dot-pos      { background: #16a34a; }
+.dot-lampu    { background: #3b82f6; }
+.dot-pos      { background: #1e40af; }
 
 .leaflet-map-wrapper {
     position: relative;
@@ -295,9 +296,9 @@
 }
 .msb-item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .msb-code { font-family: monospace; font-weight: 800; font-size: 12.5px; color: #0f172a; }
-.msb-tag { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
-.tag-pend { background: #fef3c7; color: #b45309; }
-.tag-appr { background: #fee2e2; color: #991b1b; }
+.msb-tag { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+.tag-pend { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+.tag-appr { background: #dbeafe; color: #1e40af; }
 .msb-cat { font-size: 12px; font-weight: 700; color: #2563eb; display: block; margin-bottom: 2px; }
 .msb-loc { font-size: 11.5px; color: #475569; }
 
@@ -405,9 +406,9 @@ function renderAdminMap() {
         if (r.status === 'rejected') return;
 
         const isPending = (r.status === 'pending_validation' || r.status === 'submitted');
-        const iconSymbol = isPending ? '⏳' : '⚠️';
-        const bg = isPending ? '#fef3c7' : '#fee2e2';
-        const border = isPending ? '#d97706' : '#dc2626';
+        const iconSymbol = isPending ? 'P' : '!';
+        const bg = isPending ? '#f8fafc' : '#fee2e2';
+        const border = isPending ? '#64748b' : '#dc2626';
 
         const marker = L.marker([r.lat, r.lng], {
             icon: createMarkerIcon(iconSymbol, bg, border)
@@ -417,18 +418,18 @@ function renderAdminMap() {
             <div style="font-family: inherit; font-size: 13px; line-height: 1.4; min-width: 220px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                     <strong style="color:#0f172a; font-family: monospace;">${r.code}</strong>
-                    <span style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:4px; ${isPending ? 'background:#fef3c7;color:#b45309;' : 'background:#dcfce7;color:#15803d;'}">${isPending ? 'Pending' : 'Disetujui'}</span>
+                    <span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; ${isPending ? 'background:#f8fafc;color:#64748b;border:1px solid #e2e8f0;' : 'background:#dbeafe;color:#1e40af;'}">${isPending ? 'Pending' : 'Disetujui'}</span>
                 </div>
                 <strong style="display:block; color:#2563eb; font-size:12.5px;">${r.category}</strong>
-                <p style="margin:4px 0; color:#475569; font-size:11.5px;">📍 ${r.address}</p>
-                <p style="margin:4px 0 8px; color:#334155; font-size:11px; background:#f8fafc; padding:6px; border-radius:6px; border:1px solid #e2e8f0;">"${r.description}"</p>
+                <p style="margin:4px 0; color:#64748b; font-size:11.5px;">${r.address}</p>
+                <p style="margin:4px 0 8px; color:#0f172a; font-size:11px; background:#f8fafc; padding:6px; border-radius:6px; border:1px solid #e2e8f0;">"${r.description}"</p>
                 ${isPending ? `
                     <div style="display:flex; gap:6px; margin-top:6px;">
-                        <button type="button" onclick="quickMapAction(${r.id}, 'approve')" style="flex:1; padding:6px 8px; font-size:11px; font-weight:700; background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; border-radius:6px; cursor:pointer;">✓ Setujui</button>
-                        <button type="button" onclick="quickMapAction(${r.id}, 'reject')" style="flex:1; padding:6px 8px; font-size:11px; font-weight:700; background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; border-radius:6px; cursor:pointer;">✕ Tolak</button>
+                        <button type="button" onclick="quickMapAction(${r.id}, 'approve')" style="flex:1; padding:6px 8px; font-size:11px; font-weight:700; background:#2563eb; color:#ffffff; border:none; border-radius:6px; cursor:pointer;">Setujui</button>
+                        <button type="button" onclick="quickMapAction(${r.id}, 'reject')" style="flex:1; padding:6px 8px; font-size:11px; font-weight:700; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:6px; cursor:pointer;">Tolak</button>
                     </div>
                 ` : `
-                    <span style="font-size:11px; color:#15803d; font-weight:700;">✓ Laporan Aktif di Peta Masyarakat</span>
+                    <span style="font-size:11px; color:#1e40af; font-weight:700;">Laporan Aktif di Peta Masyarakat</span>
                 `}
             </div>
         `);
@@ -438,7 +439,7 @@ function renderAdminMap() {
 
     if (showCctv) {
         cctvStatic.forEach(c => {
-            L.marker([c.lat, c.lng], { icon: createMarkerIcon('📹', '#eff6ff', '#2563eb') })
+            L.marker([c.lat, c.lng], { icon: createMarkerIcon('C', '#eff6ff', '#2563eb') })
                 .bindPopup(`<strong>${c.nama}</strong><br><small style="color:#2563eb">CCTV Aktif Terkoneksi</small>`)
                 .addTo(markersGroup);
         });
@@ -446,16 +447,16 @@ function renderAdminMap() {
 
     if (showLampu) {
         lampuStatic.forEach(l => {
-            L.marker([l.lat, l.lng], { icon: createMarkerIcon('💡', '#fefce8', '#f59e0b') })
-                .bindPopup(`<strong>${l.nama}</strong><br><small style="color:#ca8a04">Penerangan Jalan Baik</small>`)
+            L.marker([l.lat, l.lng], { icon: createMarkerIcon('L', '#eff6ff', '#3b82f6') })
+                .bindPopup(`<strong>${l.nama}</strong><br><small style="color:#2563eb">Penerangan Jalan Baik</small>`)
                 .addTo(markersGroup);
         });
     }
 
     if (showPos) {
         posStatic.forEach(p => {
-            L.marker([p.lat, p.lng], { icon: createMarkerIcon('🛡️', '#f0fdf4', '#16a34a') })
-                .bindPopup(`<strong>${p.nama}</strong><br><small style="color:#16a34a">Pos Satpam Kawasan</small>`)
+            L.marker([p.lat, p.lng], { icon: createMarkerIcon('P', '#dbeafe', '#1e40af') })
+                .bindPopup(`<strong>${p.nama}</strong><br><small style="color:#1e40af">Pos Satpam Kawasan</small>`)
                 .addTo(markersGroup);
         });
     }
@@ -477,11 +478,11 @@ function renderSidebarList() {
             <div class="msb-item-top">
                 <span class="msb-code">${r.code}</span>
                 <span class="msb-tag ${(r.status === 'pending_validation' || r.status === 'submitted') ? 'tag-pend' : 'tag-appr'}">
-                    ${(r.status === 'pending_validation' || r.status === 'submitted') ? '⏳ Pending' : '✓ Tayang'}
+                    ${(r.status === 'pending_validation' || r.status === 'submitted') ? 'Pending' : 'Tayang'}
                 </span>
             </div>
             <span class="msb-cat">${r.category}</span>
-            <span class="msb-loc">📍 ${r.address}</span>
+            <span class="msb-loc">${r.address}</span>
         </div>
     `).join('');
 }
@@ -503,10 +504,10 @@ function quickMapAction(id, action) {
 
     if (action === 'approve') {
         r.status = 'map_updated';
-        alert(`✅ Laporan ${r.code} disetujui!\nTitik kini tayang pada peta masyarakat.`);
+        alert(`Laporan ${r.code} disetujui.\nTitik kini tayang pada peta masyarakat.`);
     } else {
         r.status = 'rejected';
-        alert(`❌ Laporan ${r.code} ditolak.`);
+        alert(`Laporan ${r.code} ditolak.`);
     }
 
     renderAdminMap();

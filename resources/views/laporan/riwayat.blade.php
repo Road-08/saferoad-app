@@ -11,7 +11,7 @@
             <p>Pantau proses validasi admin, pemeriksaan petugas lapangan di TKP, hingga status finalisasi penanganan laporan keamanan Anda.</p>
         </div>
         <a href="{{ url('/laporkan') }}" class="btn-create-report" id="btnRiwayatAction">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" aria-hidden="true">
                 <line x1="12" y1="5" x2="12" y2="19"/>
                 <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
@@ -52,7 +52,14 @@
         </div>
 
         <div id="emptyReportsState" class="empty-state-box" style="display:none;">
-            <div class="es-icon">📋</div>
+            <div class="es-icon" aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="color: var(--primary-600);">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+            </div>
             <h3>Belum Ada Laporan yang Diajukan</h3>
             <p>Jika Anda melihat kejadian mencurigakan, pelecehan, atau jalan rusak, laporkan segera untuk melindungi pengguna jalan lainnya.</p>
             <a href="{{ url('/laporkan') }}" class="btn-primary-action">Mulai Buat Laporan</a>
@@ -66,89 +73,104 @@
 <style>
 .riwayat-container {
     max-width: 1140px;
-    margin: 32px auto 60px;
+    margin: 28px auto 64px;
     padding: 0 20px;
 }
 .riwayat-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: center;
     gap: 20px;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
     flex-wrap: wrap;
+}
+.rh-title-area {
+    flex: 1;
+    min-width: 260px;
 }
 .rh-badge {
     display: inline-block;
     font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    color: var(--primary-600);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #1e40af;
     background: #eff6ff;
+    border: 1px solid #dbeafe;
     padding: 3px 10px;
-    border-radius: 9999px;
+    border-radius: 6px;
     margin-bottom: 8px;
 }
 .rh-title-area h1 {
-    font-size: clamp(24px, 3vw, 32px);
+    font-size: clamp(22px, 2.8vw, 28px);
     font-weight: 800;
     color: var(--text-heading);
     margin-bottom: 6px;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
 }
 .rh-title-area p {
-    font-size: 14.5px;
+    font-size: 14px;
     color: var(--text-muted);
-    max-width: 620px;
+    max-width: 600px;
+    line-height: 1.55;
     margin: 0;
 }
 .btn-create-report {
     display: inline-flex;
+    flex-direction: row;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    padding: 12px 20px;
-    border-radius: 12px;
-    background: var(--primary-600);
-    color: #fff;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #ffffff;
     font-size: 13.5px;
-    font-weight: 700;
+    font-weight: 600;
     text-decoration: none;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
-    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease;
+}
+.btn-create-report svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
 }
 .btn-create-report:hover {
-    background: var(--primary-700);
-    transform: translateY(-2px);
+    background: #1e40af;
 }
 
 .status-guide-card {
-    background: #fff;
+    background: #ffffff;
     border: 1px solid var(--border-soft);
-    border-radius: 16px;
-    padding: 18px 24px;
+    border-radius: 12px;
+    padding: 16px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 32px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
     flex-wrap: wrap;
     gap: 12px;
 }
 .sg-item {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 .sg-dot {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     background: var(--primary-50);
     color: var(--primary-600);
-    border: 1.5px solid var(--primary-200);
+    border: 1px solid var(--primary-200);
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 700;
     display: grid;
     place-items: center;
+    flex-shrink: 0;
 }
 .sg-item.active .sg-dot {
     background: var(--primary-600);
@@ -161,7 +183,7 @@
     color: var(--text-heading);
 }
 .sg-item small {
-    font-size: 11px;
+    font-size: 11.5px;
     color: var(--text-muted);
 }
 .sg-arrow {
@@ -173,29 +195,30 @@
     font-size: 12px;
     font-weight: 700;
     background: #eff6ff;
-    color: var(--primary-700);
-    padding: 3px 10px;
-    border-radius: 9999px;
+    color: #1e40af;
+    border: 1px solid #dbeafe;
+    padding: 2px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
 }
 .reports-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 16px;
 }
 .report-card-item {
-    background: #fff;
+    background: #ffffff;
     border: 1px solid var(--border-soft);
-    border-radius: 16px;
-    padding: 22px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.2s, border-color 0.2s;
+    transition: border-color 0.15s ease;
 }
 .report-card-item:hover {
-    transform: translateY(-2px);
-    border-color: var(--primary-500);
+    border-color: #2563eb;
 }
 .rci-top {
     display: flex;
@@ -215,13 +238,13 @@
     font-size: 11.5px;
     font-weight: 700;
     padding: 3px 10px;
-    border-radius: 9999px;
+    border-radius: 6px;
 }
-.status-pending_validation { background: #fef3c7; color: #b45309; }
-.status-forwarded_to_security { background: #e0e7ff; color: #4338ca; }
-.status-needs_revision { background: #fff7ed; color: #c2410c; }
-.status-handled { background: #dcfce7; color: #15803d; }
-.status-rejected { background: #fee2e2; color: #b91c1c; }
+.status-pending_validation { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+.status-forwarded_to_security { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+.status-needs_revision { background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; }
+.status-handled { background: #dbeafe; color: #1e40af; }
+.status-rejected { background: #fee2e2; color: #dc2626; }
 
 .rci-category {
     font-size: 15px;
@@ -336,7 +359,7 @@
         const toast = document.getElementById('riwayatToast');
         if (!toast) return;
         toast.textContent = msg;
-        toast.style.background = type === 'success' ? '#16a34a' : type === 'error' ? '#dc2626' : '#2563eb';
+        toast.style.background = type === 'error' ? '#dc2626' : '#2563eb';
         toast.style.display = 'block';
         clearTimeout(toast._t);
         toast._t = setTimeout(() => { toast.style.display = 'none'; }, 4000);
@@ -379,7 +402,7 @@
             ` : '';
 
             const adminNoteHtml = r.admin_note ? `
-                <div style="margin-top:8px; padding:8px 10px; background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; font-size:12px; color:#9a3412;">
+                <div style="margin-top:8px; padding:8px 10px; background:#eff6ff; border:1px solid #dbeafe; border-radius:8px; font-size:12px; color:#1e40af;">
                     <strong>Catatan Admin:</strong> ${r.admin_note}
                 </div>
             ` : '';

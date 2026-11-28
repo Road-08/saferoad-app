@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="container mx-auto py-6">
-    <h1 class="text-2xl font-bold mb-4">🔎 Verifikasi KTP Pengguna</h1>
+    <h1 class="text-2xl font-bold mb-4">Verifikasi KTP Pengguna</h1>
     <table id="ktpTable" class="table table-striped" style="width:100%">
         <thead>
             <tr>

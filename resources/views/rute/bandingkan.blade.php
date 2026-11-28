@@ -180,18 +180,17 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 12px 24px;
-        background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+        padding: 11px 22px;
+        background-color: var(--primary-600);
         color: #ffffff;
-        border-radius: 11px;
+        border-radius: 10px;
         font-size: 14px;
         font-weight: 700;
-        box-shadow: var(--shadow-btn);
-        transition: transform 0.15s ease;
+        transition: background-color 0.15s ease;
     }
 
     .btn-primary-action:hover {
-        transform: translateY(-2px);
+        background-color: var(--primary-700);
     }
 
     .btn-primary-action svg {
@@ -291,14 +290,14 @@
         color: #ffffff;
     }
 
-    .pill-legenda.rute-1 { background-color: #1e3a8a; }
-    .pill-legenda.rute-2 { background-color: #d97706; }
-    .pill-legenda.rute-3 { background-color: #7c3aed; }
+    .pill-legenda.rute-1 { background-color: #1e40af; }
+    .pill-legenda.rute-2 { background-color: #2563eb; }
+    .pill-legenda.rute-3 { background-color: #64748b; }
 
     .map-viewport-wrapper {
-        border-radius: 14px;
+        border-radius: 12px;
         overflow: hidden;
-        border: 1.5px solid var(--border-soft);
+        border: 1px solid var(--border-soft);
     }
 
     #map {
@@ -324,10 +323,10 @@
     .kartu-rute {
         width: 100%;
         padding: 12px 14px;
-        border: 1.5px solid var(--border-soft);
-        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
         background-color: #ffffff;
-        color: var(--text-heading);
+        color: #0f172a;
         text-align: left;
         font-size: 13px;
         font-weight: 700;
@@ -336,15 +335,13 @@
     }
 
     .kartu-rute:hover {
-        border-color: var(--primary-500);
-        background-color: var(--primary-50);
+        border-color: #2563eb;
     }
 
     .kartu-rute.terpilih {
-        border-color: var(--primary-600);
-        background-color: var(--primary-50);
-        color: var(--primary-800);
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+        border: 1px solid #2563eb;
+        background-color: #eff6ff;
+        color: #1e40af;
     }
 
     /* Factors Container */
@@ -355,9 +352,9 @@
 
     .faktor {
         padding: 12px 14px;
-        border: 1px solid var(--border-soft);
-        border-radius: 12px;
-        background-color: var(--bg-canvas);
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background-color: #f8fafc;
     }
 
     .faktor.tidak-tersedia {
@@ -369,21 +366,21 @@
         justify-content: space-between;
         font-size: 13px;
         font-weight: 700;
-        color: var(--text-heading);
+        color: #0f172a;
     }
 
     .bar-latar {
-        height: 7px;
+        height: 6px;
         margin-top: 8px;
         border-radius: 999px;
-        background-color: var(--border-soft);
+        background-color: #e2e8f0;
         overflow: hidden;
     }
 
     .bar-nilai {
         height: 100%;
         border-radius: inherit;
-        background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+        background: #2563eb;
     }
 
     .faktor-note {
@@ -480,48 +477,47 @@
         background-color: #eff6ff;
     }
 
-    /* Badges & Tags */
+    /* Badges & Tags (Monochromatic Blue) */
     .tag {
         display: inline-block;
         margin-left: 6px;
-        padding: 2px 7px;
-        border-radius: 9999px;
-        background-color: var(--success-600);
-        color: #ffffff;
-        font-size: 10px;
-        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 6px;
+        background-color: #dbeafe;
+        color: #1e40af;
+        font-size: 11px;
+        font-weight: 700;
     }
 
     .tag.alt {
-        background-color: var(--primary-600);
+        background-color: #f8fafc;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
     }
 
     .badge-pink-safest {
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        background-color: #ec4899;
-        color: #ffffff;
-        font-size: 10px;
-        font-weight: 800;
-        padding: 3px 8px;
-        border-radius: 999px;
+        background-color: #dbeafe;
+        color: #1e40af;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 6px;
         white-space: nowrap;
-        box-shadow: 0 1px 4px rgba(236, 72, 153, 0.25);
     }
 
     .level-badge {
         display: inline-block;
-        padding: 3px 9px;
-        border-radius: 9999px;
-        font-size: 11px;
-        font-weight: 800;
+        font-size: 12px;
+        font-weight: 700;
     }
 
-    .level-aman { background-color: var(--success-100); color: var(--success-600); }
-    .level-sedang { background-color: var(--warning-100); color: #b45309; }
-    .level-rawan { background-color: var(--danger-100); color: var(--danger-600); }
-    .level-data-belum-cukup { background-color: #f1f5f9; color: var(--text-muted); }
+    .level-aman { color: #2563eb; }
+    .level-sedang { color: #64748b; }
+    .level-rawan { color: #dc2626; }
+    .level-data-belum-cukup { color: #64748b; }
 
     .disclaimer-text {
         font-size: 12px;
@@ -641,10 +637,10 @@
             return { label: 'Data Belum Cukup', className: 'level-data-belum-cukup', color: '#64748b' };
         }
         if (num >= 80) {
-            return { label: 'Aman', className: 'level-aman', color: '#16a34a' };
+            return { label: 'Aman', className: 'level-aman', color: '#2563eb' };
         }
         if (num >= 60) {
-            return { label: 'Sedang', className: 'level-sedang', color: '#ca8a04' };
+            return { label: 'Sedang', className: 'level-sedang', color: '#64748b' };
         }
         return { label: 'Rawan', className: 'level-rawan', color: '#dc2626' };
     }
@@ -725,15 +721,14 @@
             if (isWomen) {
                 const isSafest = (index === safestIndex);
                 if (isSafest) {
-                    // Teraman: outline putih weight 12 lalu garis pink #ec4899 weight 8 solid bringToFront()
                     const outline = L.polyline(pts, {
                         color: '#ffffff',
-                        weight: 12,
+                        weight: 11,
                         opacity: 1
                     }).addTo(map);
                     const line = L.polyline(pts, {
-                        color: '#ec4899',
-                        weight: 8,
+                        color: '#2563eb',
+                        weight: 7,
                         opacity: 1,
                         dashArray: null
                     }).addTo(map);
@@ -743,7 +738,6 @@
                     line.on('click', () => pilihRute(index));
                     garisRute.push(line);
                 } else {
-                    // Lainnya: #94a3b8 weight 5 opacity 0.7 dashArray '6 8'
                     const line = L.polyline(pts, {
                         color: '#94a3b8',
                         weight: 5,
@@ -756,7 +750,7 @@
                 }
             } else {
                 const isRec = (index === 0);
-                const lineColor = isRec ? '#16a34a' : '#2563eb';
+                const lineColor = isRec ? '#1e40af' : '#2563eb';
                 const line = L.polyline(pts, {
                     color: lineColor,
                     weight: isRec ? 7 : 4,
@@ -770,8 +764,7 @@
             }
         });
 
-        // Legenda di sudut kiri bawah peta (bottomleft) khusus Mode Perempuan jika rute > 1
-        womenCompareLegendControl = null; // reset setelah map.remove() — control lama sudah mati bersama peta lama
+        womenCompareLegendControl = null;
         if (isWomen && dataRute.routes.length > 1) {
             womenCompareLegendControl = L.control({ position: 'bottomleft' });
             womenCompareLegendControl.onAdd = function() {
@@ -779,11 +772,11 @@
                 div.style.backgroundColor = '#ffffff';
                 div.style.padding = '8px 12px';
                 div.style.borderRadius = '10px';
-                div.style.boxShadow = '0 2px 10px rgba(0,0,0,0.12)';
-                div.style.border = '1.5px solid #fbcfe8';
+                div.style.boxShadow = '0 1px 4px rgba(15,23,42,0.08)';
+                div.style.border = '1px solid #e2e8f0';
                 div.style.fontSize = '11.5px';
-                div.style.fontWeight = '700';
-                div.style.color = '#334155';
+                div.style.fontWeight = '600';
+                div.style.color = '#0f172a';
                 div.style.display = 'flex';
                 div.style.flexDirection = 'column';
                 div.style.gap = '6px';
@@ -791,12 +784,12 @@
 
                 div.innerHTML = `
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="display:inline-block; width:20px; height:4px; background:#ec4899; border-radius:2px; box-shadow:0 0 0 1px #ffffff;"></span>
-                        <span>Rute paling aman (Zona Perempuan)</span>
+                        <span style="display:inline-block; width:20px; height:4px; background:#2563eb; border-radius:2px;"></span>
+                        <span>Rute rekomendasi teraman</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span style="display:inline-block; width:20px; height:0px; border-top:3px dashed #94a3b8;"></span>
-                        <span style="color:#64748b; font-weight:600;">Alternatif</span>
+                        <span style="color:#64748b;">Rute alternatif</span>
                     </div>
                 `;
                 return div;
@@ -846,7 +839,7 @@
         const tagHeader = $('tag-header-mode');
         const titleHeader = $('title-header-mode');
         const descHeader = $('desc-header-mode');
-        if (tagHeader) tagHeader.textContent = isWomen ? '🌸 PERBANDINGAN WOMEN ZONE' : '🛡️ PERBANDINGAN RUTE UMUM';
+        if (tagHeader) tagHeader.textContent = isWomen ? 'PERBANDINGAN RUTE PEREMPUAN' : 'PERBANDINGAN RUTE UMUM';
         if (titleHeader) titleHeader.textContent = isWomen ? 'Perbandingan Rute Khusus Perempuan' : 'Perbandingan Alternatif Rute Umum';
         if (descHeader) descHeader.textContent = isWomen
             ? 'Bandingkan Women\'s Safety Score, risiko catcalling, pelecehan seksual, penerangan, dan fasilitas keamanan.'
@@ -882,7 +875,7 @@
                     if (statusSkor === 'pending') return [document.createTextNode('Menghitung...')];
                     if (score === null || score === undefined) return [document.createTextNode('-')];
                     const span = buatElemen('strong', '', String(score) + '/100');
-                    if (isPink) span.style.color = '#db2777';
+                    if (isPink) span.style.color = '#1e40af';
                     return [span];
                 }],
                 ['Jarak Tempuh (km)', (route, index) => nilaiMetrik(route, 'jarak', index, markers)],
@@ -923,9 +916,7 @@
                 ['Rekomendasi Women Zone', (route) => {
                     const isPink = hasilSkor.get(route.id)?.women_comparison?.is_pink_recommendation;
                     if (isPink) {
-                        const tag = buatElemen('span', 'tag', '🌸 Paling Aman untuk Perempuan');
-                        tag.style.background = '#db2777';
-                        return [tag];
+                        return [buatElemen('span', 'tag', 'Rekomendasi Teraman')];
                     }
                     return [buatElemen('span', 'tag alt', 'Alternatif')];
                 }]
@@ -940,7 +931,7 @@
                     if (statusSkor === 'pending') return [document.createTextNode('Menghitung...')];
                     if (score === null || score === undefined) return [document.createTextNode('-')];
                     const span = buatElemen('strong', '', String(score) + '/100');
-                    if (isRec) span.style.color = '#15803d';
+                    if (isRec) span.style.color = '#1e40af';
                     return [span];
                 }],
                 ['Jarak Tempuh (km)', (route, index) => nilaiMetrik(route, 'jarak', index, markers)],
@@ -1079,8 +1070,8 @@
             if (isWomen) {
                 if (line.isSafestPink) {
                     line.setStyle({
-                        color: '#ec4899',
-                        weight: 8,
+                        color: selected ? '#1e40af' : '#2563eb',
+                        weight: selected ? 8 : 6,
                         opacity: 1,
                         dashArray: null
                     });
@@ -1088,18 +1079,18 @@
                     line.bringToFront();
                 } else {
                     line.setStyle({
-                        color: selected ? '#64748b' : '#94a3b8',
-                        weight: selected ? 8 : 5,
+                        color: selected ? '#2563eb' : '#94a3b8',
+                        weight: selected ? 7 : 5,
                         opacity: selected ? 0.95 : 0.7,
                         dashArray: selected ? null : '6 8'
                     });
                     if (selected) line.bringToFront();
                 }
             } else {
-                const baseColor = line.defaultColor || (index === 0 ? '#16a34a' : '#2563eb');
+                const baseColor = selected ? '#1e40af' : '#2563eb';
                 line.setStyle({
                     color: baseColor,
-                    weight: selected ? 8 : 4,
+                    weight: selected ? 7 : 4,
                     opacity: selected ? 1 : 0.45,
                     dashArray: selected ? null : '6 8'
                 });

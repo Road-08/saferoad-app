@@ -9,14 +9,19 @@
     {{-- ===== Banner Mode Perempuan ===== --}}
     <div id="femaleModeBar" class="female-mode-bar">
         <div class="female-mode-inner">
-            <span class="female-mode-icon">♀</span>
+            <span class="female-mode-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <polyline points="9 12 11 14 15 10"/>
+                </svg>
+            </span>
             <div>
-                <strong>Mode Perempuan Terverifikasi Aktif ✨</strong>
-                <span>Fitur navigasi aman khusus perempuan dan monitoring driver aktif otomatis untuk perjalanan Anda.</span>
+                <strong>Mode Perempuan Terverifikasi Aktif</strong>
+                <span>Fitur navigasi aman khusus perempuan dan monitoring pengemudi aktif otomatis untuk perjalanan Anda.</span>
             </div>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <a href="{{ route('rute') }}" class="female-mode-cta">Buka Rute Perempuan →</a>
+            <a href="{{ route('rute') }}" class="female-mode-cta">Buka Rute Perempuan</a>
         </div>
     </div>
     @endif
@@ -24,7 +29,7 @@
     {{-- ===== Banner Selamat Datang ===== --}}
     <section class="welcome-banner">
         <span class="eyebrow-tag">PORTAL MASYARAKAT SAFEROAD</span>
-        <h1>Selamat Datang, {{ auth()->user()->name }} 👋</h1>
+        <h1>Selamat Datang, {{ auth()->user()->name }}</h1>
         <p>
             Sesi akun SafeRoad Anda aktif. Jelajahi peta keamanan perjalanan,
             cari alternatif rute terlindungi, dan pantau titik fasilitas di sekitar wilayah Anda.
@@ -74,7 +79,7 @@
         <div class="action-card">
             <div class="action-card-body">
                 <div class="action-card-header">
-                    <div class="card-icon card-icon--danger" aria-hidden="true">
+                    <div class="card-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                             <line x1="12" y1="9" x2="12" y2="13"/>
@@ -87,7 +92,7 @@
                     </div>
                 </div>
             </div>
-            <a href="{{ url('/laporkan') }}" class="card-footer-link card-footer-link--danger">
+            <a href="{{ url('/laporkan') }}" class="card-footer-link">
                 Buat Laporan
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="5" y1="12" x2="19" y2="12"/>
@@ -131,24 +136,19 @@
 </div>{{-- /dashboard-page-container --}}
 
 <style>
-/* ===== Female Mode Bar ===== */
+/* ===== Female Mode Bar (Clean Minimalist Blue/Slate Surface) ===== */
 .female-mode-bar {
-    background: linear-gradient(135deg, #be185d, #db2777);
-    border-radius: 16px;
-    padding: 16px 22px;
+    background-color: #eff6ff;
+    border: 1px solid #dbeafe;
+    border-radius: 12px;
+    padding: 16px 20px;
     margin-bottom: 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
     flex-wrap: wrap;
-    color: #fff;
-    box-shadow: 0 8px 24px -6px rgba(190, 24, 93, 0.35);
-    animation: slideDown .4s ease;
-}
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to   { opacity: 1; transform: translateY(0); }
+    color: #0f172a;
 }
 .female-mode-inner {
     display: flex;
@@ -156,94 +156,85 @@
     gap: 14px;
 }
 .female-mode-icon {
-    font-size: 28px;
-    line-height: 1;
-    background: rgba(255,255,255,.2);
-    width: 46px; height: 46px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
+    background-color: #dbeafe;
+    color: #1e40af;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
 }
 .female-mode-inner strong {
     display: block;
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
+    color: #0f172a;
     margin-bottom: 2px;
 }
 .female-mode-inner span {
-    font-size: 12.5px;
-    color: rgba(255,255,255,.85);
+    font-size: 13px;
+    color: #64748b;
     line-height: 1.4;
 }
 .female-mode-cta {
-    padding: 9px 18px;
-    border-radius: 10px;
-    background: rgba(255,255,255,.2);
-    border: 1px solid rgba(255,255,255,.35);
+    padding: 8px 16px;
+    border-radius: 8px;
+    background-color: #2563eb;
     color: #fff;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     text-decoration: none;
     white-space: nowrap;
-    transition: background .2s;
+    transition: background-color .15s ease;
     flex-shrink: 0;
 }
-.female-mode-cta:hover { background: rgba(255,255,255,.32); }
+.female-mode-cta:hover { background-color: #1e40af; }
 
 /* ===== Layout ===== */
 .dashboard-page-container {
     width: min(100% - 40px, 1140px);
-    margin: 40px auto 60px;
+    margin: 32px auto 60px;
 }
 
-/* ===== Welcome Banner ===== */
+/* ===== Welcome Banner (Clean Flat Professional Blue) ===== */
 .welcome-banner {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-    border-radius: 20px;
-    padding: 36px clamp(24px, 4vw, 44px);
+    background-color: #1e40af;
+    border: 1px solid #1e40af;
+    border-radius: 14px;
+    padding: 32px clamp(24px, 3.5vw, 40px);
     color: #ffffff;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 15px 35px -10px rgba(37, 99, 235, 0.3);
-    margin-bottom: 32px;
-}
-
-.welcome-banner::after {
-    content: "";
-    position: absolute;
-    right: -20px;
-    bottom: -30px;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-    pointer-events: none;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 28px;
 }
 
 .eyebrow-tag {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.12);
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     color: #dbeafe;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
 }
 
 .welcome-banner h1 {
-    font-size: clamp(26px, 3.2vw, 36px);
+    font-size: clamp(26px, 3.2vw, 34px);
     font-weight: 800;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.025em;
     margin-bottom: 8px;
 }
 
 .welcome-banner > p {
-    font-size: 15px;
+    font-size: 14.5px;
     color: #dbeafe;
     max-width: 600px;
     line-height: 1.6;
@@ -252,7 +243,7 @@
 .session-status-strip {
     margin-top: 24px;
     padding-top: 18px;
-    border-top: 1px solid rgba(255,255,255,0.15);
+    border-top: 1px solid rgba(255,255,255,0.16);
     display: flex;
     align-items: center;
     gap: 16px;
@@ -265,11 +256,11 @@
     align-items: center;
     gap: 8px;
     padding: 4px 12px;
-    background: rgba(22, 163, 74, 0.25);
-    border: 1px solid rgba(74, 222, 128, 0.4);
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.24);
     border-radius: 9999px;
-    color: #bbf7d0;
-    font-weight: 700;
+    color: #ffffff;
+    font-weight: 600;
     font-size: 12px;
 }
 
@@ -277,9 +268,7 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background-color: #4ade80;
-    box-shadow: 0 0 6px #4ade80;
-    animation: pulse-dot 2s infinite;
+    background-color: #dbeafe;
 }
 
 @keyframes pulse-dot {
@@ -306,20 +295,18 @@
 .action-card {
     background-color: var(--bg-card, #ffffff);
     border: 1px solid var(--border-soft, #e2e8f0);
-    border-radius: 16px;
-    padding: 24px;
+    border-radius: 14px;
+    padding: 22px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    gap: 18px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.15s ease;
 }
 
 .action-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--primary-500, #3b82f6);
-    box-shadow: 0 16px 30px -10px rgba(37, 99, 235, 0.15);
+    border-color: var(--primary-600, #2563eb);
 }
 
 .action-card-body {
@@ -329,15 +316,15 @@
 .action-card-header {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
+    gap: 14px;
 }
 
 .card-icon {
     flex-shrink: 0;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: rgba(37, 99, 235, 0.1);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #eff6ff;
     color: #2563eb;
     display: flex;
     align-items: center;
@@ -345,20 +332,20 @@
 }
 
 .card-icon svg {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
 }
 
 .card-icon--danger {
-    background: rgba(220, 38, 38, 0.1);
-    color: #dc2626;
+    background: #eff6ff;
+    color: #2563eb;
 }
 
 .action-card-header h3 {
-    font-size: 16px;
+    font-size: 15.5px;
     font-weight: 700;
-    color: var(--text-heading, #1e293b);
-    margin-bottom: 6px;
+    color: var(--text-heading, #0f172a);
+    margin-bottom: 4px;
 }
 
 .action-card-header p {
@@ -376,14 +363,14 @@
     font-weight: 600;
     color: #2563eb;
     text-decoration: none;
-    padding: 8px 0;
+    padding-top: 12px;
     border-top: 1px solid var(--border-soft, #e2e8f0);
-    transition: gap 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+    transition: color 0.15s ease;
 }
 
 .card-footer-link:hover {
-    gap: 12px;
-    color: #1d4ed8;
+    color: #1e40af;
 }
 
 .card-footer-link svg {
@@ -392,21 +379,13 @@
     flex-shrink: 0;
 }
 
-.card-footer-link--danger {
-    color: #dc2626;
-}
-
-.card-footer-link--danger:hover {
-    color: #b91c1c;
-}
-
 /* ===== Account Details Card ===== */
 .account-details-card {
     background-color: var(--bg-card, #ffffff);
     border: 1px solid var(--border-soft, #e2e8f0);
-    border-radius: 16px;
-    padding: 28px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
 }
 
 .account-details-title {
@@ -443,11 +422,11 @@
 }
 
 .detail-value--primary {
-    color: var(--primary-600, #2563eb);
+    color: #2563eb;
 }
 
 .detail-value--success {
-    color: var(--success-600, #16a34a);
+    color: #2563eb;
     display: flex;
     align-items: center;
     gap: 6px;

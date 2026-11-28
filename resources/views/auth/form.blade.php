@@ -84,7 +84,7 @@
            ==================================================== */
         .hero-panel {
             position: relative;
-            background: linear-gradient(145deg, #091a36 0%, #173874 50%, #1e40af 100%);
+            background: #1e40af;
             color: #ffffff;
             padding: 48px clamp(32px, 5vw, 64px) 36px;
             display: flex;
@@ -92,15 +92,15 @@
             justify-content: space-between;
             overflow: hidden;
             isolation: isolate;
-            transition: background 0.4s ease;
+            transition: background 0.3s ease;
         }
 
         .hero-panel.role-theme-keamanan {
-            background: linear-gradient(145deg, #06192e 0%, #0c2d48 50%, #145a55 100%);
+            background: #1e3a8a;
         }
 
         .hero-panel.role-theme-admin {
-            background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+            background: #1e3a8a;
         }
 
         /* Elemen Dekoratif Rute Biru di Latar */
@@ -412,17 +412,15 @@
         }
 
         .role-card-btn.role-keamanan.active {
-            border-color: #0f2d59;
-            background: #f1f5f9;
-            color: #0f2d59;
-            box-shadow: 0 4px 12px rgba(15, 45, 89, 0.15), inset 0 0 0 1px #0f2d59;
+            border-color: #2563eb;
+            background: #eff6ff;
+            color: #1e40af;
         }
 
         .role-card-btn.role-admin.active {
-            border-color: #4f46e5;
-            background: #f5f3ff;
-            color: #312e81;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15), inset 0 0 0 1px #4f46e5;
+            border-color: #2563eb;
+            background: #eff6ff;
+            color: #1e40af;
         }
 
         .role-icon-box {
@@ -453,22 +451,12 @@
             margin-bottom: 20px;
         }
 
-        .role-notice-masyarakat {
-            background-color: #eff6ff;
-            border: 1px solid #bfdbfe;
-            color: #1e40af;
-        }
-
-        .role-notice-keamanan {
-            background-color: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #166534;
-        }
-
+        .role-notice-masyarakat,
+        .role-notice-keamanan,
         .role-notice-admin {
-            background-color: #fdf4ff;
-            border: 1px solid #f5d0fe;
-            color: #86198f;
+            background-color: #eff6ff;
+            border: 1px solid #dbeafe;
+            color: #1e40af;
         }
 
         /* Demo Quick-Fill Bar */
@@ -518,15 +506,15 @@
             font-weight: 700;
             padding: 5px 10px;
             border-radius: 6px;
-            border: 1px solid #86efac;
-            background: #f0fdf4;
-            color: #15803d;
+            border: 1px solid #dbeafe;
+            background: #eff6ff;
+            color: #1e40af;
             cursor: pointer;
             transition: all 0.15s ease;
         }
 
         .btn-demo-jump:hover {
-            background: #dcfce7;
+            background: #dbeafe;
         }
 
         /* Header Form */
@@ -766,40 +754,27 @@
             justify-content: center;
             gap: 10px;
             border: none;
-            border-radius: 11px;
-            background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+            border-radius: 10px;
+            background: #2563eb;
             color: #ffffff;
             font-size: 14px;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: var(--shadow-btn);
-            transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+            transition: background-color 0.15s ease;
         }
 
         .btn-submit:hover {
-            background: linear-gradient(135deg, #1d4ed8, #1e40af);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 18px 0 rgba(37, 99, 235, 0.35);
+            background: #1e40af;
         }
 
-        .btn-submit.btn-role-keamanan {
-            background: linear-gradient(135deg, #0f2d59, #1e3a8a);
-            box-shadow: 0 4px 14px rgba(15, 45, 89, 0.3);
-        }
-
-        .btn-submit.btn-role-keamanan:hover {
-            background: linear-gradient(135deg, #0a1f3d, #142850);
-            box-shadow: 0 6px 18px rgba(15, 45, 89, 0.4);
-        }
-
+        .btn-submit.btn-role-keamanan,
         .btn-submit.btn-role-admin {
-            background: linear-gradient(135deg, #4338ca, #312e81);
-            box-shadow: 0 4px 14px rgba(67, 56, 202, 0.3);
+            background: #1e40af;
         }
 
+        .btn-submit.btn-role-keamanan:hover,
         .btn-submit.btn-role-admin:hover {
-            background: linear-gradient(135deg, #3730a3, #1e1b4b);
-            box-shadow: 0 6px 18px rgba(67, 56, 202, 0.4);
+            background: #1e3a8a;
         }
 
         .btn-submit:active {
@@ -1007,7 +982,11 @@
             </div>
 
             <div class="hero-emergency-notice" id="heroEmergencyNotice" role="note">
-                <span style="font-size: 16px;">🚨</span>
+                <span style="display: inline-flex; align-items: center; color: #fca5a5; flex-shrink: 0;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                </span>
                 <div id="heroEmergencyText">
                     <strong>Panggilan Darurat:</strong> Hubungi <strong>112</strong> untuk respon darurat terpadu atau hubungi pos keamanan terdekat.
                 </div>
@@ -1163,7 +1142,7 @@
                 <!-- Field Email / ID Petugas / Email Admin -->
                 <div class="form-field">
                     <label for="email" id="labelEmail">
-                        {{ $isRegister ? 'Alamat Email' : 'Alamat Email ' }}
+                        {{ $isRegister ? 'Alamat Email' : 'Email' }}
                     </label>
                     <div class="input-group">
                         <span class="input-icon-left" aria-hidden="true">
@@ -1338,21 +1317,21 @@
             subtitleTag: 'PORTAL WARGA & MASYARAKAT',
             formTitle: 'Selamat datang kembali',
             formDesc: 'Masuk dengan kredensial terdaftar untuk melanjutkan akses fitur keamanan perjalanan Anda.',
-            labelEmail: 'Alamat Email Warga',
+            labelEmail: 'Email',
             placeholderEmail: 'nama@email.com',
             labelPassword: 'Kata Sandi Akun',
             placeholderPassword: 'Masukkan kata sandi akun',
             btnSubmit: 'Masuk sebagai Masyarakat',
             btnSubmitClass: '',
-            noticeIcon: '💡',
+            noticeIcon: '',
             noticeClass: 'role-notice-masyarakat',
             noticeText: '<strong>Akses Masyarakat Umum:</strong> Gunakan akun warga terdaftar Anda untuk melihat peta rute aman, Women\'s Zone, dan membuat laporan kejadian.',
             demoEmail: 'nikenkaziasitumeangg@gmail.com',
             demoPass: 'password',
-            btnFillText: '👤 Isi Akun Warga Demo',
-            btnJumpText: '🚀 Buka Dashboard Warga',
+            btnFillText: 'Isi Akun Warga Demo',
+            btnJumpText: 'Buka Dashboard Warga',
             dashboardUrl: "{{ route('dashboard') }}?mode_warga=1",
-            indicator: '👤 Mode: Masyarakat'
+            indicator: 'Mode: Masyarakat'
         },
         keamanan: {
             themeClass: 'role-theme-keamanan',
@@ -1381,15 +1360,15 @@
             placeholderPassword: 'Masukkan kata sandi dinas patroli',
             btnSubmit: 'Masuk sebagai Petugas Keamanan',
             btnSubmitClass: 'btn-role-keamanan',
-            noticeIcon: '🛡️',
+            noticeIcon: '',
             noticeClass: 'role-notice-keamanan',
             noticeText: '<strong>Akses Terbatas Petugas Resmi:</strong> Portal ini khusus bagi aparat kepolisian, satuan pengamanan berwenang, dan petugas patroli lapangan.',
             demoEmail: 'petugas.keamanan@saferoad.id',
             demoPass: 'keamanan123',
-            btnFillText: '🛡️ Isi Akun Petugas Demo',
-            btnJumpText: '⚡ Masuk Langsung ke Dashboard Keamanan',
+            btnFillText: 'Isi Akun Petugas Demo',
+            btnJumpText: 'Masuk Langsung ke Dashboard Keamanan',
             dashboardUrl: "{{ route('keamanan.dashboard') }}",
-            indicator: '🛡️ Mode: Petugas Keamanan'
+            indicator: 'Mode: Petugas Keamanan'
         },
         admin: {
             themeClass: 'role-theme-admin',
@@ -1418,15 +1397,15 @@
             placeholderPassword: 'Masukkan kata sandi master admin',
             btnSubmit: 'Masuk sebagai Administrator',
             btnSubmitClass: 'btn-role-admin',
-            noticeIcon: '⚙️',
+            noticeIcon: '',
             noticeClass: 'role-notice-admin',
             noticeText: '<strong>Konsol Kontrol Master:</strong> Akses administrator memerlukan otorisasi level master. Seluruh perubahan tercatat pada audit log.',
             demoEmail: 'admin@saferoad.id',
             demoPass: 'admin123',
-            btnFillText: '⚡ Isi Akun Admin Demo',
-            btnJumpText: '🚀 Masuk Langsung ke Dashboard Admin',
+            btnFillText: 'Isi Akun Admin Demo',
+            btnJumpText: 'Masuk Langsung ke Dashboard Admin',
             dashboardUrl: "{{ route('admin.dashboard') }}",
-            indicator: '⚡ Mode: Administrator'
+            indicator: 'Mode: Administrator'
         }
     };
 
@@ -1606,11 +1585,11 @@
                 if (realTgl < 1 || realTgl > 31 || bln < 1 || bln > 12) {
                     nikStatus.style.display = 'block';
                     nikStatus.style.color = '#ef4444';
-                    nikStatus.textContent = '⚠️ NIK tidak valid';
+                    nikStatus.textContent = 'Format NIK tidak valid';
                 } else {
                     nikStatus.style.display = 'block';
-                    nikStatus.style.color = gender === 'Perempuan' ? '#ec4899' : '#2563eb';
-                    nikStatus.textContent = '✓ Terdeteksi: ' + gender;
+                    nikStatus.style.color = '#2563eb';
+                    nikStatus.textContent = 'Terdeteksi: ' + gender;
                 }
             } else if (nikInput.value.length > 0) {
                 nikStatus.style.display = 'block';

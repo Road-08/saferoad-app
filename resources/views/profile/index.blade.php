@@ -29,23 +29,23 @@
     </header>
 
     <!-- Informasi Identitas & Gender dari NIK (Read-Only) -->
-    <section class="reminder-card" style="background: #f0fdf4; border-color: #bbf7d0;">
+    <section class="reminder-card">
         <div class="reminder-content">
-            <div class="reminder-icon-box" style="background: #22c55e; color: #fff;">
+            <div class="reminder-icon-box">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     <polyline points="9 12 11 14 15 10"/>
                 </svg>
             </div>
             <div>
-                <h3 style="color: #15803d;">Identitas Terverifikasi</h3>
-                <p style="color: #166534; font-size: 13px;">
-                    Jenis kelamin: <strong>{{ ucfirst(auth()->user()->gender ?? 'Belum terdata') }}</strong> — terverifikasi dari NIK saat pendaftaran. NIK asli Anda tidak disimpan di sistem.
+                <h3>Identitas Terverifikasi</h3>
+                <p>
+                    Jenis kelamin: <strong>{{ ucfirst(auth()->user()->gender ?? 'Belum terdata') }}</strong> — terverifikasi otomatis dari NIK saat pendaftaran. NIK asli Anda tidak disimpan di sistem.
                 </p>
             </div>
         </div>
-        <div style="font-size: 13px; font-weight: 700; color: #16a34a; display: flex; align-items: center; gap: 4px;">
-            <span>✓ Terverifikasi</span>
+        <div class="verified-pill-tag">
+            <span>Terverifikasi</span>
         </div>
     </section>
 
@@ -66,7 +66,7 @@
                 <h3>Status Verifikasi Gender</h3>
                 <p>Jenis kelamin: {{ ucfirst(auth()->user()->gender ?? '-') }} — terverifikasi dari NIK saat pendaftaran</p>
             </div>
-            <span style="font-size: 12px; color: #16a34a; font-weight: 700;">Terkunci</span>
+            <span style="font-size: 12px; color: #2563eb; font-weight: 700;">Terkunci</span>
         </div>
 
         <a href="javascript:void(0)" onclick="alert('Pengaturan privasi: Data perjalanan Anda tidak dibagikan secara publik tanpa izin. Mode anonim tersedia saat pelaporan kejadian.')" class="menu-card-item">
@@ -128,66 +128,66 @@
 <style>
     .profile-wrapper {
         width: min(100% - 32px, 860px);
-        margin: 36px auto;
-        padding-bottom: 40px;
+        margin: 28px auto 64px;
     }
 
     /* Header Profil */
     .profile-header-card {
         background-color: var(--bg-card);
         border: 1px solid var(--border-soft);
-        border-radius: 20px;
-        padding: 30px;
+        border-radius: 14px;
+        padding: 24px 28px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 20px;
-        box-shadow: var(--shadow-card);
-        margin-bottom: 24px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 20px;
     }
 
     .user-main-info {
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 18px;
     }
 
     .profile-avatar-big {
-        width: 72px;
-        height: 72px;
-        border-radius: 20px;
-        background: linear-gradient(135deg, var(--primary-600), var(--primary-800));
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        background-color: var(--primary-600);
         color: #ffffff;
-        font-size: 28px;
+        font-size: 22px;
         font-weight: 800;
         display: grid;
         place-items: center;
-        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+        flex-shrink: 0;
     }
 
     .user-role-badge {
         display: inline-block;
         font-size: 11px;
-        font-weight: 800;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--primary-600);
+        letter-spacing: 0.08em;
+        color: var(--primary-700);
         background-color: var(--primary-50);
+        border: 1px solid var(--primary-100);
         padding: 3px 10px;
         border-radius: 6px;
         margin-bottom: 6px;
     }
 
     .user-fullname {
-        font-size: 22px;
+        font-size: 20px;
         font-weight: 800;
         color: var(--text-heading);
-        line-height: 1.2;
+        line-height: 1.25;
         margin-bottom: 4px;
     }
 
     .user-email-text {
-        font-size: 14px;
+        font-size: 13.5px;
         color: var(--text-muted);
     }
 
@@ -199,12 +199,12 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background-color: var(--success-50);
-        border: 1px solid var(--success-100);
+        background-color: #eff6ff;
+        border: 1px solid #dbeafe;
         padding: 5px 12px;
         border-radius: 9999px;
         font-size: 12.5px;
-        color: var(--success-600);
+        color: #1e40af;
         margin-bottom: 6px;
     }
 
@@ -212,8 +212,7 @@
         width: 7px;
         height: 7px;
         border-radius: 50%;
-        background-color: var(--success-600);
-        box-shadow: 0 0 6px rgba(22, 163, 74, 0.6);
+        background-color: #2563eb;
     }
 
     .verified-text {
@@ -222,17 +221,18 @@
         color: var(--text-muted);
     }
 
-    /* Kartu Pengingat */
+    /* Kartu Identitas */
     .reminder-card {
-        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-        border: 1.5px solid var(--primary-100);
-        border-radius: 18px;
-        padding: 24px;
+        background-color: #ffffff;
+        border: 1px solid var(--border-soft);
+        border-radius: 14px;
+        padding: 20px 24px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 20px;
-        margin-bottom: 32px;
+        margin-bottom: 28px;
+        box-shadow: var(--shadow-sm);
     }
 
     .reminder-content {
@@ -242,58 +242,44 @@
     }
 
     .reminder-icon-box {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        background-color: var(--primary-600);
-        color: #ffffff;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background-color: var(--primary-50);
+        color: var(--primary-600);
         display: grid;
         place-items: center;
         flex-shrink: 0;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
 
     .reminder-icon-box svg {
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
     }
 
     .reminder-card h3 {
         font-size: 15px;
-        font-weight: 800;
-        color: var(--primary-900);
+        font-weight: 700;
+        color: var(--text-heading);
         margin-bottom: 4px;
     }
 
     .reminder-card p {
         font-size: 13px;
-        color: #334155;
+        color: var(--text-muted);
         line-height: 1.5;
-        max-width: 520px;
+        max-width: 540px;
     }
 
-    .btn-verify-now {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 11px 20px;
-        background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
-        color: #ffffff;
-        font-size: 13px;
+    .verified-pill-tag {
+        font-size: 12px;
         font-weight: 700;
-        border-radius: 10px;
+        color: var(--primary-700);
+        background-color: var(--primary-50);
+        border: 1px solid var(--primary-100);
+        padding: 5px 12px;
+        border-radius: 999px;
         white-space: nowrap;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
-        transition: transform 0.15s ease;
-    }
-
-    .btn-verify-now:hover {
-        transform: translateY(-2px);
-    }
-
-    .btn-verify-now svg {
-        width: 15px;
-        height: 15px;
     }
 
     /* Grid Menu Pengaturan */
@@ -312,19 +298,17 @@
     .menu-card-item {
         background-color: var(--bg-card);
         border: 1px solid var(--border-soft);
-        border-radius: 14px;
-        padding: 18px 20px;
+        border-radius: 12px;
+        padding: 16px 20px;
         display: flex;
         align-items: center;
         gap: 16px;
         box-shadow: var(--shadow-sm);
-        transition: all 0.15s ease;
+        transition: border-color 0.15s ease;
     }
 
     .menu-card-item:hover {
-        border-color: var(--primary-500);
-        box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.12);
-        transform: translateY(-1px);
+        border-color: var(--primary-600);
     }
 
     .menu-icon-box {

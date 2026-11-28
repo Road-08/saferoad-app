@@ -25,16 +25,20 @@
 
     <!-- Officer Stat Cards -->
     <div class="officer-stats-grid">
-        <div class="stat-box box-amber">
-            <div class="sb-icon">🚨</div>
+        <div class="stat-box box-blue">
+            <div class="sb-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
             <div>
                 <h3>Belum Diperiksa (TKP)</h3>
                 <strong class="sb-num" id="statPendingCount">0</strong>
                 <span class="sb-sub">Menunggu patroli petugas</span>
             </div>
         </div>
-        <div class="stat-box box-green">
-            <div class="sb-icon">✅</div>
+        <div class="stat-box box-blue">
+            <div class="sb-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e40af" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
             <div>
                 <h3>Sudah Dikonfirmasi</h3>
                 <strong class="sb-num" id="statDoneCount">0</strong>
@@ -42,7 +46,9 @@
             </div>
         </div>
         <div class="stat-box box-blue">
-            <div class="sb-icon">📋</div>
+            <div class="sb-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
             <div>
                 <h3>Total Diteruskan Admin</h3>
                 <strong class="sb-num" id="statTotalCount">0</strong>
@@ -62,10 +68,10 @@
                 </div>
                 <div class="otc-filters">
                     <button type="button" class="otc-filter-btn active" id="tabUnconfirmedBtn" onclick="setKeamananTab('unconfirmed')">
-                        ⏳ Belum Diperiksa (<span id="keamananCountUnconfirmed">0</span>)
+                        Belum Diperiksa (<span id="keamananCountUnconfirmed">0</span>)
                     </button>
                     <button type="button" class="otc-filter-btn" id="tabConfirmedBtn" onclick="setKeamananTab('confirmed')">
-                        ✅ Sudah Dikonfirmasi (<span id="keamananCountConfirmed">0</span>)
+                        Sudah Dikonfirmasi (<span id="keamananCountConfirmed">0</span>)
                     </button>
                 </div>
             </div>
@@ -151,7 +157,7 @@
 
             <!-- Form Pemeriksaan (Jika Belum Dikonfirmasi) -->
             <div id="inspectionFormArea" class="omb-action-form" style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 16px;">
-                <h4 style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 12px;">📋 Form Hasil Pemeriksaan Petugas Lapangan</h4>
+                <h4 style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 12px;">Form Hasil Pemeriksaan Petugas Lapangan</h4>
 
                 <div style="margin-bottom: 12px;">
                     <label for="officerNotes" style="font-size: 12px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">
@@ -185,12 +191,12 @@
             </div>
 
             <!-- View Read-only Jika Sudah Dikonfirmasi -->
-            <div id="inspectionReadOnlyArea" style="display: none; background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 14px; padding: 16px;">
+            <div id="inspectionReadOnlyArea" style="display: none; background: #eff6ff; border: 1px solid #dbeafe; border-radius: 12px; padding: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-                    <strong style="color: #166534; font-size: 13.5px;">✅ Hasil Pemeriksaan Telah Terkirim</strong>
-                    <span style="font-size: 11px; font-weight: 800; background: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 999px;">Menunggu finalisasi admin</span>
+                    <strong style="color: #1e40af; font-size: 13.5px;">Hasil Pemeriksaan Telah Terkirim</strong>
+                    <span style="font-size: 11px; font-weight: 700; background: #dbeafe; color: #1e40af; padding: 3px 8px; border-radius: 6px;">Menunggu finalisasi admin</span>
                 </div>
-                <div style="font-size: 13px; color: #1e293b; line-height: 1.5;">
+                <div style="font-size: 13px; color: #0f172a; line-height: 1.5;">
                     <div><strong>Waktu Konfirmasi:</strong> <span id="roConfirmedAt">-</span></div>
                     <div><strong>Perlu Tindakan:</strong> <span id="roNeedsAction">-</span></div>
                     <div style="margin-top: 4px;"><strong>Catatan Pemeriksaan:</strong> <span id="roInspectionNote">-</span></div>
@@ -203,7 +209,7 @@
                 Tutup
             </button>
             <button type="button" class="btn-verify-success" id="btnSubmitInspection" onclick="submitOfficerInspection()" style="padding: 9px 18px; border-radius: 10px; background: #2563eb; color: #fff; border: none; font-weight: 700; font-size: 13px; cursor: pointer;">
-                ✉️ Kirim Konfirmasi ke Admin
+                Kirim Konfirmasi ke Admin
             </button>
         </div>
     </div>
@@ -219,16 +225,17 @@
     padding: 0 clamp(16px, 3vw, 36px);
 }
 .officer-hero-banner {
-    background: linear-gradient(135deg, #0f2d59 0%, #1e3a8a 100%);
-    border-radius: 20px;
-    padding: 32px clamp(20px, 4vw, 40px);
+    background-color: #1e3a8a;
+    border: 1px solid #1e40af;
+    border-radius: 14px;
+    padding: 28px clamp(20px, 3.5vw, 36px);
     color: #fff;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 24px;
     margin-bottom: 28px;
-    box-shadow: 0 15px 35px -10px rgba(15, 45, 89, 0.35);
+    box-shadow: var(--shadow-card);
     flex-wrap: wrap;
 }
 .ohb-badge {
@@ -258,63 +265,61 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(16, 185, 129, 0.2);
-    border: 1px solid rgba(16, 185, 129, 0.4);
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     padding: 8px 16px;
     border-radius: 9999px;
     font-size: 12.5px;
-    color: #a7f3d0;
+    color: #ffffff;
 }
 .duty-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background-color: #34d399;
-    box-shadow: 0 0 6px #34d399;
+    background-color: #dbeafe;
 }
 
 /* Stat Grid */
 .officer-stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 18px;
-    margin-bottom: 28px;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
 }
 .stat-box {
     background: #fff;
     border: 1px solid var(--border-soft);
-    border-radius: 16px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 18px 20px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
 }
 .sb-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 14px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
     flex-shrink: 0;
 }
-.box-amber .sb-icon { background: #fef3c7; }
-.box-blue .sb-icon  { background: #eff6ff; }
-.box-green .sb-icon { background: #dcfce7; }
+.box-amber .sb-icon,
+.box-blue .sb-icon,
+.box-green .sb-icon { background: #eff6ff; }
 
-.stat-box h3 { font-size: 12.5px; font-weight: 700; color: var(--text-muted); margin: 0 0 2px; }
-.sb-num { font-size: 26px; font-weight: 800; color: var(--text-heading); display: block; line-height: 1.1; }
+.stat-box h3 { font-size: 12px; font-weight: 600; color: var(--text-muted); margin: 0 0 2px; }
+.sb-num { font-size: 24px; font-weight: 800; color: var(--text-heading); display: block; line-height: 1.1; }
 .sb-sub { font-size: 11px; color: var(--text-muted); }
 
 /* Table Section */
 .officer-table-card {
     background: #fff;
     border: 1px solid var(--border-soft);
-    border-radius: 18px;
-    padding: 24px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
 }
 .otc-header {
     display: flex;
@@ -369,36 +374,35 @@
 .ot-time { font-size: 11.5px; color: #64748b; }
 
 .highlight-new-row {
-    background-color: #fef9c3 !important;
+    background-color: #eff6ff !important;
     transition: background-color 1.5s ease;
 }
 
 .badge-new-tag {
     display: inline-block;
-    background: #dc2626;
+    background: #2563eb;
     color: #fff;
     font-size: 9.5px;
     font-weight: 800;
     padding: 2px 5px;
     border-radius: 4px;
     margin-left: 5px;
-    animation: pulseBadge 1.5s infinite;
 }
 
 .btn-action-inspect {
-    padding: 7px 14px;
+    padding: 6px 14px;
     border-radius: 8px;
     background: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #bfdbfe;
+    color: #1e40af;
+    border: 1px solid #dbeafe;
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.15s ease;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
 }
 .btn-action-inspect:hover {
     background: #dbeafe;
-    color: #1e40af;
 }
 
 /* Modal */
@@ -538,7 +542,7 @@
         const toast = document.getElementById('keamananToast');
         if (!toast) return;
         toast.textContent = msg;
-        toast.style.background = type === 'success' ? '#16a34a' : type === 'error' ? '#dc2626' : '#d97706';
+        toast.style.background = type === 'error' ? '#dc2626' : '#2563eb';
         toast.style.display = 'block';
         clearTimeout(toast._t);
         toast._t = setTimeout(() => { toast.style.display = 'none'; }, 4000);
@@ -556,7 +560,6 @@
             tbody.innerHTML = `
                 <tr>
                     <td colspan="6" style="text-align: center; padding: 40px 20px; color: #64748b;">
-                        <div style="font-size: 32px; margin-bottom: 8px;">🛡️</div>
                         <strong style="display: block; font-size: 15px; color: #0f172a;">Belum ada laporan yang diteruskan admin.</strong>
                         <p style="font-size: 12.5px; margin-top: 4px;">Laporan masyarakat yang telah divalidasi admin akan tampil di sini untuk diperiksa.</p>
                     </td>
@@ -571,8 +574,8 @@
             const rowClass = r._isNew ? 'highlight-new-row' : '';
 
             const statusBadge = isConfirmed
-                ? '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:#dcfce7;color:#15803d;">● Sudah Dikonfirmasi</span>'
-                : '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:#fef3c7;color:#b45309;">● Belum Diperiksa TKP</span>';
+                ? '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;background:#dbeafe;color:#1e40af;">Sudah Dikonfirmasi</span>'
+                : '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;">Belum Diperiksa TKP</span>';
 
             return `
                 <tr class="${rowClass}" id="keamananRow-${r.id}">
@@ -581,7 +584,7 @@
                         <span class="ot-time" title="${formatFullDateTime(r.incident_at)}">Kejadian: ${timeAgo(r.incident_at)}</span>
                     </td>
                     <td><strong>${r.category}</strong></td>
-                    <td>📍 ${r.address || '-'}</td>
+                    <td>${r.address || '-'}</td>
                     <td>
                         <span style="font-size: 12px; color: #334155;">
                             ${r.is_anonymous ? '<em>(Anonim)</em>' : (r.reporter_name || 'Anonim')}
@@ -590,7 +593,7 @@
                     <td>${statusBadge}</td>
                     <td style="text-align: right; white-space: nowrap;">
                         <button type="button" class="btn-action-inspect" onclick="window.keamananApp.openModal(${r.id})">
-                            ${isConfirmed ? '👁️ Lihat Hasil TKP' : '🔍 Periksa & Tindak →'}
+                            ${isConfirmed ? 'Lihat Hasil TKP' : 'Periksa & Tindak'}
                         </button>
                     </td>
                 </tr>
@@ -685,7 +688,7 @@
                 });
 
                 if (hasNew) {
-                    showToast('🔔 1 laporan baru diteruskan admin', 'info');
+                    showToast('1 laporan baru diteruskan admin', 'info');
                 }
                 renderTable();
             }
@@ -854,7 +857,7 @@
 
             const res = await resp.json();
             if (resp.ok && res.success) {
-                showToast('✅ Hasil pemeriksaan terkirim ke admin! Status laporan menunggu finalisasi admin.', 'success');
+                showToast('Hasil pemeriksaan terkirim ke admin. Status laporan menunggu finalisasi admin.', 'success');
                 closeModalDetail();
                 await fetchReports();
                 await fetchCounts();
@@ -865,7 +868,7 @@
             showToast(e.message, 'error');
         } finally {
             btn.disabled = false;
-            btn.textContent = '✉️ Kirim Konfirmasi ke Admin';
+            btn.textContent = 'Kirim Konfirmasi ke Admin';
         }
     };
 

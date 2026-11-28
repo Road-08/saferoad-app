@@ -13,9 +13,9 @@
         </div>
         <div class="ahc-right">
             <div class="admin-quick-links">
-                <a href="{{ route('admin.validasi') }}" class="aql-btn aql-btn-highlight">⚖️ Buka Validasi Laporan</a>
-                <a href="{{ route('admin.peta') }}" class="aql-btn">🗺️ Buka Peta Pemantauan</a>
-                <a href="{{ route('admin.statistik') }}" class="aql-btn">📊 Buka Statistik</a>
+                <a href="{{ route('admin.validasi') }}" class="aql-btn aql-btn-highlight">Validasi Laporan</a>
+                <a href="{{ route('admin.peta') }}" class="aql-btn">Peta Pemantauan</a>
+                <a href="{{ route('admin.statistik') }}" class="aql-btn">Statistik</a>
             </div>
         </div>
     </header>
@@ -23,35 +23,43 @@
     <!-- KPI Metric Cards Overview -->
     <div class="admin-kpi-grid">
         <a href="{{ route('admin.validasi') }}" class="kpi-card card-total" title="Lihat semua laporan">
-            <div class="kpi-icon">📊</div>
+            <div class="kpi-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </div>
             <div class="kpi-body">
                 <h3>Total Laporan Warga</h3>
                 <strong class="kpi-num" id="dashKpiTotal">4</strong>
-                <span class="kpi-sub">Kelola di Halaman Validasi →</span>
+                <span class="kpi-sub">Kelola di Halaman Validasi</span>
             </div>
         </a>
         <a href="{{ route('admin.validasi') }}?status=pending_validation" class="kpi-card card-pending" title="Lihat laporan butuh validasi">
-            <div class="kpi-icon">⏳</div>
+            <div class="kpi-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
             <div class="kpi-body">
                 <h3>Menunggu Validasi</h3>
-                <strong class="kpi-num" id="dashKpiPending" style="color: #b45309;">0</strong>
-                <span class="kpi-sub">Perlu persetujuan admin →</span>
+                <strong class="kpi-num" id="dashKpiPending" style="color: #0f172a;">0</strong>
+                <span class="kpi-sub">Perlu persetujuan admin</span>
             </div>
         </a>
         <a href="{{ route('admin.validasi') }}?status=handled" class="kpi-card card-approved" title="Lihat laporan ditangani">
-            <div class="kpi-icon">✅</div>
+            <div class="kpi-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e40af" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
             <div class="kpi-body">
                 <h3>Laporan Ditangani</h3>
-                <strong class="kpi-num" id="dashKpiApproved" style="color: #15803d;">0</strong>
-                <span class="kpi-sub">Aktif pada peta masyarakat →</span>
+                <strong class="kpi-num" id="dashKpiApproved" style="color: #1e40af;">0</strong>
+                <span class="kpi-sub">Aktif pada peta masyarakat</span>
             </div>
         </a>
         <a href="{{ route('admin.validasi') }}?status=rejected" class="kpi-card card-rejected" title="Lihat laporan ditolak">
-            <div class="kpi-icon">❌</div>
+            <div class="kpi-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            </div>
             <div class="kpi-body">
                 <h3>Laporan Ditolak</h3>
-                <strong class="kpi-num" id="dashKpiRejected" style="color: #b91c1c;">0</strong>
-                <span class="kpi-sub">Laporan palsu / duplikat →</span>
+                <strong class="kpi-num" id="dashKpiRejected" style="color: #64748b;">0</strong>
+                <span class="kpi-sub">Laporan tidak valid / duplikat</span>
             </div>
         </a>
     </div>
@@ -62,19 +70,21 @@
 
         <!-- Modul 1: Validasi & Moderasi Laporan -->
         <div class="module-card">
-            <div class="mc-icon-badge icon-red">⚖️</div>
+            <div class="mc-icon-badge icon-blue" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
             <div class="mc-content">
-                <div class="mc-tag tag-amber" id="dashModulePendingTag">0 BUTUH VALIDASI SEGERA</div>
+                <div class="mc-tag tag-blue" id="dashModulePendingTag">0 BUTUH VALIDASI SEGERA</div>
                 <h3>Validasi &amp; Moderasi Laporan Warga</h3>
                 <p>Tinjau setiap aduan keamanan masyarakat, verifikasi foto dan koordinat TKP, lalu setujui untuk dipublikasikan ke peta atau tolak laporan yang tidak valid.</p>
                 <div class="mc-features-list">
-                    <span>✓ Tinjau bukti foto &amp; deskripsi laporan</span>
-                    <span>✓ Setujui publikasi titik insiden ke peta warga</span>
-                    <span>✓ Tolak laporan palsu / indikasi hoax</span>
+                    <span>• Tinjau bukti foto &amp; deskripsi laporan</span>
+                    <span>• Setujui publikasi titik insiden ke peta warga</span>
+                    <span>• Tolak laporan tidak valid</span>
                 </div>
             </div>
             <div class="mc-footer">
-                <a href="{{ route('admin.validasi') }}" class="btn-module-cta cta-red">
+                <a href="{{ route('admin.validasi') }}" class="btn-module-cta cta-blue">
                     <span>Buka Halaman Validasi Laporan</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -86,15 +96,17 @@
 
         <!-- Modul 2: Peta Pemantauan Geospasial -->
         <div class="module-card">
-            <div class="mc-icon-badge icon-blue">🗺️</div>
+            <div class="mc-icon-badge icon-blue" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+            </div>
             <div class="mc-content">
                 <div class="mc-tag tag-blue">MONITORING GEOSPASIAL KOTA</div>
                 <h3>Peta Pemantauan Sebaran Insiden</h3>
                 <p>Pantau sebaran titik laporan masuk dan fasilitas pengawasan kota (CCTV Dishub, Lampu PJU, dan Pos Polisi/Shelter) secara geospasial real-time.</p>
                 <div class="mc-features-list">
-                    <span>✓ Peta pemantauan penuh (Surabaya &amp; Sekitarnya)</span>
-                    <span>✓ Layer toggle: Laporan Pending, Disetujui, CCTV, Lampu</span>
-                    <span>✓ Klik pin peta untuk validasi langsung</span>
+                    <span>• Peta pemantauan penuh (Surabaya &amp; Sekitarnya)</span>
+                    <span>• Layer toggle: Laporan Pending, Disetujui, CCTV, Lampu</span>
+                    <span>• Klik penanda peta untuk validasi langsung</span>
                 </div>
             </div>
             <div class="mc-footer">
@@ -110,19 +122,21 @@
 
         <!-- Modul 3: Statistik & Rekap Data -->
         <div class="module-card">
-            <div class="mc-icon-badge icon-purple">📊</div>
+            <div class="mc-icon-badge icon-blue" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </div>
             <div class="mc-content">
-                <div class="mc-tag tag-purple">REKAP &amp; ANALISIS DATA</div>
+                <div class="mc-tag tag-blue">REKAP &amp; ANALISIS DATA</div>
                 <h3>Statistik &amp; Rekap Keamanan Wilayah</h3>
                 <p>Analisis tren kejadian mingguan, distribusi kategori laporan (pelecehan, kondisi jalan, kriminal), serta evaluasi efektivitas penanganan keamanan.</p>
                 <div class="mc-features-list">
-                    <span>✓ Grafik distribusi persentase kategori insiden</span>
-                    <span>✓ Tren frekuensi laporan harian (7 hari terakhir)</span>
-                    <span>✓ Rekapitulasi rasio laporan valid vs palsu</span>
+                    <span>• Grafik distribusi persentase kategori insiden</span>
+                    <span>• Tren frekuensi laporan harian (7 hari terakhir)</span>
+                    <span>• Rekapitulasi rasio laporan valid vs tidak valid</span>
                 </div>
             </div>
             <div class="mc-footer">
-                <a href="{{ route('admin.statistik') }}" class="btn-module-cta cta-purple">
+                <a href="{{ route('admin.statistik') }}" class="btn-module-cta cta-blue">
                     <span>Buka Halaman Statistik &amp; Rekap</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -137,8 +151,8 @@
     <!-- Ringkasan Aktivitas Terkini -->
     <div class="recent-box-card">
         <div class="rbc-header">
-            <h3>📋 Aduan Terkini Memerlukan Tindakan Admin</h3>
-            <a href="{{ route('admin.validasi') }}" style="font-size: 13px; font-weight: 700; color: #2563eb;">Lihat Semua di Halaman Validasi →</a>
+            <h3>Aduan Terkini Memerlukan Tindakan Admin</h3>
+            <a href="{{ route('admin.validasi') }}" style="font-size: 13px; font-weight: 700; color: #2563eb;">Lihat Semua di Halaman Validasi</a>
         </div>
         <div class="recent-list" id="dashRecentList">
             <!-- Disuntikkan via JS -->
@@ -154,16 +168,17 @@
 }
 
 .admin-header-card {
-    background: linear-gradient(135deg, #1e1b4b 0%, #1e3a8a 60%, #2563eb 100%);
-    border-radius: 20px;
-    padding: 32px clamp(20px, 4vw, 40px);
+    background-color: #1e3a8a;
+    border: 1px solid #1e40af;
+    border-radius: 14px;
+    padding: 28px clamp(20px, 3.5vw, 36px);
     color: #fff;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 20px;
     margin-bottom: 24px;
-    box-shadow: 0 15px 35px -10px rgba(30, 58, 138, 0.35);
+    box-shadow: var(--shadow-card);
     flex-wrap: wrap;
 }
 .ahc-badge {
@@ -189,143 +204,137 @@
     max-width: 680px;
     margin: 0;
 }
-.admin-quick-links { display: flex; gap: 10px; flex-wrap: wrap; }
+.admin-quick-links { display: flex; gap: 8px; flex-wrap: wrap; }
 .aql-btn {
-    padding: 10px 16px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.24);
     color: #fff;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     text-decoration: none;
-    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
 }
 .aql-btn:hover {
-    background: rgba(255, 255, 255, 0.28);
-    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.24);
 }
 .aql-btn-highlight {
     background: #ffffff;
-    color: #1e3a8a;
+    color: #1e40af;
     border-color: #ffffff;
+    font-weight: 700;
 }
 .aql-btn-highlight:hover {
-    background: #f1f5f9;
-    color: #0f2d59;
+    background: #eff6ff;
+    color: #1e3a8a;
 }
 
 /* KPI Cards */
 .admin-kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     gap: 16px;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
 }
 .kpi-card {
     background: #fff;
-    border: 1.5px solid var(--border-soft);
-    border-radius: 16px;
-    padding: 18px 20px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 16px 18px;
     display: flex;
     align-items: center;
     gap: 14px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: var(--shadow-sm);
     text-decoration: none;
     color: inherit;
-    transition: all 0.2s ease;
+    transition: border-color 0.15s ease;
 }
 .kpi-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-    border-color: #93c5fd;
+    border-color: #2563eb;
 }
 .kpi-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
     flex-shrink: 0;
 }
 .card-total .kpi-icon    { background: #eff6ff; }
-.card-pending .kpi-icon  { background: #fef3c7; }
-.card-approved .kpi-icon { background: #dcfce7; }
-.card-rejected .kpi-icon { background: #fee2e2; }
+.card-pending .kpi-icon  { background: #eff6ff; }
+.card-approved .kpi-icon { background: #dbeafe; }
+.card-rejected .kpi-icon { background: #f8fafc; }
 
 .kpi-body { flex: 1; }
-.kpi-card h3 { font-size: 12.5px; font-weight: 700; color: var(--text-muted); margin: 0 0 2px; }
-.kpi-num { font-size: 26px; font-weight: 800; color: var(--text-heading); display: block; line-height: 1.1; }
+.kpi-card h3 { font-size: 12px; font-weight: 600; color: var(--text-muted); margin: 0 0 2px; }
+.kpi-num { font-size: 24px; font-weight: 800; color: var(--text-heading); display: block; line-height: 1.1; }
 .kpi-sub { font-size: 11px; color: var(--primary-600); font-weight: 600; margin-top: 2px; display: block; }
 
 /* Modules Grid */
 .section-title {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 800;
     color: var(--text-heading);
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 .admin-modules-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    gap: 20px;
-    margin-bottom: 32px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 18px;
+    margin-bottom: 28px;
 }
 .module-card {
     background: #ffffff;
-    border: 1.5px solid var(--border-soft);
-    border-radius: 20px;
-    padding: 26px;
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    padding: 22px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
-    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.15s ease;
 }
 .module-card:hover {
-    border-color: #93c5fd;
-    transform: translateY(-3px);
-    box-shadow: 0 10px 28px rgba(30, 58, 138, 0.08);
+    border-color: #2563eb;
 }
 .mc-icon-badge {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 26px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
-.icon-red    { background: #fee2e2; }
-.icon-blue   { background: #dbeafe; }
-.icon-purple { background: #ede9fe; }
+.icon-blue { background: #eff6ff; }
 
 .mc-tag {
     display: inline-block;
-    padding: 3px 9px;
+    padding: 3px 8px;
     border-radius: 6px;
     font-size: 10.5px;
-    font-weight: 800;
-    letter-spacing: 0.05em;
+    font-weight: 700;
+    letter-spacing: 0.04em;
     margin-bottom: 8px;
 }
-.tag-amber  { background: #fef3c7; color: #b45309; }
-.tag-blue   { background: #eff6ff; color: #1d4ed8; }
-.tag-purple { background: #f5f3ff; color: #6d28d9; }
+.tag-blue { background: #eff6ff; color: #1e40af; }
 
 .mc-content h3 {
-    font-size: 18px;
-    font-weight: 800;
+    font-size: 16.5px;
+    font-weight: 700;
     color: var(--text-heading);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 .mc-content p {
     font-size: 13.5px;
-    color: var(--text-body);
-    line-height: 1.5;
+    color: var(--text-muted);
+    line-height: 1.55;
     margin-bottom: 14px;
 }
 .mc-features-list {
@@ -334,26 +343,26 @@
     gap: 6px;
     font-size: 12.5px;
     color: var(--text-muted);
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 .btn-module-cta {
     display: inline-flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: 12px 18px;
-    border-radius: 12px;
-    font-size: 13.5px;
+    height: 42px;
+    padding: 0 16px;
+    border-radius: 8px;
+    font-size: 13px;
     font-weight: 700;
     text-decoration: none;
     color: #ffffff;
-    transition: all 0.2s ease;
+    background-color: #2563eb;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
 }
-.cta-red    { background: linear-gradient(135deg, #dc2626, #b91c1c); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25); }
-.cta-blue   { background: linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
-.cta-purple { background: linear-gradient(135deg, #7c3aed, #6d28d9); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25); }
-.btn-module-cta:hover { transform: translateY(-2px); filter: brightness(1.08); }
-.btn-module-cta svg { width: 18px; height: 18px; }
+.btn-module-cta:hover { background-color: #1e40af; }
+.btn-module-cta svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 /* Recent List */
 .recent-box-card {
@@ -388,13 +397,16 @@
 .recent-sub { font-size: 12px; color: #64748b; }
 .recent-action-btn {
     padding: 6px 12px;
-    background: #dcfce7;
-    color: #15803d;
-    border: 1px solid #bbf7d0;
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #dbeafe;
     border-radius: 7px;
     font-size: 12px;
     font-weight: 700;
     text-decoration: none;
+}
+.recent-action-btn:hover {
+    background: #dbeafe;
 }
 </style>
 
@@ -502,21 +514,20 @@
                     listEl.innerHTML = reportsRes.data.slice(0, 4).map(r => `
                         <div class="recent-item">
                             <div class="recent-left">
-                                <span class="recent-icon">⏳</span>
                                 <div>
                                     <div class="recent-title">${r.report_code} · ${r.category}</div>
-                                    <div class="recent-sub">📍 ${r.address || '-'} · <span title="${formatFullDateTime(r.incident_at)}">${timeAgo(r.incident_at)}</span></div>
+                                    <div class="recent-sub">${r.address || '-'} · <span title="${formatFullDateTime(r.incident_at)}">${timeAgo(r.incident_at)}</span></div>
                                 </div>
                             </div>
                             <a href="{{ route('admin.validasi') }}?code=${r.report_code}" class="recent-action-btn">
-                                ⚖️ Validasi Sekarang
+                                Validasi Sekarang
                             </a>
                         </div>
                     `).join('');
                 } else {
                     listEl.innerHTML = `
-                        <div style="text-align:center; padding: 18px; color: #16a34a; font-weight: 700;">
-                            ✓ Semua laporan telah selesai dimoderasi. Tidak ada aduan yang tertunda.
+                        <div style="text-align:center; padding: 18px; color: #64748b; font-weight: 600;">
+                            Semua laporan telah selesai dimoderasi. Tidak ada aduan yang tertunda.
                         </div>
                     `;
                 }

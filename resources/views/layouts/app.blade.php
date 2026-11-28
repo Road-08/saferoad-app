@@ -16,12 +16,13 @@
 
     <style>
         :root {
-            /* Tema Biru SafeRoad */
-            --primary-900: #0f2d59;
-            --primary-800: #1e3a8a;
-            --primary-700: #1d4ed8;
+            /* Standarisasi Monochromatic Blue Palette SafeRoad */
+            --primary-900: #1e3a8a;
+            --primary-800: #1e40af;
+            --primary-700: #1e40af;
             --primary-600: #2563eb;
             --primary-500: #3b82f6;
+            --primary-200: #bfdbfe;
             --primary-100: #dbeafe;
             --primary-50:  #eff6ff;
 
@@ -29,24 +30,24 @@
             --bg-canvas: #f8fafc;
             --bg-card: #ffffff;
             --text-heading: #0f172a;
-            --text-body: #334155;
+            --text-body: #0f172a;
             --text-muted: #64748b;
             --border-soft: #e2e8f0;
 
-            /* Status & Peringatan */
-            --success-600: #16a34a;
-            --success-100: #dcfce7;
-            --success-50:  #f0fdf4;
+            /* Status & Peringatan (Merah khusus bahaya/darurat, lainnya biru/netral) */
+            --success-600: #2563eb;
+            --success-100: #dbeafe;
+            --success-50:  #eff6ff;
             --danger-600:  #dc2626;
             --danger-100:  #fee2e2;
             --danger-50:   #fef2f2;
-            --warning-500: #f59e0b;
-            --warning-100: #fef3c7;
+            --warning-500: #64748b;
+            --warning-100: #f1f5f9;
 
-            /* Efek Bayangan */
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-            --shadow-card: 0 10px 25px -5px rgba(30, 58, 138, 0.05), 0 0 0 1px rgba(226, 232, 240, 0.8);
-            --shadow-btn: 0 4px 14px 0 rgba(37, 99, 235, 0.28);
+            /* Efek Bayangan Minimalis & Natural */
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+            --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.05);
+            --shadow-btn: 0 1px 2px rgba(37, 99, 235, 0.12);
         }
 
         * {
@@ -64,7 +65,7 @@
             min-height: 100vh;
             background-color: var(--bg-canvas);
             color: var(--text-body);
-            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             -webkit-font-smoothing: antialiased;
             line-height: 1.5;
             display: flex;
@@ -80,53 +81,66 @@
             font-family: inherit;
         }
 
+        /* Standarisasi Ukuran Ikon SVG pada Tombol & Link Aksi */
+        button svg,
+        a[class*="btn"] svg,
+        .btn-create-report svg,
+        .btn-primary-action svg,
+        .back-link svg,
+        .btn-back-dash svg,
+        .btn-back-link svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
         /* ====================================================
-           NAVBAR UTAMA (Header Biru SafeRoad)
+           NAVBAR UTAMA (Clean Minimalist Blue Identity)
            ==================================================== */
         .topbar {
-            height: 72px;
+            height: 68px;
             background-color: #ffffff;
             border-bottom: 1px solid var(--border-soft);
-            padding: 0 clamp(20px, 5vw, 64px);
+            padding: 0 clamp(20px, 4vw, 48px);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 16px;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: var(--shadow-sm);
         }
 
         .brand-link {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 20px;
+            gap: 10px;
+            font-size: 19px;
             font-weight: 800;
-            letter-spacing: -0.03em;
-            color: var(--primary-900);
+            letter-spacing: -0.025em;
+            color: var(--text-heading);
+            flex-shrink: 0;
         }
 
         .brand-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 11px;
-            background: linear-gradient(135deg, var(--primary-600), var(--primary-800));
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            background-color: var(--primary-600);
             display: grid;
             place-items: center;
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
         }
 
         .brand-icon svg {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
         }
 
         .nav-center-menu {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             overflow-x: auto;
             max-width: 100%;
             -webkit-overflow-scrolling: touch;
@@ -140,24 +154,27 @@
         .nav-role-group {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             flex-wrap: nowrap;
         }
 
         .nav-link-pill {
-            padding: 8px 14px;
+            padding: 7px 13px;
             border-radius: 8px;
             font-size: 13.5px;
             font-weight: 600;
-            color: var(--text-body);
-            transition: all 0.15s ease;
+            color: var(--text-muted);
+            transition: background-color 0.15s ease, color 0.15s ease;
             white-space: nowrap;
             flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .nav-link-pill:hover {
-            background-color: var(--primary-50);
-            color: var(--primary-700);
+            background-color: #f1f5f9;
+            color: var(--text-heading);
         }
 
         .nav-link-pill.active {
@@ -166,52 +183,68 @@
             font-weight: 700;
         }
 
+        .nav-link-pill.nav-link-danger {
+            color: var(--danger-600);
+            background-color: var(--danger-50);
+        }
+
+        .nav-link-pill.nav-link-danger:hover {
+            background-color: var(--danger-100);
+            color: #b91c1c;
+        }
+
+        .nav-link-pill.nav-link-danger.active {
+            background-color: var(--danger-600);
+            color: #ffffff;
+        }
+
         .top-user-actions {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 10px;
+            flex-shrink: 0;
         }
 
         .user-pill {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 6px 12px 6px 6px;
-            background-color: var(--primary-50);
-            border: 1px solid var(--primary-100);
+            gap: 8px;
+            padding: 4px 12px 4px 5px;
+            background-color: #f8fafc;
+            border: 1px solid var(--border-soft);
             border-radius: 9999px;
         }
 
         .avatar-circle {
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background-color: var(--primary-600);
             color: #ffffff;
             display: grid;
             place-items: center;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
         }
 
         .user-name-text {
             font-size: 13px;
-            font-weight: 700;
-            color: var(--primary-900);
-            max-width: 150px;
+            font-weight: 600;
+            color: var(--text-heading);
+            max-width: 140px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
         .btn-logout {
-            padding: 8px 16px;
-            border-radius: 9px;
+            padding: 7px 13px;
+            border-radius: 8px;
             border: 1px solid var(--border-soft);
             background-color: #ffffff;
-            color: var(--danger-600);
+            color: var(--text-body);
             font-size: 13px;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease;
             display: inline-flex;
@@ -220,8 +253,9 @@
         }
 
         .btn-logout:hover {
-            background-color: #fef2f2;
+            background-color: var(--danger-50);
             border-color: #fecaca;
+            color: var(--danger-600);
         }
 
         .btn-logout svg {
@@ -239,7 +273,7 @@
         .global-footer {
             background-color: #ffffff;
             border-top: 1px solid var(--border-soft);
-            padding: 24px clamp(20px, 5vw, 64px);
+            padding: 20px clamp(20px, 4vw, 48px);
             font-size: 13px;
             color: var(--text-muted);
             display: flex;
@@ -259,40 +293,39 @@
 
             .global-footer {
                 flex-direction: column;
-                gap: 10px;
+                gap: 8px;
                 text-align: center;
-                padding-bottom: 90px; /* Ruang untuk bottom nav */
+                padding-bottom: 88px;
             }
         }
 
-        /* Badge Role Pengguna Aktif (Berdasarkan Login di Awal) */
+        /* Badge Role Pengguna Aktif */
         .active-role-badge {
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            padding: 6px 14px;
+            gap: 6px;
+            padding: 5px 11px;
             font-size: 12px;
-            font-weight: 700;
+            font-weight: 600;
             border-radius: 999px;
-            background: #eff6ff;
-            color: #1e40af;
-            border: 1px solid #bfdbfe;
-            letter-spacing: 0.02em;
+            background: var(--primary-50);
+            color: var(--primary-700);
+            border: 1px solid var(--primary-100);
             user-select: none;
         }
         .active-role-badge.role-badge-keamanan {
-            background: #f0fdf4;
-            color: #166534;
-            border-color: #bbf7d0;
+            background: #eff6ff;
+            color: #1e40af;
+            border-color: #dbeafe;
         }
         .active-role-badge.role-badge-admin {
-            background: #f5f3ff;
-            color: #4338ca;
-            border-color: #ddd6fe;
+            background: #eff6ff;
+            color: #1e40af;
+            border-color: #dbeafe;
         }
         .role-badge-dot {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background-color: currentColor;
         }
@@ -300,47 +333,40 @@
         /* Floating SOS Button */
         .floating-sos-btn {
             position: fixed;
-            bottom: 30px;
+            bottom: 28px;
             right: 24px;
             z-index: 1050;
-            background: linear-gradient(135deg, #dc2626, #991b1b);
+            background-color: var(--danger-600);
             color: #ffffff;
-            padding: 12px 20px;
+            padding: 10px 18px;
             border-radius: 9999px;
-            font-size: 13.5px;
-            font-weight: 800;
-            border: 2px solid #ffffff;
-            box-shadow: 0 8px 24px -4px rgba(220, 38, 38, 0.45);
+            font-size: 13px;
+            font-weight: 700;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.28);
             display: inline-flex;
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.15s ease, transform 0.15s ease;
             text-decoration: none;
         }
         .floating-sos-btn:hover {
-            transform: translateY(-2px) scale(1.03);
-            box-shadow: 0 12px 28px -4px rgba(220, 38, 38, 0.6);
+            background-color: #b91c1c;
+            transform: translateY(-1px);
             color: #fff;
         }
         .sos-pulse-ring {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background-color: #ffffff;
-            box-shadow: 0 0 8px #ffffff;
-            animation: pulseSos 1.5s infinite;
-        }
-        @keyframes pulseSos {
-            0% { transform: scale(0.9); opacity: 0.7; }
-            50% { transform: scale(1.3); opacity: 1; }
-            100% { transform: scale(0.9); opacity: 0.7; }
         }
         @media (max-width: 768px) {
             .floating-sos-btn {
                 bottom: 80px;
                 right: 16px;
-                padding: 10px 16px;
+                padding: 9px 15px;
                 font-size: 12px;
             }
         }
@@ -375,36 +401,36 @@
             @if($currentRole === 'admin')
                 {{-- Navigasi Role: Administrator --}}
                 <div id="navGroupAdmin" class="nav-role-group">
-                    <a href="{{ route('admin.dashboard') }}" class="nav-link-pill {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" style="{{ request()->routeIs('admin.dashboard') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
-                        ⚡ Dashboard
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link-pill {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                        Dashboard
                     </a>
-                    <a href="{{ route('admin.validasi') }}" class="nav-link-pill {{ request()->routeIs('admin.validasi') ? 'active' : '' }}" style="{{ request()->routeIs('admin.validasi') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
-                        ⚖️ Validasi Laporan
-                        <span id="navBadgePendingValidation" style="display:none; background:#f59e0b; color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:999px; margin-left:4px;" title="Menunggu Validasi">0</span>
-                        <span id="navBadgeReadyToFinalize" style="display:none; background:#10b981; color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:999px; margin-left:4px;" title="Siap Difinalisasi">0</span>
+                    <a href="{{ route('admin.validasi') }}" class="nav-link-pill {{ request()->routeIs('admin.validasi') ? 'active' : '' }}">
+                        Validasi Laporan
+                        <span id="navBadgePendingValidation" style="display:none; background:#2563eb; color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px;" title="Menunggu Validasi">0</span>
+                        <span id="navBadgeReadyToFinalize" style="display:none; background:#1e40af; color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px;" title="Siap Difinalisasi">0</span>
                     </a>
-                    <a href="{{ route('admin.peta') }}" class="nav-link-pill {{ request()->routeIs('admin.peta') ? 'active' : '' }}" style="{{ request()->routeIs('admin.peta') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
-                        🗺️ Pantau Peta
+                    <a href="{{ route('admin.peta') }}" class="nav-link-pill {{ request()->routeIs('admin.peta') ? 'active' : '' }}">
+                        Pantau Peta
                     </a>
-                    <a href="{{ route('admin.statistik') }}" class="nav-link-pill {{ request()->routeIs('admin.statistik') ? 'active' : '' }}" style="{{ request()->routeIs('admin.statistik') ? 'background-color: #312e81; color: #fff; font-weight: 700;' : '' }}">
-                        📊 Statistik &amp; Rekap
+                    <a href="{{ route('admin.statistik') }}" class="nav-link-pill {{ request()->routeIs('admin.statistik') ? 'active' : '' }}">
+                        Statistik &amp; Rekap
                     </a>
-                    <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
-                        🚨 Pengaturan Darurat
+                    <a href="{{ url('/darurat') }}" class="nav-link-pill nav-link-danger {{ request()->is('darurat*') ? 'active' : '' }}">
+                        Pengaturan Darurat
                     </a>
                 </div>
             @elseif($currentRole === 'keamanan')
                 {{-- Navigasi Role: Petugas Keamanan --}}
                 <div id="navGroupKeamanan" class="nav-role-group">
-                    <a href="{{ route('keamanan.dashboard') }}" class="nav-link-pill {{ request()->is('keamanan*') ? 'active' : '' }}" style="background-color: #0f2d59; color: #fff; font-weight: 700;">
-                        🛡️ Dashboard Keamanan
+                    <a href="{{ route('keamanan.dashboard') }}" class="nav-link-pill {{ request()->is('keamanan*') ? 'active' : '' }}">
+                        Dashboard Keamanan
                     </a>
                     <a href="{{ route('keamanan.dashboard') }}#tabelAduan" class="nav-link-pill">
-                        📋 Laporan Masuk &amp; TKP
-                        <span id="navBadgeKeamananUnconfirmed" style="display:none; background:#f59e0b; color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:999px; margin-left:4px;" title="Belum Diperiksa">0</span>
+                        Laporan Masuk &amp; TKP
+                        <span id="navBadgeKeamananUnconfirmed" style="display:none; background:#2563eb; color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px;" title="Belum Diperiksa">0</span>
                     </a>
-                    <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
-                        🚨 Hotline Siaga
+                    <a href="{{ url('/darurat') }}" class="nav-link-pill nav-link-danger {{ request()->is('darurat*') ? 'active' : '' }}">
+                        Hotline Siaga
                     </a>
                 </div>
             @else
@@ -427,8 +453,8 @@
                         Riwayat
                     </a>
 
-                    <a href="{{ url('/darurat') }}" class="nav-link-pill {{ request()->is('darurat*') ? 'active' : '' }}" style="color: {{ request()->is('darurat*') ? '#fff' : '#dc2626' }}; background-color: {{ request()->is('darurat*') ? '#dc2626' : 'rgba(254, 226, 226, 0.5)' }}; font-weight: 700;">
-                        🚨 Darurat
+                    <a href="{{ url('/darurat') }}" class="nav-link-pill nav-link-danger {{ request()->is('darurat*') ? 'active' : '' }}">
+                        Darurat
                     </a>
 
                     @auth
@@ -445,17 +471,17 @@
             @if($currentRole === 'admin')
                 <div class="active-role-badge role-badge-admin" id="topActiveRoleBadge" title="Role Anda: Administrator">
                     <span class="role-badge-dot"></span>
-                    <span id="topActiveRoleText">⚡ Administrator</span>
+                    <span id="topActiveRoleText">Administrator</span>
                 </div>
             @elseif($currentRole === 'keamanan')
                 <div class="active-role-badge role-badge-keamanan" id="topActiveRoleBadge" title="Role Anda: Petugas Keamanan">
                     <span class="role-badge-dot"></span>
-                    <span id="topActiveRoleText">🛡️ Petugas Keamanan</span>
+                    <span id="topActiveRoleText">Petugas Keamanan</span>
                 </div>
             @else
                 <div class="active-role-badge role-badge-masyarakat" id="topActiveRoleBadge" title="Role Anda: Masyarakat">
                     <span class="role-badge-dot"></span>
-                    <span id="topActiveRoleText">👤 Masyarakat</span>
+                    <span id="topActiveRoleText">Masyarakat</span>
                 </div>
             @endif
 
@@ -497,14 +523,14 @@
             © {{ date('Y') }} SafeRoad Indonesia · Sistem Navigasi Keamanan Perjalanan
         </div>
         <div>
-            Pusat Bantuan & Respon Darurat: <strong>112</strong>
+            Pusat Bantuan &amp; Respon Darurat: <strong>112</strong>
         </div>
     </footer>
 
     <!-- Floating Quick SOS Button (Global) -->
     <a href="{{ url('/darurat') }}" class="floating-sos-btn" id="btnFloatingSos" title="Panggilan Darurat Cepat SafeRoad">
         <span class="sos-pulse-ring"></span>
-        <span>🚨 SOS DARURAT</span>
+        <span>SOS DARURAT</span>
     </a>
 
     <script>
