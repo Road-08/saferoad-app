@@ -28,6 +28,9 @@ class SecurityReport extends Model
         'is_simulation',
         'is_anonymous',
         'admin_note',
+        'photo_path',
+        'inspection_status',
+        'inspection_evidence',
         'forwarded_at',
         'forwarded_by',
         'inspection_note',
@@ -76,6 +79,31 @@ class SecurityReport extends Model
     public function flags(): HasMany
     {
         return $this->hasMany(SuspiciousReportFlag::class);
+    }
+
+    public function scoreLogs(): HasMany
+    {
+        return $this->hasMany(SafetyScoreLog::class, 'security_report_id')->latest();
+    }
+
+    public function inspectionStatusEnum(): \App\Enums\InspectionStatus
+    {
+        return \App\Enums\InspectionStatus::normalize($this->inspection_status);
+    }
+
+    public function inspectionStatusLabel(): string
+    {
+        return $this->inspectionStatusEnum()->label();
+    }
+
+    public function photoUrl(): ?string
+    {
+        return $this->photo_path ? asset('storage/' . $this->photo_path) : null;
+    }
+
+    public function inspectionEvidenceUrl(): ?string
+    {
+        return $this->inspection_evidence ? asset('storage/' . $this->inspection_evidence) : null;
     }
 
     public function statusEnum(): ?ReportStatus

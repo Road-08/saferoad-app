@@ -85,6 +85,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/counts', [KeamananReportController::class, 'counts'])->name('counts');
         Route::get('/{report}', [KeamananReportController::class, 'show'])->whereNumber('report')->name('show');
         Route::post('/{report}/confirm', [KeamananReportController::class, 'confirm'])->whereNumber('report')->name('confirm');
+        Route::post('/{report}/status', [KeamananReportController::class, 'updateStatus'])->whereNumber('report')->name('status');
     });
 
     // Area Khusus Role Keamanan

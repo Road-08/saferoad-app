@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\DangerZone;
+use App\Services\SafetyScoreService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -38,6 +39,25 @@ class AdminDangerZoneController extends Controller
         ]);
 
         $zone = DangerZone::create($validated);
+
+        try {
+            $scoreService = app(SafetyScoreService::class);
+            $areaScore = $scoreService->calculateAreaScore((float) $zone->latitude, (float) $zone->longitude);
+            $scoreService->recordScoreChange(
+                targetType: 'area',
+                targetIdentifier: "{$zone->latitude},{$zone->longitude}",
+                scoreBefore: min(100, $areaScore['score'] + 10),
+                scoreAfter: (float) $areaScore['score'],
+                triggerEvent: 'danger_zone_added',
+                actorId: $request->user()?->id,
+                actorRole: 'admin',
+                details: ['danger_zone_id' => $zone->id, 'level' => $zone->danger_level],
+                latitude: (float) $zone->latitude,
+                longitude: (float) $zone->longitude
+            );
+        } catch (\Throwable $e) {
+            // Ignore
+        }
 
         return response()->json([
             'success' => true,

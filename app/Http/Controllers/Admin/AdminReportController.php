@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\InspectionStatus;
 use App\Enums\ReportStatus;
 use App\Http\Controllers\Controller;
 use App\Models\SecurityReport;
+use App\Services\SafetyScoreService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -230,6 +232,8 @@ class AdminReportController extends Controller
 
         $report->update([
             'status' => ReportStatus::REJECTED->value,
+            'validation_status' => 'rejected',
+            'inspection_status' => InspectionStatus::UNPROVEN->value,
             'admin_note' => $reason,
         ]);
 
@@ -239,6 +243,17 @@ class AdminReportController extends Controller
             'actor_id' => $request->user()->id,
             'actor_role' => 'admin',
         ]);
+
+        try {
+            app(SafetyScoreService::class)->recalculateAreaForReport(
+                $report,
+                'report_rejected',
+                $request->user()->id,
+                'admin'
+            );
+        } catch (\Throwable $e) {
+            // Ignore
+        }
 
         return response()->json([
             'success' => true,
@@ -261,6 +276,8 @@ class AdminReportController extends Controller
 
         $report->update([
             'status' => ReportStatus::HANDLED->value,
+            'validation_status' => 'verified',
+            'inspection_status' => InspectionStatus::HANDLED->value,
             'handled_at' => now(),
         ]);
 
@@ -270,6 +287,17 @@ class AdminReportController extends Controller
             'actor_id' => $request->user()->id,
             'actor_role' => 'admin',
         ]);
+
+        try {
+            app(SafetyScoreService::class)->recalculateAreaForReport(
+                $report,
+                'report_handled',
+                $request->user()->id,
+                'admin'
+            );
+        } catch (\Throwable $e) {
+            // Ignore
+        }
 
         return response()->json([
             'success' => true,

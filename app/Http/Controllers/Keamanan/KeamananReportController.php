@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Keamanan;
 
+use App\Enums\InspectionStatus;
 use App\Enums\ReportStatus;
 use App\Http\Controllers\Controller;
 use App\Models\SecurityReport;
+use App\Services\SafetyScoreService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class KeamananReportController extends Controller
 {
@@ -39,6 +42,10 @@ class KeamananReportController extends Controller
             'longitude' => $report->longitude,
             'status' => $report->status,
             'status_label' => $report->statusLabel(),
+            'inspection_status' => $report->inspection_status,
+            'inspection_status_label' => $report->inspectionStatusLabel(),
+            'photo_url' => $report->photoUrl(),
+            'inspection_evidence_url' => $report->inspectionEvidenceUrl(),
             'admin_note' => $report->admin_note,
             'forwarded_at' => $report->forwarded_at?->toIso8601String(),
             'forwarded_by_name' => $report->forwardedBy?->name,
@@ -168,11 +175,30 @@ class KeamananReportController extends Controller
             'inspection_note' => 'required|string|max:1000',
             'needs_action' => 'required|boolean',
             'action_note' => 'required_if:needs_action,true,1|nullable|string|max:1000',
+            'inspection_status' => 'nullable|string',
+            'evidence' => 'nullable|image|max:5120',
         ], [
             'inspection_note.required' => 'Catatan pemeriksaan wajib diisi.',
             'needs_action.required' => 'Pilihan perlu tindakan lapangan wajib ditentukan.',
             'action_note.required_if' => 'Catatan tindakan wajib diisi jika memerlukan tindakan lapangan.',
+            'evidence.image' => 'File bukti pemeriksaan harus berupa gambar.',
         ]);
+
+        $evidencePath = $report->inspection_evidence;
+        if ($request->hasFile('evidence')) {
+            $evidencePath = $request->file('evidence')->store('inspections', 'public');
+        }
+
+        $inspectionStatus = $request->filled('inspection_status')
+            ? InspectionStatus::normalize($request->input('inspection_status'))
+            : InspectionStatus::VERIFIED_TRUE;
+
+        // Sinkronisasi status validasi
+        $validationStatus = match ($inspectionStatus) {
+            InspectionStatus::VERIFIED_TRUE => 'verified',
+            InspectionStatus::UNPROVEN => 'rejected',
+            default => $report->validation_status ?? 'pending',
+        };
 
         $report->update([
             'inspection_note' => $validated['inspection_note'],
@@ -180,10 +206,13 @@ class KeamananReportController extends Controller
             'action_note' => $validated['action_note'] ?? null,
             'inspected_by' => $request->user()->id,
             'security_confirmed_at' => now(),
+            'inspection_status' => $inspectionStatus->value,
+            'validation_status' => $validationStatus,
+            'inspection_evidence' => $evidencePath,
         ]);
 
         $officerName = $request->user()->name ?? 'Petugas Keamanan';
-        $note = "Pemeriksaan selesai oleh {$officerName}: {$validated['inspection_note']}";
+        $note = "Pemeriksaan selesai ({$inspectionStatus->label()}) oleh {$officerName}: {$validated['inspection_note']}";
         if ($validated['needs_action']) {
             $note .= " | Tindakan: " . ($validated['action_note'] ?? '-');
         }
@@ -195,10 +224,108 @@ class KeamananReportController extends Controller
             'actor_role' => 'keamanan',
         ]);
 
+        // Perhitungan Ulang Dynamic Safety Score & Simpan Log Audit
+        try {
+            app(SafetyScoreService::class)->recalculateAreaForReport(
+                $report,
+                'report_' . $inspectionStatus->value,
+                $request->user()->id,
+                'keamanan'
+            );
+        } catch (\Throwable $e) {
+            // Ignore error
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Hasil pemeriksaan berhasil dikonfirmasi dan dikirim ke admin.',
             'data' => $this->formatReport($report->fresh(['user', 'forwardedBy', 'inspectedBy', 'histories.actor']), true),
+        ]);
+    }
+
+    /**
+     * Memperbarui status pemeriksaan laporan secara dinamis (mendukung 6 status pemeriksaan).
+     * POST /keamanan/data/reports/{report}/status atau POST /api/keamanan/reports/{report}/status
+     */
+    public function updateStatus(Request $request, SecurityReport $report): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => 'required|string',
+            'inspection_note' => 'nullable|string|max:1000',
+            'note' => 'nullable|string|max:1000',
+            'needs_action' => 'nullable|boolean',
+            'action_note' => 'nullable|string|max:1000',
+            'evidence' => 'nullable|image|max:5120',
+        ]);
+
+        $newInspectionStatus = InspectionStatus::normalize($validated['status']);
+        $note = $validated['inspection_note'] ?? $validated['note'] ?? "Pembaruan status pemeriksaan menjadi {$newInspectionStatus->label()}";
+
+        $evidencePath = $report->inspection_evidence;
+        if ($request->hasFile('evidence')) {
+            $evidencePath = $request->file('evidence')->store('inspections', 'public');
+        }
+
+        // Penyesuaian status utama & status validasi untuk kompatibilitas tampilan admin/masyarakat
+        $mainStatus = $report->status;
+        $validationStatus = $report->validation_status;
+
+        if ($newInspectionStatus === InspectionStatus::HANDLED || $newInspectionStatus === InspectionStatus::SAFE_CONDITION) {
+            $mainStatus = ReportStatus::HANDLED->value;
+            $validationStatus = 'verified';
+        } elseif ($newInspectionStatus === InspectionStatus::VERIFIED_TRUE) {
+            $validationStatus = 'verified';
+        } elseif ($newInspectionStatus === InspectionStatus::UNPROVEN) {
+            $validationStatus = 'rejected';
+        } elseif ($newInspectionStatus === InspectionStatus::UNDER_INVESTIGATION) {
+            if ($mainStatus === ReportStatus::PENDING_VALIDATION->value) {
+                $mainStatus = ReportStatus::FORWARDED_TO_SECURITY->value;
+            }
+        }
+
+        $report->update([
+            'inspection_status' => $newInspectionStatus->value,
+            'status' => $mainStatus,
+            'validation_status' => $validationStatus,
+            'inspected_by' => $request->user()->id,
+            'security_confirmed_at' => $report->security_confirmed_at ?? now(),
+            'inspection_note' => $note,
+            'needs_action' => isset($validated['needs_action']) ? (bool) $validated['needs_action'] : $report->needs_action,
+            'action_note' => $validated['action_note'] ?? $report->action_note,
+            'inspection_evidence' => $evidencePath,
+            'handled_at' => ($newInspectionStatus === InspectionStatus::HANDLED || $newInspectionStatus === InspectionStatus::SAFE_CONDITION)
+                ? ($report->handled_at ?? now())
+                : $report->handled_at,
+        ]);
+
+        $officerName = $request->user()->name ?? 'Petugas Keamanan';
+        $historyNote = "Status diubah menjadi '{$newInspectionStatus->label()}' oleh {$officerName}: {$note}";
+
+        $report->histories()->create([
+            'status' => $mainStatus,
+            'note' => $historyNote,
+            'actor_id' => $request->user()->id,
+            'actor_role' => 'keamanan',
+        ]);
+
+        // Perhitungan Ulang Dynamic Safety Score & Simpan Log Audit
+        $auditLog = null;
+        try {
+            $auditLog = app(SafetyScoreService::class)->recalculateAreaForReport(
+                $report,
+                'status_' . $newInspectionStatus->value,
+                $request->user()->id,
+                'keamanan'
+            );
+        } catch (\Throwable $e) {
+            // Ignore error
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Status pemeriksaan berhasil diperbarui menjadi {$newInspectionStatus->label()}.",
+            'data' => $this->formatReport($report->fresh(['user', 'forwardedBy', 'inspectedBy', 'histories.actor']), true),
+            'audit_log' => $auditLog,
         ]);
     }
 

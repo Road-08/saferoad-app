@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\InspectionStatus;
 use App\Models\DangerZone;
 use App\Models\EnvironmentalCondition;
 use App\Models\SafetyFacility;
@@ -174,9 +175,11 @@ class RouteSafetyService
             $womenPendingCount = 0;
             $womenWeightedPenalty = 0.0;
 
+            $locationClusters = [];
+
             foreach ($reports as $report) {
                 if (in_array($report->id, $countedReportIds, true)) {
-                    continue; // Tanpa hitung ganda
+                    continue; // Tanpa hitung ganda ID laporan
                 }
 
                 if (! $report->latitude || ! $report->longitude) {
@@ -187,9 +190,28 @@ class RouteSafetyService
                 if ($distKm <= 0.38) {
                     $countedReportIds[] = $report->id;
 
-                    // Status Validasi: Laporan pending hanya informasi sementara, tidak dihitung sebagai kejadian terverifikasi
-                    $isValidated = ($report->validation_status === 'verified')
-                        || in_array($report->status, ['officer_check', 'map_updated'], true);
+                    // Evaluasi Status Pemeriksaan Dinamis
+                    $inspectionStatus = InspectionStatus::normalize($report->inspection_status);
+                    if ($report->inspection_status === null) {
+                        if ($report->status === 'handled') {
+                            $inspectionStatus = InspectionStatus::HANDLED;
+                        } elseif ($report->validation_status === 'verified' || in_array($report->status, ['officer_check', 'map_updated'], true)) {
+                            $inspectionStatus = InspectionStatus::VERIFIED_TRUE;
+                        } elseif ($report->status === 'rejected' || $report->validation_status === 'rejected') {
+                            $inspectionStatus = InspectionStatus::UNPROVEN;
+                        } else {
+                            $inspectionStatus = InspectionStatus::WAITING_VERIFICATION;
+                        }
+                    }
+
+                    $statusRiskWeight = $inspectionStatus->riskWeight();
+
+                    // Jika laporan dinyatakan tidak terbukti atau kondisi aman, tidak ada penalti
+                    if ($statusRiskWeight <= 0.0) {
+                        continue;
+                    }
+
+                    $isValidated = ($inspectionStatus === InspectionStatus::VERIFIED_TRUE);
 
                     // Bobot Jarak Laporan dari Jalur (semakin dekat semakin besar dampaknya)
                     $distanceWeight = $distKm <= 0.15 ? 1.0 : ($distKm <= 0.25 ? 0.85 : 0.70);
@@ -215,6 +237,16 @@ class RouteSafetyService
                     $isTheft = str_contains($repText, 'curi') || str_contains($repText, 'pencurian') || str_contains($repText, 'maling') || str_contains($repText, 'copet');
                     $isRobbery = str_contains($repText, 'rampok') || str_contains($repText, 'perampokan') || str_contains($repText, 'begal') || str_contains($repText, 'penodongan');
 
+                    // Anti Double Counting untuk klaster koordinat yang persis sama
+                    $locKey = round((float) $report->latitude, 4).','.round((float) $report->longitude, 4);
+                    $clusterRepeatFactor = 1.0;
+                    if (isset($locationClusters[$locKey])) {
+                        $locationClusters[$locKey]++;
+                        $clusterRepeatFactor = 0.30; // Laporan berikutnya di titik yang sama teredam
+                    } else {
+                        $locationClusters[$locKey] = 1;
+                    }
+
                     if ($isWomenIncident) {
                         if ($isCatcalling) {
                             $catcallingCount++;
@@ -228,11 +260,12 @@ class RouteSafetyService
 
                         if ($isValidated) {
                             $womenVerifiedCount++;
-                            $typeFactor = $isHarassment ? 28 : ($isIntimidation ? 24 : 18);
-                            $womenWeightedPenalty += ($typeFactor * $severityMultiplier * $recencyWeight * $distanceWeight);
                         } else {
                             $womenPendingCount++;
                         }
+
+                        $typeFactor = $isHarassment ? 28 : ($isIntimidation ? 24 : 18);
+                        $womenWeightedPenalty += ($typeFactor * $severityMultiplier * $recencyWeight * $distanceWeight * $statusRiskWeight * $clusterRepeatFactor);
                     } else {
                         // Kriminal Umum
                         if ($isTheft) {
@@ -245,11 +278,12 @@ class RouteSafetyService
 
                         if ($isValidated) {
                             $generalVerifiedCount++;
-                            $typeFactor = $isRobbery ? 26 : ($isTheft ? 18 : 14);
-                            $generalWeightedPenalty += ($typeFactor * $severityMultiplier * $recencyWeight * $distanceWeight);
                         } else {
                             $generalPendingCount++;
                         }
+
+                        $typeFactor = $isRobbery ? 26 : ($isTheft ? 18 : 14);
+                        $generalWeightedPenalty += ($typeFactor * $severityMultiplier * $recencyWeight * $distanceWeight * $statusRiskWeight * $clusterRepeatFactor);
                     }
                 }
             }

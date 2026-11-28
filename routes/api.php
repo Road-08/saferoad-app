@@ -8,7 +8,9 @@ use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\DangerZoneApiController;
 use App\Http\Controllers\Api\RouteScoreApiController;
 use App\Http\Controllers\Api\SafetyFacilityApiController;
+use App\Http\Controllers\Api\SafetyScoreApiController;
 use App\Http\Controllers\Keamanan\IncidentFollowUpController;
+use App\Http\Controllers\Keamanan\KeamananReportController;
 use App\Http\Controllers\RouteComparisonController;
 use App\Http\Controllers\SecurityReportController;
 use App\Http\Controllers\SuspiciousReportFlagController;
@@ -31,6 +33,12 @@ Route::prefix('auth')->group(function () {
 // Route Comparison & Security Scoring (Dipanggil oleh rute.blade.php dan bandingkan.blade.php)
 Route::post('/routes/score', [RouteScoreApiController::class, 'score']);
 Route::get('/routes/compare', [RouteComparisonController::class, 'compare']);
+
+// Dynamic Safety Score API
+Route::get('/safety-score', [SafetyScoreApiController::class, 'score']);
+Route::get('/safety-score/factors', [SafetyScoreApiController::class, 'factors']);
+Route::get('/safety-score/reports', [SafetyScoreApiController::class, 'reports']);
+Route::get('/safety-score/logs', [SafetyScoreApiController::class, 'logs']);
 
 // Data Peta (CCTV, Lampu Jalan, Pos Keamanan, Titik Rawan)
 Route::get('/facilities', [SafetyFacilityApiController::class, 'index']);
@@ -107,7 +115,8 @@ Route::middleware('auth')->group(function () {
     // Role Keamanan API
     Route::middleware('role:keamanan,admin')->prefix('keamanan')->group(function () {
         Route::get('/reports', [IncidentFollowUpController::class, 'index']);
-        Route::post('/reports/{report}/follow-up', [IncidentFollowUpController::class, 'followUp']);
+        Route::post('/reports/{report}/follow-up', [IncidentFollowUpController::class, 'followUp'])->whereNumber('report');
+        Route::post('/reports/{report}/status', [KeamananReportController::class, 'updateStatus'])->whereNumber('report');
     });
 
     // Role Admin API

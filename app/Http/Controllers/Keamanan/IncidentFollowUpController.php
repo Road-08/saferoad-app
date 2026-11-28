@@ -36,13 +36,45 @@ class IncidentFollowUpController extends Controller
     }
 
     /**
-     * Petugas keamanan melakukan tindak lanjut terhadap laporan (dinonaktifkan).
+     * Petugas keamanan melakukan tindak lanjut terhadap laporan.
      */
     public function followUp(Request $request, SecurityReport $report): JsonResponse
     {
+        $validated = $request->validate([
+            'status' => 'required|string',
+            'note' => 'required|string|max:1000',
+        ]);
+
+        $statusStr = $validated['status'];
+        $report->update([
+            'status' => $statusStr,
+            'inspection_note' => $validated['note'],
+            'inspected_by' => $request->user()->id,
+            'security_confirmed_at' => now(),
+        ]);
+
+        $report->histories()->create([
+            'status' => $statusStr,
+            'note' => $validated['note'],
+            'actor_id' => $request->user()->id,
+            'actor_role' => 'keamanan',
+        ]);
+
+        try {
+            app(\App\Services\SafetyScoreService::class)->recalculateAreaForReport(
+                $report,
+                'follow_up_' . $statusStr,
+                $request->user()->id,
+                'keamanan'
+            );
+        } catch (\Throwable $e) {
+            // Ignore
+        }
+
         return response()->json([
-            'success' => false,
-            'message' => 'Tindak lanjut langsung dinonaktifkan. Silakan gunakan konfirmasi pemeriksaan petugas pada alur validasi.',
-        ], 403);
+            'success' => true,
+            'message' => 'Laporan berhasil diperbarui.',
+            'data' => $report->fresh(['histories']),
+        ]);
     }
 }

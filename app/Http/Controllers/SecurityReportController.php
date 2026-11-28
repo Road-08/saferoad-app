@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\InspectionStatus;
 use App\Enums\ReportStatus;
 use App\Models\SecurityReport;
+use App\Services\SafetyScoreService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class SecurityReportController extends Controller
@@ -103,17 +106,28 @@ class SecurityReportController extends Controller
             'incident_time' => 'nullable|date|before_or_equal:now|after:-7 days',
             'incident_at' => 'nullable|date|before_or_equal:now|after:-7 days',
             'is_anonymous' => 'nullable|boolean',
+            'photo' => 'nullable|image|max:5120',
+            'evidence' => 'nullable|image|max:5120',
         ], [
             'incident_time.before_or_equal' => 'Waktu kejadian tidak boleh di masa depan.',
             'incident_time.after' => 'Waktu kejadian maksimal 7 hari yang lalu.',
             'incident_at.before_or_equal' => 'Waktu kejadian tidak boleh di masa depan.',
             'incident_at.after' => 'Waktu kejadian maksimal 7 hari yang lalu.',
+            'photo.image' => 'File bukti foto harus berformat gambar (jpeg, png, bmp, gif, svg, atau webp).',
+            'evidence.image' => 'File bukti foto harus berformat gambar.',
         ]);
+
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('reports', 'public');
+        } elseif ($request->hasFile('evidence')) {
+            $photoPath = $request->file('evidence')->store('reports', 'public');
+        }
 
         $rawIncidentTime = $validated['incident_time'] ?? $validated['incident_at'] ?? null;
         $incidentAt = $rawIncidentTime ? Carbon::parse($rawIncidentTime) : now();
 
-        $report = DB::transaction(function () use ($validated, $request, $incidentAt) {
+        $report = DB::transaction(function () use ($validated, $request, $incidentAt, $photoPath) {
             $report = SecurityReport::create([
                 'report_code' => 'SR-' . now()->format('ymd') . '-' . Str::upper(Str::random(4)),
                 'user_id' => $request->user()->getAuthIdentifier(),
@@ -125,18 +139,35 @@ class SecurityReportController extends Controller
                 'incident_at' => $incidentAt,
                 'is_anonymous' => $request->boolean('is_anonymous'),
                 'status' => ReportStatus::PENDING_VALIDATION->value,
+                'validation_status' => 'pending',
+                'inspection_status' => InspectionStatus::WAITING_VERIFICATION->value,
+                'photo_path' => $photoPath,
             ]);
 
             // Menyimpan riwayat awal laporan
             $report->histories()->create([
                 'status' => ReportStatus::PENDING_VALIDATION->value,
-                'note' => 'Laporan berhasil dikirim dan menunggu validasi admin.',
+                'note' => 'Laporan berhasil dikirim dan menunggu validasi admin / verifikasi keamanan.',
                 'actor_id' => $request->user()->getAuthIdentifier(),
                 'actor_role' => 'masyarakat',
             ]);
 
             return $report;
         });
+
+        // Memicu perhitungan ulang Dynamic Safety Score di area terdampak
+        if ($report->latitude && $report->longitude) {
+            try {
+                app(SafetyScoreService::class)->recalculateAreaForReport(
+                    $report,
+                    'new_report',
+                    $request->user()->id,
+                    'masyarakat'
+                );
+            } catch (\Throwable $e) {
+                // Log error silently agar tidak membatalkan submit laporan
+            }
+        }
 
         $timeWib = now()->setTimezone('Asia/Jakarta')->format('H:i');
         $message = "Laporan {$report->report_code} terkirim pukul {$timeWib} WIB";
@@ -152,6 +183,9 @@ class SecurityReportController extends Controller
                     'description' => $report->description,
                     'status' => $report->status,
                     'status_label' => $report->statusLabel(),
+                    'inspection_status' => $report->inspection_status,
+                    'inspection_status_label' => $report->inspectionStatusLabel(),
+                    'photo_url' => $report->photoUrl(),
                     'incident_at' => $report->incident_at?->toIso8601String(),
                     'reported_at' => $report->created_at?->toIso8601String(),
                     'is_anonymous' => (bool) $report->is_anonymous,

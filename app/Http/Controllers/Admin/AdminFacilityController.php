@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SafetyFacility;
+use App\Services\SafetyScoreService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -38,6 +39,25 @@ class AdminFacilityController extends Controller
 
         $facility = SafetyFacility::create($validated);
 
+        try {
+            $scoreService = app(SafetyScoreService::class);
+            $areaScore = $scoreService->calculateAreaScore((float) $facility->latitude, (float) $facility->longitude);
+            $scoreService->recordScoreChange(
+                targetType: 'area',
+                targetIdentifier: "{$facility->latitude},{$facility->longitude}",
+                scoreBefore: max(0, $areaScore['score'] - 5),
+                scoreAfter: (float) $areaScore['score'],
+                triggerEvent: 'facility_added',
+                actorId: $request->user()?->id,
+                actorRole: 'admin',
+                details: ['facility_id' => $facility->id, 'type' => $facility->type],
+                latitude: (float) $facility->latitude,
+                longitude: (float) $facility->longitude
+            );
+        } catch (\Throwable $e) {
+            // Ignore
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Fasilitas keamanan berhasil ditambahkan.',
@@ -65,7 +85,34 @@ class AdminFacilityController extends Controller
             'description' => ['nullable', 'string', 'max:500'],
         ]);
 
+        $scoreBefore = null;
+        try {
+            $scoreService = app(SafetyScoreService::class);
+            $areaBefore = $scoreService->calculateAreaScore((float) $facility->latitude, (float) $facility->longitude);
+            $scoreBefore = (float) $areaBefore['score'];
+        } catch (\Throwable $e) {
+        }
+
         $facility->update($validated);
+
+        try {
+            $scoreService = app(SafetyScoreService::class);
+            $areaAfter = $scoreService->calculateAreaScore((float) $facility->latitude, (float) $facility->longitude);
+            $scoreService->recordScoreChange(
+                targetType: 'area',
+                targetIdentifier: "{$facility->latitude},{$facility->longitude}",
+                scoreBefore: $scoreBefore ?? (float) $areaAfter['score'],
+                scoreAfter: (float) $areaAfter['score'],
+                triggerEvent: 'facility_updated',
+                actorId: $request->user()?->id,
+                actorRole: 'admin',
+                details: ['facility_id' => $facility->id, 'type' => $facility->type],
+                latitude: (float) $facility->latitude,
+                longitude: (float) $facility->longitude
+            );
+        } catch (\Throwable $e) {
+            // Ignore
+        }
 
         return response()->json([
             'success' => true,
